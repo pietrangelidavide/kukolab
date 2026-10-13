@@ -4,6 +4,7 @@ import { useStore } from '../store';
 import { Btn, Field, Seg } from '../ui';
 import { logoSrc } from '../App';
 import { ERR_TEXT } from '../lib/types';
+import { siteHref } from '../config';
 
 export function Auth() {
   const s = useStore();
@@ -73,7 +74,7 @@ export function Auth() {
           <Btn type="submit" block disabled={busy}>{mode === 'in' ? 'Accedi' : 'Crea profilo'}</Btn>
           {!demo && mode === 'in' && <button type="button" className="link" onClick={forgot}>Password dimenticata?</button>}
         </form>
-        <a className="back" href="/">← Torna al sito</a>
+        {siteHref() && <a className="back" href={siteHref()} target={siteHref() === '/' ? undefined : '_blank'} rel="noopener">← Torna al sito</a>}
       </div>
     </div>
   );

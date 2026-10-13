@@ -5,3 +5,6 @@ export const STUDIO = {
   whatsapp: '393920948122',
   address: 'Via del Pianeta Urano 44, EUR',
 };
+
+/** Indirizzo della vetrina per il link "Torna al sito". Nelle anteprime pubblicate a parte può essere cambiato o tolto (stringa vuota). */
+export const siteHref = (): string => (window as unknown as { KUKO_ASSETS?: { site?: string } }).KUKO_ASSETS?.site ?? '/';

@@ -1,5 +1,5 @@
 // Anteprima a file unico (senza server): crea in .tmp/preview/ sito.html e app.html con font e immagini incorporati.
-// L'app è sempre in modalità demo (dati nel browser). Per far puntare i pulsanti "Prenota" della vetrina all'app: KUKO_APP_URL=https://...
+// L'app è sempre in modalità demo (dati nel browser). Collegamenti tra le due pagine: KUKO_APP_URL (pulsanti "Prenota" della vetrina) e KUKO_SITE_URL ("Torna al sito" dell'app).
 // Uso: npm run preview:build
 import { build } from 'esbuild';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -33,7 +33,7 @@ const css = res.outputFiles.find((f) => f.path.endsWith('.css')).text;
 const appFragment = `<title>KUKO LAB Prenotazioni</title>
 <style>${css}</style>
 <div id="root"></div>
-<script>window.KUKO_ASSETS=${JSON.stringify({ logo: dataUri('img/logo-cerchio.png') })};</script>
+<script>window.KUKO_ASSETS=${JSON.stringify({ logo: dataUri('img/logo-cerchio.png'), site: process.env.KUKO_SITE_URL ?? '' })};</script>
 <script>${safeScript(js)}</script>
 `;
 writeFileSync(join(out, 'app.html'), appFragment);
