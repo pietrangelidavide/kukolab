@@ -112,7 +112,7 @@ export function demoData(now: Date): Data {
     mk('m_chiara', 'pk_open', -12),
     mk('m_marco', 'pk_fun10', -60, { creditsLeft: 2 }), // quasi finito
     mk('m_elisa', 'pk_pil8', -30), mk('m_elisa', 'pk_mfun', -3),
-    mk('m_federico', 'pk_pt5', -35),
+    mk('m_federico', 'pk_pt5', -35), mk('m_chiara', 'pk_pt5', -26), mk('m_valentina', 'pk_pt5', -30), mk('m_ilaria', 'pk_pt5', -22), mk('m_gabriele', 'pk_pt5', -33),
     mk('m_giorgia', 'pk_mpil', -15),
     mk('m_matteo', 'pk_mfun', -45), // scaduto
     mk('m_valentina', 'pk_open', -5),
@@ -146,7 +146,7 @@ export function demoData(now: Date): Data {
     for (const id of pool) {
       if (made >= tries) break;
       const cand = pickPass(d, id, s);
-      if (cand?.kind === 'pack' && (cand.creditsLeft ?? 0) <= (id === DEMO_CLIENT_ID ? 7 : 4)) continue; // lascia sempre qualche lezione
+      if (cand?.kind === 'pack' && (cand.creditsLeft ?? 0) <= (cand.typeIds.includes('pt') ? 1 : id === DEMO_CLIENT_ID ? 7 : 4)) continue; // lascia sempre qualche lezione
       const r = book(d, { memberId: id, sessionId: s.id, now: new Date(start - 36 * HOUR), actor: { role: 'owner', memberId: DEMO_OWNER_ID } });
       if (!r.ok) continue;
       d = r.data;

@@ -310,3 +310,34 @@ export function newMember(d0: Data, o: { name: string; email?: string; phone?: s
   d.members.push(m);
   return { ok: true, data: d, member: m };
 }
+
+/** Salva una riga dell'orario settimanale. Toglie le lezioni future ancora vuote di quella riga e le ricrea con i dati nuovi. */
+export function upsertTemplate(d0: Data, o: { template: Template; now: Date; until: string }): Result<{ data: Data; created: number; removed: number }> {
+  const t = o.template;
+  if (!d0.types.some((x) => x.id === t.typeId) || !/^\d{2}:\d{2}$/.test(t.time) || t.weekday < 1 || t.weekday > 7 || !Number.isInteger(t.capacity) || t.capacity < 1) return fail('invalid');
+  let d = structuredClone(d0);
+  const i = d.templates.findIndex((x) => x.id === t.id);
+  if (i >= 0) d.templates[i] = { ...t }; else d.templates.push({ ...t });
+  const removed = pruneFuture(d, t.id, o.now);
+  if (t.active) {
+    const g = generateSessions(d, { from: romeDay(o.now), to: o.until });
+    d = g.data;
+    return { ok: true, data: d, created: g.created, removed };
+  }
+  return { ok: true, data: d, created: 0, removed };
+}
+
+export function removeTemplate(d0: Data, o: { templateId: Id; now: Date }): Result<{ data: Data; removed: number }> {
+  if (!d0.templates.some((t) => t.id === o.templateId)) return fail('invalid');
+  const d = structuredClone(d0);
+  d.templates = d.templates.filter((t) => t.id !== o.templateId);
+  const removed = pruneFuture(d, o.templateId, o.now);
+  return { ok: true, data: d, removed };
+}
+
+function pruneFuture(d: Data, templateId: Id, now: Date): number {
+  const busy = new Set(d.bookings.filter((b) => b.status === 'booked' || b.status === 'waitlist' || b.status === 'attended' || b.status === 'no_show').map((b) => b.sessionId));
+  const before = d.sessions.length;
+  d.sessions = d.sessions.filter((s) => !(s.templateId === templateId && s.status === 'scheduled' && startOf(s.startsAt) > now.getTime() && !busy.has(s.id)));
+  return before - d.sessions.length;
+}

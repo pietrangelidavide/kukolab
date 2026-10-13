@@ -15,8 +15,29 @@ export interface SessionView {
   mine: Booking | null; // la mia prenotazione attiva (prenotata o in lista)
   position: number | null; // posizione in lista d'attesa
   eligible: boolean; // ho un abbonamento valido per questa lezione
+  block: Block; // se non posso prenotare, perché
   lateCancel: boolean; // se annullo adesso perdo la lezione
 }
+
+export type Block = 'ok' | 'none' | 'type' | 'expired' | 'credits' | 'limit';
+
+/** Perché un iscritto non può prenotare questa lezione con i suoi abbonamenti. */
+export function blockReason(d: Data, memberId: Id, s: Session): Block {
+  if (pickPass(d, memberId, s)) return 'ok';
+  const mine = d.passes.filter((p) => p.memberId === memberId);
+  if (mine.length === 0) return 'none';
+  const ofType = mine.filter((p) => p.typeIds.length === 0 || p.typeIds.includes(s.typeId));
+  if (ofType.length === 0) return 'type';
+  const day = romeDay(new Date(s.startsAt));
+  const inDate = ofType.filter((p) => day >= p.startsOn && day <= p.expiresOn);
+  if (inDate.length === 0) return 'expired';
+  if (inDate.some((p) => p.kind === 'monthly')) return 'limit';
+  return 'credits';
+}
+
+export const BLOCK_TEXT: Record<Block, string> = {
+  ok: '', none: 'Serve un abbonamento', type: 'Non incluso nel tuo abbonamento', expired: 'Abbonamento non valido in questa data', credits: 'Lezioni finite', limit: 'Limite settimanale raggiunto',
+};
 
 const ACTIVE = new Set(['booked', 'waitlist', 'attended', 'no_show']);
 
@@ -54,6 +75,7 @@ export function viewSession(d: Data, s: Session, memberId: Id | null, now: Date)
     mine,
     position,
     eligible: memberId ? pickPass(d, memberId, s) !== null : false,
+    block: memberId ? blockReason(d, memberId, s) : 'none',
     lateCancel: startOf(s.startsAt) - now.getTime() < d.settings.cancelWindowHours * HOUR,
   };
 }

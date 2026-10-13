@@ -25,3 +25,16 @@ export const initials = (name: string) => name.split(/\s+/).filter(Boolean).slic
 export const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 export { TZ };
+
+/** Numero per wa.me (solo cifre, con prefisso 39 se manca). */
+export function waNumber(phone: string): string | null {
+  let n = phone.replace(/[^\d+]/g, '');
+  if (n.startsWith('+')) n = n.slice(1);
+  else if (n.startsWith('00')) n = n.slice(2);
+  else if (!n.startsWith('39') || n.length < 11) n = '39' + n;
+  return /^\d{9,15}$/.test(n) ? n : null;
+}
+export const waLink = (phone: string, text: string) => {
+  const n = waNumber(phone);
+  return n ? `https://wa.me/${n}?text=${encodeURIComponent(text)}` : null;
+};

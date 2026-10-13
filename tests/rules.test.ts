@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Data, Pass, Session } from '../src/lib/types';
-import { addSession, adjustCredits, assignPass, book, cancelBooking, cancelSession, editSession, generateSessions, markAttendance, newMember, pickPass, promoteWaitlist, seatsLeft, waitlistOf } from '../src/lib/rules';
+import { addSession, adjustCredits, assignPass, book, cancelBooking, cancelSession, editSession, generateSessions, markAttendance, newMember, pickPass, promoteWaitlist, removeTemplate, seatsLeft, upsertTemplate, waitlistOf } from '../src/lib/rules';
 import { emptyData } from '../src/lib/seed';
 import { HOUR, romeWall } from '../src/lib/time';
 
@@ -301,4 +301,31 @@ test('senza lista d’attesa, lezione piena = errore', () => {
   d.settings.waitlistEnabled = false;
   d = ok(book(d, { memberId: 'ana', sessionId: 's1', now: NOW, actor: as('ana') })).data;
   err(book(d, { memberId: 'bob', sessionId: 's1', now: NOW, actor: as('bob') }), 'full');
+});
+
+test('orario settimanale: modifica e cancellazione toccano solo le lezioni future senza prenotazioni', () => {
+  const d0 = base();
+  d0.templates = [{ id: 't1', typeId: 'functional', weekday: 3, time: '18:30', capacity: 8, duration: 50, trainer: 'V', active: true }];
+  let d = generateSessions(d0, { from: '2026-10-14', to: '2026-11-04' }).data; // 14, 21, 28 ottobre e 4 novembre
+  assert.equal(d.sessions.length, 4);
+  d.passes.push(pass({ id: 'pa', memberId: 'ana' }));
+  const second = d.sessions[1];
+  d = ok(book(d, { memberId: 'ana', sessionId: second.id, now: NOW, actor: as('ana') })).data;
+  // cambio orario: la lezione con prenotazione resta com'è, le altre vengono rifatte alle 19:30
+  const r = ok(upsertTemplate(d, { template: { ...d.templates[0], time: '19:30' }, now: NOW, until: '2026-11-04' }));
+  const times = r.data.sessions.map((s) => s.startsAt.slice(0, 16)).sort();
+  assert.equal(r.removed, 3);
+  assert.equal(r.created, 4); // 14, 21, 28 ottobre e 4 novembre alle 19:30
+  assert.equal(r.data.sessions.filter((s) => s.id === second.id).length, 1);
+  assert.equal(times.length, 5, 'quella con prenotazione + quattro nuove');
+  // disattivare: non si ricrea nulla
+  const off = ok(upsertTemplate(r.data, { template: { ...r.data.templates[0], active: false }, now: NOW, until: '2026-11-04' }));
+  assert.equal(off.created, 0);
+  assert.equal(off.data.sessions.length, 1);
+  // cancellare la riga
+  const del = ok(removeTemplate(d, { templateId: 't1', now: NOW }));
+  assert.equal(del.data.templates.length, 0);
+  assert.equal(del.data.sessions.length, 1);
+  err(removeTemplate(d, { templateId: 'zzz', now: NOW }), 'invalid');
+  err(upsertTemplate(d, { template: { ...d.templates[0], time: '9.30' }, now: NOW, until: '2026-11-04' }), 'invalid');
 });
