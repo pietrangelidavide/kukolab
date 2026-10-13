@@ -1,0 +1,3 @@
+# Sito in anteprima: nessuna indicizzazione finché non c'è il dominio definitivo (poi sostituire con "Allow").
+User-agent: *
+Disallow: /

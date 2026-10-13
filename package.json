@@ -1,0 +1,26 @@
+{
+  "name": "kukolab",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "KUKO LAB Performance Studio: sito vetrina + web app prenotazioni (cliente e owner)",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs",
+    "site": "node scripts/build-site.mjs",
+    "test": "node scripts/test.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json",
+    "preview:build": "node scripts/preview.mjs",
+    "db:test": "bash supabase/test.sh"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.0"
+  }
+}

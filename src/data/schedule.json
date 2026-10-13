@@ -1,0 +1,21 @@
+{
+  "note": "Orari di esempio: da sostituire con quelli reali di KUKO LAB. Sono usati sia dalla vetrina (npm run site) sia dai dati demo della web app.",
+  "types": [
+    { "id": "functional", "name": "Functional", "capacity": 8, "duration": 50, "tone": "orange" },
+    { "id": "pilates", "name": "Pilates", "capacity": 4, "duration": 50, "tone": "rust" },
+    { "id": "pt", "name": "Personal training", "capacity": 1, "duration": 60, "tone": "white" }
+  ],
+  "weekly": [
+    { "type": "functional", "days": [2, 4], "time": "07:30", "trainer": "Valerio" },
+    { "type": "functional", "days": [1, 3, 5], "time": "18:30", "trainer": "Valerio" },
+    { "type": "functional", "days": [1, 3], "time": "19:30", "trainer": "Team KUKO" },
+    { "type": "functional", "days": [2, 4], "time": "19:00", "trainer": "Valerio" },
+    { "type": "functional", "days": [6], "time": "10:00", "trainer": "Valerio" },
+    { "type": "pilates", "days": [1, 3, 5], "time": "10:00", "trainer": "Team KUKO" },
+    { "type": "pilates", "days": [2, 4], "time": "18:00", "trainer": "Team KUKO" },
+    { "type": "pilates", "days": [1, 4], "time": "20:30", "trainer": "Team KUKO" },
+    { "type": "pilates", "days": [6], "time": "11:15", "trainer": "Team KUKO" },
+    { "type": "pt", "days": [1, 2, 3, 4, 5], "time": "17:00", "trainer": "Valerio" },
+    { "type": "pt", "days": [6], "time": "09:00", "trainer": "Valerio" }
+  ]
+}

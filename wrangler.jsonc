@@ -1,0 +1,9 @@
+{
+  // Sito vetrina (public/) + web app prenotazioni (public/app/, generata da "npm run build").
+  "name": "kukolab",
+  "compatibility_date": "2026-10-12",
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page"
+  }
+}
