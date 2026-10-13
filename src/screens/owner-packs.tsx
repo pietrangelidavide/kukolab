@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store';
 import { Badge, Btn, Empty, Field, Icon, Sheet, Toggle } from '../ui';
-import { PageHead, typeNames } from './common';
+import { PageHead, PasswordForm, typeNames } from './common';
 import { euro, plural } from '../lib/format';
 import type { Pack, Settings } from '../lib/types';
 
@@ -127,6 +127,7 @@ export function SettingsScreen() {
           </div>
         </div>
       )}
+      {s.api.changePassword && <><h2 className="sec">Password</h2><PasswordForm /></>}
       <Btn kind="quiet" onClick={() => s.logout()}><Icon n="logout" size={18} /> Esci</Btn>
     </>
   );

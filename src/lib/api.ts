@@ -10,6 +10,7 @@ export interface Api {
   signIn(email: string, password: string): Promise<Result<AuthState>>;
   signUp(i: { name: string; email: string; phone: string; password: string }): Promise<Result<Partial<AuthState> & { needsConfirm?: boolean }>>;
   resetPassword?(email: string): Promise<Result>;
+  changePassword?(password: string): Promise<Result>;
   demoLogin?(role: Role): Promise<Result<AuthState>>;
   resetDemo?(): Promise<Result<AuthState>>;
   signOut(): Promise<void>;

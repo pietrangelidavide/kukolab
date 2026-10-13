@@ -11,7 +11,8 @@
     "test": "node scripts/test.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json",
     "preview:build": "node scripts/preview.mjs",
-    "db:test": "bash supabase/test.sh"
+    "db:test": "bash supabase/test.sh",
+    "db:e2e": "bash supabase/e2e.sh"
   },
   "dependencies": {
     "react": "^19.0.0",

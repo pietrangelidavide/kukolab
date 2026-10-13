@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../store';
 import { Badge, Btn, Empty, Field, Icon, Sheet, toneClass } from '../ui';
-import { PageHead, PassStateBadge, typeNames, validity, weekUsage } from './common';
+import { PageHead, PasswordForm, PassStateBadge, typeNames, validity, weekUsage } from './common';
 import { BLOCK_TEXT, activePasses, memberStatus, myBookings, passState, passesOf, sessionsOnDay, unreadNotices, viewSession } from '../lib/selectors';
 import type { SessionView } from '../lib/selectors';
 import { addDays, romeDay } from '../lib/time';
@@ -312,6 +312,7 @@ export function Profile() {
           </div>
         </div>
       )}
+      {s.api.changePassword && <><h2 className="sec">Password</h2><PasswordForm /></>}
       <Btn kind="quiet" onClick={() => s.logout()}><Icon n="logout" size={18} /> Esci</Btn>
     </>
   );

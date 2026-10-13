@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Data, Pass } from '../lib/types';
 import { dayDM, dayDMY, plural } from '../lib/format';
 import { passState } from '../lib/selectors';
 import { mondayOf, romeDay } from '../lib/time';
-import { Badge } from '../ui';
+import { Badge, Btn, Field } from '../ui';
+import { useStore } from '../store';
+import { ERR_TEXT } from '../lib/types';
 
 export function PageHead({ title, sub, right }: { title: string; sub?: ReactNode; right?: ReactNode }) {
   return (
@@ -44,3 +47,23 @@ export function PassStateBadge({ p, today }: { p: Pass; today: string }) {
 }
 
 export const validity = (p: Pass) => `${dayDMY(p.startsOn)} – ${dayDMY(p.expiresOn)}`;
+
+/** Cambio password (solo con l'accesso reale). Dopo il link "password dimenticata" si arriva qui. */
+export function PasswordForm() {
+  const s = useStore();
+  const [pw, setPw] = useState('');
+  const [busy, setBusy] = useState(false);
+  if (!s.api.changePassword) return null;
+  return (
+    <form className="form narrow" onSubmit={async (e) => {
+      e.preventDefault();
+      setBusy(true);
+      const r = await s.api.changePassword!(pw);
+      setBusy(false);
+      if (r.ok) { setPw(''); s.toast('Password cambiata.', 'ok'); } else s.toast(r.message ?? ERR_TEXT[r.error], 'error');
+    }}>
+      <Field label="Nuova password" hint="Almeno 8 caratteri."><input type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="new-password" minLength={8} required /></Field>
+      <div className="row"><Btn type="submit" kind="ghost" size="sm" disabled={busy || pw.length < 8}>Cambia password</Btn></div>
+    </form>
+  );
+}
