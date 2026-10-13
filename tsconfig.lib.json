@@ -1,5 +1,5 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": { "types": [], "jsx": "preserve" },
+  "compilerOptions": { "types": ["node"], "jsx": "preserve" },
   "include": ["src/lib/**/*.ts", "tests/**/*.ts", "src/data/*.json"]
 }
