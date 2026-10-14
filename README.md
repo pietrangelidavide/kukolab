@@ -2,7 +2,7 @@
 
 Sito vetrina + web app per prenotare i corsi (area cliente e area owner), in italiano.
 
-- **Vetrina** (`public/`): HTML e CSS statici, senza framework e senza foto: tutta grafica in CSS/SVG (il quadrante del titolo, l'anteprima dell'app e la tabella degli orari sono generati da `npm run site` a partire da `src/data/schedule.json`). Un piccolo script mostra "Oggi" e la prossima lezione in base all'orario di Roma.
+- **Vetrina** (`public/`): HTML e CSS statici, senza framework. Parte da Valerio: la sua foto (`public/img/valerio.jpg`, l'unica foto del sito) sta nel quadrante del titolo; il resto è grafica in CSS/SVG (quadrante, anteprima dell'app e tabella degli orari sono generati da `npm run site` a partire da `src/data/schedule.json`). Un piccolo script mostra "Oggi" e la prossima lezione in base all'orario di Roma.
 - **Web app** (`src/` → `public/app/`): React 19 compilato con esbuild, installabile come app dal telefono. Due modalità:
   - **demo**: i dati stanno nel browser (localStorage), con persone, lezioni e abbonamenti di esempio. È quella che si apre senza configurare nulla;
   - **reale**: i dati stanno su Supabase (accesso con email e password, database PostgreSQL).
@@ -62,7 +62,7 @@ Gli iscritti già conosciuti si possono inserire prima da *Iscritti → Nuovo is
 
 - [ ] **Orari reali**, capienze, istruttori: `src/data/schedule.json` (oggi sono esempi) e poi `npm run site`.
 - [ ] **Pacchetti e prezzi reali** (nella demo sono inventati: `src/lib/seed.ts`).
-- [ ] **Foto**: la vetrina è senza foto (tutta grafica). Quando ci sono foto originali dello studio e di Valerio, si mettono in `public/img/` e si decide insieme dove inserirle.
+- [ ] **Foto**: oggi c'è solo quella di Valerio (piccola e scura, per questo sta in un cerchio di dimensioni contenute). Con uno scatto nuovo, ad alta risoluzione, si sostituisce `public/img/valerio.jpg` (stessa proporzione 758×465 o quadrata) e si può ingrandire. Foto dello studio: da aggiungere in `public/img/` e da decidere dove inserirle.
 - [ ] **Numero WhatsApp**: in `src/config.ts` è `393920948122` (interpretato da "13920948122"); da confermare.
 - [ ] **Dati societari** (ragione sociale, P. IVA, sede legale) e **informativa privacy/cookie** nel footer: i segnaposto sono in `public/index.html`.
 - [ ] **Dominio**: collegarlo a Cloudflare, poi togliere `noindex` da `public/index.html`, cancellare `public/robots.txt` (blocca Google), aggiungere canonical/og:url/JSON-LD con l'indirizzo definitivo e i `routes` con `custom_domain` in `wrangler.jsonc`.

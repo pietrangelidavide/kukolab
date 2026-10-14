@@ -1,4 +1,4 @@
-// Inserisce nella vetrina (public/index.html) le parti generate: orario settimanale (da src/data/schedule.json), anteprima dell'app e quadrante del titolo.
+// Inserisce nella vetrina (public/index.html) le parti generate: orario settimanale (da src/data/schedule.json), anteprima dell'app e quadrante del ritratto.
 // Uso: npm run site   (da rilanciare quando cambiano gli orari)
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -23,7 +23,7 @@ const pick = [0, 1, 2, first.length - 1].filter((v, i, a) => first[v] && a.index
 const mock = pick.map((w) => `            <li class="m-row t-${w.type}"><time>${w.time}</time><b>${types[w.type].name}</b><i>Prenota</i></li>`).join('\n');
 const chips = SHORT.map((d, i) => `<span${i === 0 ? ' class="on"' : ''}>${d}</span>`).join('');
 
-// ------------------------------------------------------------------ quadrante 360°++ (SVG): tacche ogni 3 gradi, lancetta e arco arancio
+// ------------------------------------------------------------------ quadrante 360°++ (SVG): tacche ogni 3 gradi e arco arancio attorno al ritratto
 const C = 500, R = 480;
 const pt = (deg, r) => { const a = ((deg - 90) * Math.PI) / 180; return [C + r * Math.cos(a), C + r * Math.sin(a)]; };
 const f = (n) => n.toFixed(1);
@@ -36,18 +36,14 @@ for (let d = 0; d < 360; d += 3) {
 }
 const END = 330; // gradi percorsi dall'arco
 const [ax, ay] = pt(END, 392);
-const labels = [0, 90, 180, 270].map((d) => { const [x, y] = pt(d, 318); return `<text x="${f(x)}" y="${f(y + 15)}" text-anchor="middle">${d}</text>`; }).join('');
+// il ritratto (img.face, in HTML) sta al centro del quadrante: qui restano tacche, arco, freccia e "++"
 const dial = `<svg class="dial" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false">
   <circle cx="500" cy="500" r="${R}" class="ring"/>
-  <circle cx="500" cy="500" r="268" class="ring in"/>
-  <circle cx="500" cy="500" r="196" class="ring in"/>
+  <circle cx="500" cy="500" r="352" class="ring in"/>
   ${ticks}
-  <g class="lab">${labels}</g>
   <path class="arc" pathLength="100" d="M500 108 A392 392 0 1 1 ${f(ax)} ${f(ay)}"/>
   <g class="sweep" style="--a:${END}deg">
-    <line x1="500" y1="500" x2="500" y2="${500 - 392 + 26}" class="needle"/>
     <polygon class="head" points="486,80 548,80 578,108 548,136 486,136 516,108"/>
-    <circle cx="500" cy="500" r="16" class="hub"/>
   </g>
   <text class="plus" transform="rotate(350 500 500)" x="500" y="128" text-anchor="middle">++</text>
 </svg>`;

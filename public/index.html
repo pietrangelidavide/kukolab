@@ -16,6 +16,7 @@
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 <link rel="preload" href="fonts/bigshoulders-bold.woff" as="font" type="font/woff" crossorigin>
 <link rel="preload" href="fonts/instrumentsans-regular.woff" as="font" type="font/woff" crossorigin>
+<link rel="preload" href="img/valerio.jpg" as="image">
 <link rel="stylesheet" href="style.css">
 <script type="application/ld+json">
 {
@@ -26,7 +27,7 @@
   "description": "Personal training, corsi funzionali e Pilates in piccoli gruppi.",
   "address": { "@type": "PostalAddress", "streetAddress": "Via del Pianeta Urano 44", "addressLocality": "Roma", "addressRegion": "RM", "addressCountry": "IT" },
   "founder": { "@type": "Person", "name": "Valerio Cuscianna" },
-  "sameAs": ["https://www.instagram.com/valerio_cuscianna7/"]
+  "sameAs": ["https://www.instagram.com/kukolab_performance/"]
 }
 </script>
 </head>
@@ -40,48 +41,60 @@
       <span>KUKO LAB</span>
     </a>
     <nav class="nav" aria-label="Principale">
+      <a href="#chi-siamo">Chi siamo</a>
       <a href="#corsi">Corsi</a>
       <a href="#orari">Orari</a>
-      <a href="#chi-siamo">Chi siamo</a>
       <a href="#contatti">Contatti</a>
     </nav>
     <a class="btn btn-sm" href="/app/"><span>Prenota</span></a>
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="drawer" aria-label="Apri il menu"><i></i><i></i><i></i></button>
   </div>
   <nav class="drawer" id="drawer" aria-label="Menu">
+    <a href="#chi-siamo">Chi siamo</a>
     <a href="#corsi">Corsi</a>
     <a href="#orari">Orari</a>
-    <a href="#chi-siamo">Chi siamo</a>
     <a href="#contatti">Contatti</a>
   </nav>
 </header>
 
 <main id="main">
   <section id="top" class="hero">
-    <!--DIAL-->
+    <div class="wrap hero-in">
+      <div class="hero-text">
+        <h1><span>Il tuo</span> <span>benessere</span> <span>a 360°++</span></h1>
+        <p class="lead">Personal training, corsi funzionali e Pilates in piccoli gruppi, nel nostro studio all'EUR.</p>
+        <div class="cta">
+          <a class="btn" href="/app/"><span>Prenota una lezione</span></a>
+          <a class="btn btn-line" href="#orari"><span>Vedi gli orari</span></a>
+        </div>
+        <p class="next" id="next" hidden></p>
+      </div>
+      <figure class="fig">
+        <div class="fig-dial">
+<!--DIAL-->
     <svg class="dial" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false">
   <circle cx="500" cy="500" r="480" class="ring"/>
-  <circle cx="500" cy="500" r="268" class="ring in"/>
-  <circle cx="500" cy="500" r="196" class="ring in"/>
+  <circle cx="500" cy="500" r="352" class="ring in"/>
   <line x1="500.0" y1="20.0" x2="500.0" y2="84.0" class="t4"/><line x1="525.1" y1="20.7" x2="524.4" y2="34.6" class="t1"/><line x1="550.2" y1="22.6" x2="548.7" y2="36.6" class="t1"/><line x1="575.1" y1="25.9" x2="572.9" y2="39.7" class="t1"/><line x1="599.8" y1="30.5" x2="596.9" y2="44.2" class="t1"/><line x1="624.2" y1="36.4" x2="620.6" y2="49.9" class="t1"/><line x1="648.3" y1="43.5" x2="644.0" y2="56.8" class="t1"/><line x1="672.0" y1="51.9" x2="667.0" y2="65.0" class="t1"/><line x1="695.2" y1="61.5" x2="689.5" y2="74.3" class="t1"/><line x1="717.9" y1="72.3" x2="711.6" y2="84.8" class="t1"/><line x1="740.0" y1="84.3" x2="723.0" y2="113.8" class="t2"/><line x1="761.4" y1="97.4" x2="753.8" y2="109.2" class="t1"/><line x1="782.1" y1="111.7" x2="773.9" y2="123.0" class="t1"/><line x1="802.1" y1="127.0" x2="793.3" y2="137.8" class="t1"/><line x1="821.2" y1="143.3" x2="811.8" y2="153.7" class="t1"/><line x1="839.4" y1="160.6" x2="829.5" y2="170.5" class="t1"/><line x1="856.7" y1="178.8" x2="846.3" y2="188.2" class="t1"/><line x1="873.0" y1="197.9" x2="862.2" y2="206.7" class="t1"/><line x1="888.3" y1="217.9" x2="877.0" y2="226.1" class="t1"/><line x1="902.6" y1="238.6" x2="890.8" y2="246.2" class="t1"/><line x1="915.7" y1="260.0" x2="886.2" y2="277.0" class="t2"/><line x1="927.7" y1="282.1" x2="915.2" y2="288.4" class="t1"/><line x1="938.5" y1="304.8" x2="925.7" y2="310.5" class="t1"/><line x1="948.1" y1="328.0" x2="935.0" y2="333.0" class="t1"/><line x1="956.5" y1="351.7" x2="943.2" y2="356.0" class="t1"/><line x1="963.6" y1="375.8" x2="950.1" y2="379.4" class="t1"/><line x1="969.5" y1="400.2" x2="955.8" y2="403.1" class="t1"/><line x1="974.1" y1="424.9" x2="960.3" y2="427.1" class="t1"/><line x1="977.4" y1="449.8" x2="963.4" y2="451.3" class="t1"/><line x1="979.3" y1="474.9" x2="965.4" y2="475.6" class="t1"/><line x1="980.0" y1="500.0" x2="916.0" y2="500.0" class="t4"/><line x1="979.3" y1="525.1" x2="965.4" y2="524.4" class="t1"/><line x1="977.4" y1="550.2" x2="963.4" y2="548.7" class="t1"/><line x1="974.1" y1="575.1" x2="960.3" y2="572.9" class="t1"/><line x1="969.5" y1="599.8" x2="955.8" y2="596.9" class="t1"/><line x1="963.6" y1="624.2" x2="950.1" y2="620.6" class="t1"/><line x1="956.5" y1="648.3" x2="943.2" y2="644.0" class="t1"/><line x1="948.1" y1="672.0" x2="935.0" y2="667.0" class="t1"/><line x1="938.5" y1="695.2" x2="925.7" y2="689.5" class="t1"/><line x1="927.7" y1="717.9" x2="915.2" y2="711.6" class="t1"/><line x1="915.7" y1="740.0" x2="886.2" y2="723.0" class="t2"/><line x1="902.6" y1="761.4" x2="890.8" y2="753.8" class="t1"/><line x1="888.3" y1="782.1" x2="877.0" y2="773.9" class="t1"/><line x1="873.0" y1="802.1" x2="862.2" y2="793.3" class="t1"/><line x1="856.7" y1="821.2" x2="846.3" y2="811.8" class="t1"/><line x1="839.4" y1="839.4" x2="829.5" y2="829.5" class="t1"/><line x1="821.2" y1="856.7" x2="811.8" y2="846.3" class="t1"/><line x1="802.1" y1="873.0" x2="793.3" y2="862.2" class="t1"/><line x1="782.1" y1="888.3" x2="773.9" y2="877.0" class="t1"/><line x1="761.4" y1="902.6" x2="753.8" y2="890.8" class="t1"/><line x1="740.0" y1="915.7" x2="723.0" y2="886.2" class="t2"/><line x1="717.9" y1="927.7" x2="711.6" y2="915.2" class="t1"/><line x1="695.2" y1="938.5" x2="689.5" y2="925.7" class="t1"/><line x1="672.0" y1="948.1" x2="667.0" y2="935.0" class="t1"/><line x1="648.3" y1="956.5" x2="644.0" y2="943.2" class="t1"/><line x1="624.2" y1="963.6" x2="620.6" y2="950.1" class="t1"/><line x1="599.8" y1="969.5" x2="596.9" y2="955.8" class="t1"/><line x1="575.1" y1="974.1" x2="572.9" y2="960.3" class="t1"/><line x1="550.2" y1="977.4" x2="548.7" y2="963.4" class="t1"/><line x1="525.1" y1="979.3" x2="524.4" y2="965.4" class="t1"/><line x1="500.0" y1="980.0" x2="500.0" y2="916.0" class="t4"/><line x1="474.9" y1="979.3" x2="475.6" y2="965.4" class="t1"/><line x1="449.8" y1="977.4" x2="451.3" y2="963.4" class="t1"/><line x1="424.9" y1="974.1" x2="427.1" y2="960.3" class="t1"/><line x1="400.2" y1="969.5" x2="403.1" y2="955.8" class="t1"/><line x1="375.8" y1="963.6" x2="379.4" y2="950.1" class="t1"/><line x1="351.7" y1="956.5" x2="356.0" y2="943.2" class="t1"/><line x1="328.0" y1="948.1" x2="333.0" y2="935.0" class="t1"/><line x1="304.8" y1="938.5" x2="310.5" y2="925.7" class="t1"/><line x1="282.1" y1="927.7" x2="288.4" y2="915.2" class="t1"/><line x1="260.0" y1="915.7" x2="277.0" y2="886.2" class="t2"/><line x1="238.6" y1="902.6" x2="246.2" y2="890.8" class="t1"/><line x1="217.9" y1="888.3" x2="226.1" y2="877.0" class="t1"/><line x1="197.9" y1="873.0" x2="206.7" y2="862.2" class="t1"/><line x1="178.8" y1="856.7" x2="188.2" y2="846.3" class="t1"/><line x1="160.6" y1="839.4" x2="170.5" y2="829.5" class="t1"/><line x1="143.3" y1="821.2" x2="153.7" y2="811.8" class="t1"/><line x1="127.0" y1="802.1" x2="137.8" y2="793.3" class="t1"/><line x1="111.7" y1="782.1" x2="123.0" y2="773.9" class="t1"/><line x1="97.4" y1="761.4" x2="109.2" y2="753.8" class="t1"/><line x1="84.3" y1="740.0" x2="113.8" y2="723.0" class="t2"/><line x1="72.3" y1="717.9" x2="84.8" y2="711.6" class="t1"/><line x1="61.5" y1="695.2" x2="74.3" y2="689.5" class="t1"/><line x1="51.9" y1="672.0" x2="65.0" y2="667.0" class="t1"/><line x1="43.5" y1="648.3" x2="56.8" y2="644.0" class="t1"/><line x1="36.4" y1="624.2" x2="49.9" y2="620.6" class="t1"/><line x1="30.5" y1="599.8" x2="44.2" y2="596.9" class="t1"/><line x1="25.9" y1="575.1" x2="39.7" y2="572.9" class="t1"/><line x1="22.6" y1="550.2" x2="36.6" y2="548.7" class="t1"/><line x1="20.7" y1="525.1" x2="34.6" y2="524.4" class="t1"/><line x1="20.0" y1="500.0" x2="84.0" y2="500.0" class="t4"/><line x1="20.7" y1="474.9" x2="34.6" y2="475.6" class="t1"/><line x1="22.6" y1="449.8" x2="36.6" y2="451.3" class="t1"/><line x1="25.9" y1="424.9" x2="39.7" y2="427.1" class="t1"/><line x1="30.5" y1="400.2" x2="44.2" y2="403.1" class="t1"/><line x1="36.4" y1="375.8" x2="49.9" y2="379.4" class="t1"/><line x1="43.5" y1="351.7" x2="56.8" y2="356.0" class="t1"/><line x1="51.9" y1="328.0" x2="65.0" y2="333.0" class="t1"/><line x1="61.5" y1="304.8" x2="74.3" y2="310.5" class="t1"/><line x1="72.3" y1="282.1" x2="84.8" y2="288.4" class="t1"/><line x1="84.3" y1="260.0" x2="113.8" y2="277.0" class="t2"/><line x1="97.4" y1="238.6" x2="109.2" y2="246.2" class="t1"/><line x1="111.7" y1="217.9" x2="123.0" y2="226.1" class="t1"/><line x1="127.0" y1="197.9" x2="137.8" y2="206.7" class="t1"/><line x1="143.3" y1="178.8" x2="153.7" y2="188.2" class="t1"/><line x1="160.6" y1="160.6" x2="170.5" y2="170.5" class="t1"/><line x1="178.8" y1="143.3" x2="188.2" y2="153.7" class="t1"/><line x1="197.9" y1="127.0" x2="206.7" y2="137.8" class="t1"/><line x1="217.9" y1="111.7" x2="226.1" y2="123.0" class="t1"/><line x1="238.6" y1="97.4" x2="246.2" y2="109.2" class="t1"/><line x1="260.0" y1="84.3" x2="277.0" y2="113.8" class="t2"/><line x1="282.1" y1="72.3" x2="288.4" y2="84.8" class="t1"/><line x1="304.8" y1="61.5" x2="310.5" y2="74.3" class="t1"/><line x1="328.0" y1="51.9" x2="333.0" y2="65.0" class="t1"/><line x1="351.7" y1="43.5" x2="356.0" y2="56.8" class="t1"/><line x1="375.8" y1="36.4" x2="379.4" y2="49.9" class="t1"/><line x1="400.2" y1="30.5" x2="403.1" y2="44.2" class="t1"/><line x1="424.9" y1="25.9" x2="427.1" y2="39.7" class="t1"/><line x1="449.8" y1="22.6" x2="451.3" y2="36.6" class="t1"/><line x1="474.9" y1="20.7" x2="475.6" y2="34.6" class="t1"/>
-  <g class="lab"><text x="500.0" y="197.0" text-anchor="middle">0</text><text x="818.0" y="515.0" text-anchor="middle">90</text><text x="500.0" y="833.0" text-anchor="middle">180</text><text x="182.0" y="515.0" text-anchor="middle">270</text></g>
   <path class="arc" pathLength="100" d="M500 108 A392 392 0 1 1 304.0 160.5"/>
   <g class="sweep" style="--a:330deg">
-    <line x1="500" y1="500" x2="500" y2="134" class="needle"/>
     <polygon class="head" points="486,80 548,80 578,108 548,136 486,136 516,108"/>
-    <circle cx="500" cy="500" r="16" class="hub"/>
   </g>
   <text class="plus" transform="rotate(350 500 500)" x="500" y="128" text-anchor="middle">++</text>
 </svg>
 <!--/DIAL-->
-    <div class="wrap hero-in">
-      <h1><span>Il tuo</span> <span>benessere</span> <span>a 360°++</span></h1>
-      <p class="lead">Personal training, corsi funzionali e Pilates in piccoli gruppi, nel nostro studio all'EUR.</p>
-      <div class="cta">
-        <a class="btn" href="/app/"><span>Prenota una lezione</span></a>
-        <a class="btn btn-line" href="#orari"><span>Vedi gli orari</span></a>
-      </div>
-      <p class="next" id="next" hidden></p>
+          <img class="face" src="img/valerio.jpg" width="758" height="465" alt="Valerio Cuscianna, fondatore di KUKO LAB" fetchpriority="high">
+        </div>
+        <figcaption>
+          <b class="name">Valerio Cuscianna</b>
+          <span class="role">Fondatore di KUKO LAB</span>
+          <ul class="creds">
+            <li>Laureato in Scienze Motorie</li>
+            <li>Oltre quattro anni nel mondo del fitness</li>
+            <li>Master in Functional Training</li>
+          </ul>
+        </figcaption>
+      </figure>
     </div>
     <div class="today" id="oggi" aria-label="Lezioni di oggi">
       <div class="wrap today-in">
@@ -92,11 +105,28 @@
     </div>
   </section>
 
+  <section id="chi-siamo" class="sec orange">
+    <div class="wrap">
+      <div class="about">
+        <h2>Movimento, benessere e performance delle persone.</h2>
+        <div class="about-text">
+          <p>KUKO LAB nasce da un obiettivo preciso: avere uno spazio in cui mettere in pratica un'idea di allenamento e accompagnare ognuno nel proprio percorso.</p>
+          <p>Valerio continua a studiare e ad approfondire: più lavora, più capisce quanto l'allenamento può fare la differenza nella vita di una persona.</p>
+        </div>
+      </div>
+      <ul class="pillars">
+        <li><b>Attenzione</b><span>A ogni persona, ai suoi obiettivi e ai suoi tempi.</span></li>
+        <li><b>Metodo</b><span>Valutazione iniziale, programma, progressione.</span></li>
+        <li><b>Professionalità</b><span>Studio e aggiornamento che non si fermano.</span></li>
+      </ul>
+    </div>
+  </section>
+
   <section id="corsi" class="sec paper">
     <div class="wrap">
       <header class="sec-head">
         <h2>Tre modi di allenarti</h2>
-        <p>Un solo metodo: attenzione, progressione e professionalità. Cambia il modo, non la cura.</p>
+        <p>Cambia il modo di allenarti, non la cura con cui ti seguiamo.</p>
       </header>
       <div class="rows">
         <article class="row">
@@ -238,25 +268,6 @@
     </div>
   </section>
 
-  <section id="chi-siamo" class="sec coal">
-    <div class="wrap about">
-      <div class="about-main">
-        <h2>Movimento, benessere e performance delle persone.</h2>
-        <p>KUKO LAB nasce da un obiettivo preciso: avere uno spazio in cui mettere in pratica un'idea di allenamento e accompagnare ognuno nel proprio percorso, con attenzione, metodo e professionalità.</p>
-      </div>
-      <aside class="founder" aria-labelledby="fondatore">
-        <h3 id="fondatore">Valerio Cuscianna</h3>
-        <p class="role">Fondatore di KUKO LAB</p>
-        <ul class="creds">
-          <li>Laureato in Scienze Motorie</li>
-          <li>Oltre quattro anni nel mondo del fitness</li>
-          <li>Master in Functional Training</li>
-        </ul>
-        <p>Continua a studiare e ad approfondire: più lavora, più capisce quanto l'allenamento può fare la differenza nella vita di una persona.</p>
-      </aside>
-    </div>
-  </section>
-
   <section id="contatti" class="sec paper">
     <div class="wrap">
       <header class="sec-head">
@@ -266,7 +277,7 @@
       <div class="contact-grid">
         <a class="tile" href="https://www.google.com/maps/search/?api=1&amp;query=Via+del+Pianeta+Urano+44+Roma" target="_blank" rel="noopener"><span class="k">Dove siamo</span><span class="v">Via del Pianeta Urano 44, EUR</span><span class="hint">Apri su Google Maps</span></a>
         <a class="tile" id="wa" href="https://wa.me/393920948122?text=Ciao%20KUKO%20LAB%2C%20vorrei%20avere%20informazioni." target="_blank" rel="noopener"><span class="k">WhatsApp</span><span class="v">392 094 8122</span><span class="hint">Scrivici per informazioni</span></a>
-        <a class="tile" href="https://www.instagram.com/valerio_cuscianna7/" target="_blank" rel="noopener"><span class="k">Instagram</span><span class="v">@valerio_<wbr>cuscianna7</span><span class="hint">Seguici e guarda le storie</span></a>
+        <a class="tile" href="https://www.instagram.com/kukolab_performance/" target="_blank" rel="noopener"><span class="k">Instagram</span><span class="v">@kukolab_<wbr>performance</span><span class="hint">Seguici e guarda le storie</span></a>
         <a class="tile" href="/app/"><span class="k">Prenotazioni</span><span class="v">Accedi all'app</span><span class="hint">Corsi, posti liberi e abbonamento</span></a>
       </div>
     </div>
@@ -277,7 +288,7 @@
   <div class="wrap">
     <img src="img/logo-kuko.png" width="672" height="243" alt="KUKO LAB">
     <nav aria-label="Piè di pagina">
-      <a href="#corsi">Corsi</a><a href="#orari">Orari</a><a href="#chi-siamo">Chi siamo</a><a href="/app/">Area prenotazioni</a>
+      <a href="#chi-siamo">Chi siamo</a><a href="#corsi">Corsi</a><a href="#orari">Orari</a><a href="/app/">Area prenotazioni</a>
     </nav>
     <p>© 2026 KUKO LAB Performance studio<br>Via del Pianeta Urano 44, EUR</p>
     <!-- Dati societari obbligatori (ragione sociale, P. IVA, sede) e informativa privacy: da inserire quando il cliente li comunica. -->

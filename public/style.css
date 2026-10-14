@@ -76,29 +76,36 @@ a { color: inherit; }
   .menu-btn { display: flex; }
 }
 
-/* ---------------------------------------------------------------- hero con il quadrante */
+/* ---------------------------------------------------------------- hero: il titolo e, a destra, Valerio dentro il quadrante */
 .hero { position: relative; isolation: isolate; background: var(--ink); overflow: hidden; padding-top: clamp(2.5rem, 6vw, 5rem); }
-.hero-in { position: relative; z-index: 2; display: grid; justify-items: start; gap: 1.6rem; padding-bottom: clamp(2.5rem, 5vw, 4.5rem); }
-.hero h1 { font: 700 clamp(4.4rem, 12.6vw, 10rem)/.85 var(--display); text-transform: uppercase; letter-spacing: -.005em; }
+.hero-in { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); align-items: center; gap: 2.5rem clamp(2rem, 5vw, 4.5rem); padding-bottom: clamp(2.5rem, 5vw, 4.5rem); }
+.hero-text { display: grid; justify-items: start; gap: 1.6rem; }
+.hero h1 { font: 700 clamp(3.9rem, 9.6vw, 8.6rem)/.85 var(--display); text-transform: uppercase; letter-spacing: -.005em; }
 .hero h1 span { display: block; }
 .lead { max-width: 30ch; font-size: clamp(1.15rem, 2.2vw, 1.45rem); line-height: 1.45; color: var(--on-dark); }
 .cta { display: flex; flex-wrap: wrap; gap: 1rem 1.6rem; align-items: center; }
 .next { font-weight: 700; color: var(--orange); }
 .next[hidden] { display: none; }
 
-.dial { position: absolute; z-index: 1; right: -14%; top: 46%; width: min(60vw, 58rem); height: auto; transform: translateY(-50%); }
+.fig { margin: 0; width: min(100%, 30rem); justify-self: center; }
+.fig-dial { position: relative; }
+.face { position: absolute; left: 16%; top: 16%; width: 68%; height: 68%; border-radius: 50%; object-fit: cover; object-position: 47% 50%; border: 2px solid rgba(255, 255, 255, .16); background: var(--coal); filter: brightness(1.22) contrast(1.06); }
+.fig figcaption { display: grid; margin-top: 1.3rem; }
+.name { font: 700 clamp(2.4rem, 4.4vw, 3.4rem)/.95 var(--display); text-transform: uppercase; }
+.role { margin-top: .4rem; font-weight: 700; color: var(--orange); }
+.creds { margin-top: .9rem; border-top: 1px solid var(--line-dark); }
+.creds li { position: relative; padding: .6rem 0 .6rem 1.5rem; border-bottom: 1px solid var(--line-dark); font-weight: 700; font-size: 1.02rem; }
+.fig .creds li::before { top: 1rem; }
+
+.dial { width: 100%; height: auto; }
 .dial .ring { fill: none; stroke: rgba(255, 255, 255, .18); stroke-width: 2; }
-.dial .ring.in { stroke: rgba(255, 255, 255, .08); }
 .dial line { stroke-linecap: butt; }
 .dial .t1 { stroke: rgba(255, 255, 255, .22); stroke-width: 2; }
 .dial .t2 { stroke: rgba(255, 255, 255, .5); stroke-width: 3; }
 .dial .t4 { stroke: rgba(255, 255, 255, .95); stroke-width: 6; }
-.dial .lab text { fill: rgba(255, 255, 255, .42); font: 700 46px var(--display); }
 .dial .arc { fill: none; stroke: var(--orange); stroke-width: 30; stroke-dasharray: 100; stroke-dashoffset: 0; animation: arc 1.7s cubic-bezier(.2, .7, .2, 1) both; }
 .dial .sweep { transform-box: view-box; transform-origin: 50% 50%; transform: rotate(var(--a)); animation: sweep 1.7s cubic-bezier(.2, .7, .2, 1) both; }
-.dial .needle { stroke: var(--white); stroke-width: 5; }
 .dial .head { fill: var(--orange); }
-.dial .hub { fill: var(--white); }
 .dial .plus { fill: var(--orange); font: 700 70px var(--display); letter-spacing: .02em; }
 @keyframes arc { from { stroke-dashoffset: 30; } to { stroke-dashoffset: 0; } }
 @keyframes sweep { from { transform: rotate(231deg); } to { transform: rotate(330deg); } }
@@ -106,17 +113,11 @@ a { color: inherit; }
   .dial .arc, .dial .sweep { animation: none; }
   html { scroll-behavior: auto; }
 }
-@media (max-width: 980px) {
-  /* su telefono e tablet il quadrante sta sotto i testi, tagliato a metà dalla striscia "Oggi" */
-  .hero { display: flex; flex-direction: column; }
-  .hero-in { order: 1; padding-bottom: 1.5rem; }
-  .dial { order: 2; position: relative; right: auto; top: auto; transform: none; width: min(124%, 44rem); max-width: none; margin: 0 auto -62% auto; }
-  .today { order: 3; }
+@media (max-width: 900px) {
+  .hero-in { grid-template-columns: minmax(0, 1fr); }
+  .fig { width: min(100%, 25rem); }
 }
-@media (max-width: 760px) {
-  .brand span { font-size: 1.45rem; }
-  .dial { width: 124%; margin: 0 -12% -62% -12%; }
-}
+@media (max-width: 760px) { .brand span { font-size: 1.45rem; } }
 @media (max-width: 370px) { .brand span { display: none; } }
 
 .today { position: relative; z-index: 2; background: var(--coal); border-top: 1px solid var(--line-dark); padding-block: 1.1rem calc(1.1rem + var(--cut)); }
@@ -137,6 +138,7 @@ a { color: inherit; }
 .paper { background: var(--paper); color: var(--on-light); --focus: var(--ink); }
 .white { background: var(--white); color: var(--on-light); --focus: var(--ink); }
 .coal { background: var(--coal); color: var(--on-dark); }
+.orange { background: var(--orange); color: var(--ink); --focus: var(--ink); }
 .sec h2 { font: 700 clamp(2.9rem, 7.4vw, 6rem)/.9 var(--display); text-transform: uppercase; text-wrap: balance; }
 .sec-head { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1rem clamp(2rem, 6vw, 5rem); align-items: end; }
 .sec-head p { max-width: 38ch; color: var(--mute-light); font-size: 1.12rem; }
@@ -211,18 +213,21 @@ a { color: inherit; }
 .m-row i { font-style: normal; font-weight: 700; font-size: .76rem; padding: .35rem .7rem; background: var(--orange); color: var(--ink); border-radius: .5rem; }
 @media (max-width: 900px) { .book { grid-template-columns: minmax(0, 1fr); } }
 
-/* ---------------------------------------------------------------- chi siamo */
-.about { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: clamp(2rem, 6vw, 5rem); align-items: start; }
+/* ---------------------------------------------------------------- chi siamo (arancio, subito dopo la presentazione di Valerio) */
+.about { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 1.6rem clamp(2rem, 6vw, 5rem); align-items: end; }
 .about h2 { font-size: clamp(2.9rem, 7vw, 5.8rem); }
-.about-main p { margin-top: 1.8rem; max-width: 46ch; font-size: 1.2rem; color: #d8d8db; }
-.founder { padding-top: 1.4rem; border-top: 3px solid var(--white); }
-.founder h3 { font: 700 clamp(2.4rem, 4.4vw, 3.4rem)/.95 var(--display); text-transform: uppercase; }
-.role { margin-top: .4rem; font-weight: 700; color: var(--orange); }
-.creds { margin-block: 1.2rem 1.4rem; }
-.creds li { position: relative; padding: .75rem 0 .75rem 1.5rem; border-bottom: 1px solid var(--line-dark); font-weight: 700; font-size: 1.08rem; }
-.creds li::before { top: 1.1rem; }
-.founder > p:last-child { color: #d8d8db; max-width: 40ch; }
+.about-text { display: grid; gap: 1rem; }
+.about-text p { max-width: 46ch; font-size: 1.18rem; }
+.pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: clamp(2.2rem, 5vw, 3.8rem); border-top: 3px solid var(--ink); }
+.pillars li { padding: 1.3rem 1.4rem 0 0; }
+.pillars li + li { padding-left: 1.4rem; border-left: 1px solid rgba(10, 10, 11, .4); }
+.pillars b { display: block; font: 700 clamp(2.2rem, 4vw, 3.5rem)/.95 var(--display); text-transform: uppercase; }
+.pillars span { display: block; margin-top: .6rem; max-width: 28ch; }
 @media (max-width: 900px) { .about { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 700px) {
+  .pillars { grid-template-columns: minmax(0, 1fr); }
+  .pillars li, .pillars li + li { padding: 1rem 0; border-left: 0; border-bottom: 1px solid rgba(10, 10, 11, .4); }
+}
 
 /* ---------------------------------------------------------------- contatti */
 .contact-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: clamp(2rem, 5vw, 3.5rem); border-top: 3px solid var(--ink); border-left: 1px solid var(--line-light); }
