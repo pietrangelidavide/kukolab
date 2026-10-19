@@ -1,0 +1,122 @@
+{
+  "note": "Pacchetti di esempio: prezzi e condizioni da sostituire con quelli reali di KUKO LAB. Sono usati sia dalla vetrina (npm run site) sia dai dati demo della web app. Nel database vero i pacchetti si creano dall'app (Pacchetti): se cambiano, aggiornare anche questo file e rilanciare npm run site.",
+  "showPrices": true,
+  "packs": [
+    {
+      "id": "pk_single",
+      "name": "Lezione singola",
+      "kind": "pack",
+      "lessons": 1,
+      "validityDays": 30,
+      "priceCents": 1500,
+      "typeIds": [
+        "functional",
+        "pilates"
+      ],
+      "weeklyLimit": null,
+      "active": true,
+      "site": {
+        "blurb": "Una lezione di gruppo, nessun impegno. Scegli Functional o Pilates."
+      }
+    },
+    {
+      "id": "pk_fun10",
+      "name": "Functional 10 lezioni",
+      "kind": "pack",
+      "lessons": 10,
+      "validityDays": 90,
+      "priceCents": 11000,
+      "typeIds": [
+        "functional"
+      ],
+      "weeklyLimit": null,
+      "active": true,
+      "site": {
+        "blurb": "Dieci lezioni da usare quando vuoi, in tre mesi.",
+        "tag": "Per cominciare"
+      }
+    },
+    {
+      "id": "pk_pil8",
+      "name": "Pilates 8 lezioni",
+      "kind": "pack",
+      "lessons": 8,
+      "validityDays": 60,
+      "priceCents": 12000,
+      "typeIds": [
+        "pilates"
+      ],
+      "weeklyLimit": null,
+      "active": true,
+      "site": {
+        "blurb": "Otto lezioni di Pilates in due mesi."
+      }
+    },
+    {
+      "id": "pk_pt5",
+      "name": "Personal training 5 sedute",
+      "kind": "pack",
+      "lessons": 5,
+      "validityDays": 90,
+      "priceCents": 24000,
+      "typeIds": [
+        "pt"
+      ],
+      "weeklyLimit": null,
+      "active": true,
+      "site": {
+        "blurb": "Cinque sedute tutte per te, con il tuo trainer."
+      }
+    },
+    {
+      "id": "pk_mfun",
+      "name": "Mensile Functional",
+      "kind": "monthly",
+      "lessons": null,
+      "validityDays": 30,
+      "priceCents": 7500,
+      "typeIds": [
+        "functional"
+      ],
+      "weeklyLimit": 3,
+      "active": true,
+      "site": {
+        "blurb": "Un mese di Functional, fino a 3 volte a settimana."
+      }
+    },
+    {
+      "id": "pk_mpil",
+      "name": "Mensile Pilates",
+      "kind": "monthly",
+      "lessons": null,
+      "validityDays": 30,
+      "priceCents": 9500,
+      "typeIds": [
+        "pilates"
+      ],
+      "weeklyLimit": 2,
+      "active": true,
+      "site": {
+        "blurb": "Un mese di Pilates, fino a 2 volte a settimana."
+      }
+    },
+    {
+      "id": "pk_open",
+      "name": "Mensile Open",
+      "kind": "monthly",
+      "lessons": null,
+      "validityDays": 30,
+      "priceCents": 12900,
+      "typeIds": [
+        "functional",
+        "pilates"
+      ],
+      "weeklyLimit": 4,
+      "active": true,
+      "site": {
+        "blurb": "Functional e Pilates insieme: cambi corso quando ti va.",
+        "tag": "Il più completo"
+      }
+    }
+  ]
+}

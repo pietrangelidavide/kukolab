@@ -1,0 +1,17 @@
+{
+  "note": "Dati presi dalla locandina del professionista: da far confermare a lui prima di pubblicare. Usati dal sito (npm run site) e dall'area owner.",
+  "name": "Dott. Maurizio Calabrò",
+  "short": "Maurizio Calabrò",
+  "role": "Nutrizionista sportivo",
+  "tagline": "La nutrizione sportiva su misura per te",
+  "phone": "+39 347 8745170",
+  "email": "doc.mauriziocalabro@gmail.com",
+  "instagram": "dott.calabro_nutrizionista",
+  "benefits": [
+    { "icon": "clock", "title": "Timing dei nutrienti", "text": "Cosa mangiare prima, durante e dopo l’allenamento perché renda di più." },
+    { "icon": "bolt", "title": "Più resistenza", "text": "Energia che regge fino all’ultima ripetizione." },
+    { "icon": "heal", "title": "Recupero muscolare", "text": "Meno stanchezza il giorno dopo, più costanza nel tempo." },
+    { "icon": "plan", "title": "Piano su misura", "text": "Un piano nutrizionale personalizzato, costruito su di te e sul tuo obiettivo." },
+    { "icon": "scale", "title": "Composizione corporea", "text": "Si parte dalla valutazione: massa magra, massa grassa, punto di partenza reale." }
+  ]
+}

@@ -125,6 +125,25 @@ create table if not exists public.notices (
 );
 create index if not exists notices_member_idx on public.notices (member_id);
 
+-- Richieste dal sito: prova gratuita di una lezione e consulenza con il nutrizionista.
+-- Le scrive chiunque (anche senza account) ma solo tramite public.submit_lead; le legge e le gestisce solo l'owner.
+create table if not exists public.leads (
+  id uuid primary key default gen_random_uuid(),
+  kind text not null check (kind in ('trial', 'nutrition')),
+  topic text not null,
+  name text not null check (length(trim(name)) between 2 and 80),
+  phone text not null check (length(phone) between 8 and 30),
+  email text not null default '' check (length(email) <= 120),
+  slots text[] not null default '{}',
+  note text not null default '' check (length(note) <= 400),
+  status text not null default 'new' check (status in ('new', 'contacted', 'scheduled', 'done', 'joined', 'lost')),
+  owner_note text not null default '' check (length(owner_note) <= 1000),
+  source text not null default 'sito',
+  created_at timestamptz not null default clock_timestamp(),
+  updated_at timestamptz
+);
+create index if not exists leads_created_idx on public.leads (created_at desc);
+
 alter table public.settings enable row level security;
 alter table public.course_types enable row level security;
 alter table public.members enable row level security;
@@ -134,6 +153,7 @@ alter table public.packs enable row level security;
 alter table public.passes enable row level security;
 alter table public.bookings enable row level security;
 alter table public.notices enable row level security;
+alter table public.leads enable row level security;
 revoke all on all tables in schema public from anon, authenticated;
 
 -- =========================================================================================== funzioni interne (schema private)
@@ -179,6 +199,11 @@ $$;
 
 create or replace function private.notice(m uuid, k text, t text) returns void language sql as $$
   insert into public.notices (member_id, kind, text) values (m, k, t)
+$$;
+
+-- Le richieste si tengono 12 mesi (come LEAD_KEEP_MONTHS in src/lib/leads.ts, e come dice l'informativa privacy).
+create or replace function private.purge_leads() returns void language sql as $$
+  delete from public.leads where created_at < now() - interval '12 months'
 $$;
 
 create or replace function private.booked_count(sid uuid) returns int language sql stable as $$
@@ -372,6 +397,7 @@ begin
   perform private.ensure_sessions();
   select * into st from public.settings where id = 1;
   own := me.role = 'owner';
+  if own then perform private.purge_leads(); end if;
   if own then
     lo := now() - interval '95 days';
     hi := now() + make_interval(days => st.booking_horizon_days + 21);
@@ -402,6 +428,7 @@ begin
     'packs', (select coalesce(jsonb_agg(to_jsonb(p) order by p.price_cents, p.name), '[]'::jsonb) from public.packs p where own or p.active),
     'passes', (select coalesce(jsonb_agg(to_jsonb(p) order by p.expires_on desc), '[]'::jsonb) from public.passes p where own or p.member_id = me.id),
     'bookings', (select coalesce(jsonb_agg(to_jsonb(b) order by b.created_at, b.id), '[]'::jsonb) from bk b),
+    'leads', case when own then (select coalesce(jsonb_agg(to_jsonb(l) order by l.created_at desc), '[]'::jsonb) from (select * from public.leads order by created_at desc limit 300) l) else '[]'::jsonb end,
     'notices', case when own then '[]'::jsonb else (select coalesce(jsonb_agg(to_jsonb(n) order by n.created_at desc), '[]'::jsonb) from (select * from public.notices where member_id = me.id order by created_at desc limit 50) n) end,
     'counts', case when own then null else (
       select coalesce(jsonb_object_agg(s.id, jsonb_build_object(
@@ -624,6 +651,70 @@ exception when check_violation or invalid_text_representation then
   perform private.fail('invalid');
 end $$;
 
+-- Chiavi: leadId, status (new, contacted, scheduled, done, joined, lost) e/o ownerNote: si cambia solo quello che arriva.
+create or replace function public.save_lead(p_lead uuid, p_status text default null, p_owner_note text default null) returns void language plpgsql security definer set search_path = public, pg_temp as $$
+declare me public.members := private.need_owner();
+begin
+  if not exists (select 1 from public.leads where id = p_lead) then perform private.fail('lead_not_found'); end if;
+  if p_status is not null and p_status not in ('new', 'contacted', 'scheduled', 'done', 'joined', 'lost') then perform private.fail('invalid'); end if;
+  update public.leads set
+    status = coalesce(p_status, status),
+    owner_note = left(coalesce(p_owner_note, owner_note), 1000),
+    updated_at = now()
+  where id = p_lead;
+end $$;
+
+create or replace function public.delete_lead(p_lead uuid) returns void language plpgsql security definer set search_path = public, pg_temp as $$
+declare me public.members := private.need_owner();
+begin
+  delete from public.leads where id = p_lead;
+  if not found then perform private.fail('lead_not_found'); end if;
+end $$;
+
+-- Chiamata dal modulo del sito, anche da chi non ha un account (è l'unica funzione data ad anon).
+-- Chiavi: topic (functional, pilates, pt, nutrition), name, phone, email, slots, note, consent (obbligatorio), website (trappola per i bot: deve restare vuoto).
+-- Risponde {"ok": true} anche quando scarta qualcosa di inutile (bot, doppia richiesta), così chi manda non scopre le regole.
+create or replace function public.submit_lead(p jsonb) returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
+declare nm text; ph text; em text; tp text; nt text; sl text[]; pk text;
+begin
+  if coalesce(p ->> 'website', '') <> '' then return jsonb_build_object('ok', true); end if;
+  nm := regexp_replace(trim(coalesce(p ->> 'name', '')), '\s+', ' ', 'g');
+  ph := trim(coalesce(p ->> 'phone', ''));
+  em := lower(trim(coalesce(p ->> 'email', '')));
+  tp := trim(coalesce(p ->> 'topic', ''));
+  nt := left(trim(coalesce(p ->> 'note', '')), 400);
+  if length(nm) < 2 or length(nm) > 80 then perform private.fail('invalid'); end if;
+  if length(regexp_replace(ph, '\D', '', 'g')) not between 8 and 15 or length(ph) > 30 then perform private.fail('invalid'); end if;
+  if em <> '' and (length(em) > 120 or em !~ '^[^\s@]+@[^\s@]+\.[^\s@]{2,}$') then perform private.fail('invalid'); end if;
+  if tp <> 'nutrition' and not exists (select 1 from public.course_types where id = tp) then perform private.fail('invalid'); end if;
+  if coalesce((p ->> 'consent')::boolean, false) is not true then perform private.fail('invalid'); end if;
+  select coalesce(array_agg(distinct x), '{}') into sl from jsonb_array_elements_text(coalesce(p -> 'slots', '[]'::jsonb)) x where x in ('mattina', 'pranzo', 'pomeriggio', 'sera', 'sabato');
+
+  perform private.purge_leads();
+  -- freno generale contro l'inondazione: oltre 30 richieste in un'ora si rimanda
+  if (select count(*) from public.leads where created_at > now() - interval '1 hour') >= 30 then perform private.fail('busy'); end if;
+  -- stessa persona (stesse ultime 10 cifre) per lo stesso argomento entro 10 minuti: vale la prima
+  pk := right(regexp_replace(ph, '\D', '', 'g'), 10);
+  if exists (select 1 from public.leads l where l.topic = tp and right(regexp_replace(l.phone, '\D', '', 'g'), 10) = pk and l.created_at > now() - interval '10 minutes') then
+    return jsonb_build_object('ok', true);
+  end if;
+
+  insert into public.leads (kind, topic, name, phone, email, slots, note, source)
+  values (case when tp = 'nutrition' then 'nutrition' else 'trial' end, tp, nm, ph, em, sl, nt, case when p ->> 'source' = 'app' then 'app' else 'sito' end);
+  return jsonb_build_object('ok', true);
+exception when invalid_text_representation then
+  perform private.fail('invalid');
+end $$;
+
+-- Un socio già iscritto chiede la consulenza con il nutrizionista (o una prova di un altro corso) dall'app:
+-- nome, telefono ed email vengono dal suo profilo, non dall'app. Stesse regole e stessi freni di submit_lead.
+create or replace function public.request_consult(p_topic text, p_note text default '') returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
+declare m public.members;
+begin
+  m := private.need_member();
+  return public.submit_lead(jsonb_build_object('topic', p_topic, 'name', m.name, 'phone', m.phone, 'email', m.email, 'note', coalesce(p_note, ''), 'consent', true, 'source', 'app'));
+end $$;
+
 -- =========================================================================================== permessi
 -- Le funzioni dell'app le possono chiamare solo gli utenti collegati; quelle interne nessuno.
 do $$
@@ -638,6 +729,8 @@ begin
   end loop;
 end $$;
 revoke all on schema private from public, anon, authenticated;
+-- Unica eccezione: il modulo del sito deve poter mandare una richiesta anche senza account.
+grant execute on function public.submit_lead(jsonb) to anon;
 
 -- =========================================================================================== primo owner
 -- Dopo che Valerio si è registrato dall'app con la sua email, eseguire (con la sua email vera):

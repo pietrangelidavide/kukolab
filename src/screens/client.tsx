@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useStore } from '../store';
 import { Badge, Btn, Empty, Field, Icon, Sheet, toneClass } from '../ui';
 import { PageHead, PasswordForm, PassStateBadge, typeNames, validity, weekUsage } from './common';
@@ -6,7 +6,9 @@ import { BLOCK_TEXT, activePasses, memberStatus, myBookings, passState, passesOf
 import type { SessionView } from '../lib/selectors';
 import { addDays, romeDay } from '../lib/time';
 import { cap, dayDM, dayDMY, dayLong, dayNum, dayShort, euro, plural, timeOf } from '../lib/format';
-import type { Booking, Data, Session } from '../lib/types';
+import type { Booking, Data, Pack, Pass, Session } from '../lib/types';
+import nutritionist from '../data/nutritionist.json';
+import { NUTRITION, phoneKey } from '../lib/leads';
 
 import { STUDIO } from '../config';
 const STUDIO_WA = STUDIO.whatsapp;
@@ -233,46 +235,124 @@ export function PassScreen() {
         </>
       )}
       <h2 className="sec">Pacchetti in studio</h2>
-      <ul className="catalog">
-        {catalog.map((p) => (
-          <li key={p.id}>
-            <div><b>{p.name}</b><small>{p.kind === 'pack' ? `${p.lessons} ${plural(p.lessons ?? 0, 'lezione', 'lezioni')} · valido ${p.validityDays} giorni` : `${p.validityDays} giorni${p.weeklyLimit ? ` · fino a ${p.weeklyLimit} a settimana` : ' · illimitato'}`} · {typeNames(d, p.typeIds)}</small></div>
-            <span className="price">{euro(p.priceCents)}</span>
-          </li>
-        ))}
+      <ul className="tickets">
+        {catalog.map((p) => <PackTicket key={p.id} p={p} d={d} />)}
       </ul>
       <p className="policy"><Icon n="info" size={16} /> Pagamento e attivazione si fanno in studio. Poi trovi tutto qui.</p>
       <a className="btn btn-ghost btn-md" href={wa} target="_blank" rel="noopener"><span>Scrivici su WhatsApp</span></a>
+      <h2 className="sec">Nutrizionista</h2>
+      <NutriCard />
     </>
   );
 }
 
-export function PassCard({ p, d, today }: { p: import('../lib/types').Pass; d: Data; today: string }) {
+const perLesson = (p: Pack) => (p.kind === 'pack' && p.lessons && p.lessons > 1 ? `circa ${euro(Math.round(p.priceCents / p.lessons))} a lezione` : '');
+
+/** Un pacchetto del catalogo come biglietto: a sinistra cosa comprende, a destra il prezzo, in mezzo la perforazione. */
+function PackTicket({ p, d }: { p: Pack; d: Data }) {
+  const info = p.kind === 'pack'
+    ? `${p.lessons} ${plural(p.lessons ?? 0, 'lezione', 'lezioni')} · valido ${p.validityDays} giorni`
+    : `${p.validityDays} giorni${p.weeklyLimit ? ` · fino a ${p.weeklyLimit} a settimana` : ' · illimitato'}`;
+  const per = perLesson(p);
+  return (
+    <li className={`tk tk-${p.kind}`}>
+      <div className="tk-main"><b>{p.name}</b><small>{info}</small><small>{typeNames(d, p.typeIds)}</small></div>
+      <div className="tk-stub">
+        <span className="tk-price">{euro(p.priceCents)}</span>
+        <small>{p.kind === 'monthly' ? 'al mese' : per}</small>
+      </div>
+    </li>
+  );
+}
+
+/** Il socio chiede la consulenza con il nutrizionista: arriva allo studio con nome, telefono ed email del suo profilo. */
+function NutriCard() {
+  const s = useStore();
+  const d = s.data!, me = s.me!;
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  // in demo il socio vede anche le richieste: se ne ha già una aperta lo si dice subito
+  const already = sent || d.leads.some((l) => l.topic === NUTRITION && l.source === 'app' && l.status !== 'lost' && phoneKey(l.phone) === phoneKey(me.phone));
+
+  async function ask() {
+    if (phoneKey(me.phone).length < 8) { s.toast('Aggiungi il tuo telefono nel profilo: ti chiamiamo lì.', 'error'); s.route.go('/profilo'); return; }
+    const ok = await s.ask({ title: 'Chiedere la consulenza?', text: `Mandiamo allo studio il tuo nome e il numero ${me.phone}. Ti richiamano per fissare l’appuntamento con il ${nutritionist.name}.`, confirm: 'Invia la richiesta' });
+    if (!ok) return;
+    setBusy(true);
+    const r = await s.run(s.api.requestConsult({ topic: NUTRITION }), 'Richiesta inviata: ti chiamiamo noi.');
+    setBusy(false);
+    if (r.ok) setSent(true);
+  }
+
+  return (
+    <section className="nutri-card" aria-label="Consulenza con il nutrizionista">
+      <span className="nutri-ic"><Icon n="leaf" size={26} /></span>
+      <div className="nutri-text">
+        <h3>{nutritionist.name}</h3>
+        <p className="nutri-role">{nutritionist.role}</p>
+        <p>{nutritionist.tagline}. La prima consulenza è gratuita.</p>
+        <ul className="nutri-list">{nutritionist.benefits.slice(0, 3).map((b) => <li key={b.title}>{b.title}</li>)}</ul>
+      </div>
+      {already
+        ? <p className="nutri-sent"><Icon n="check" size={18} /> Richiesta inviata. Ti chiamiamo noi.</p>
+        : <Btn kind="primary" size="md" onClick={ask} disabled={busy}>Chiedi la consulenza gratuita</Btn>}
+    </section>
+  );
+}
+
+const MAX_PUNCH = 12;
+
+/** Il pass del socio come tessera a punzone: un foro pieno per ogni lezione ancora da usare. */
+export function PassCard({ p, d, today }: { p: Pass; d: Data; today: string }) {
   const pack = p.kind === 'pack';
   const total = p.creditsTotal ?? 0, left = p.creditsLeft ?? 0;
   const used = weekUsage(d, p, today);
+  const limit = p.weeklyLimit ?? 0;
+  // sticker che dice a colpo d'occhio come sta andando
+  let sticker = '';
+  if (passState(p, today) === 'active') {
+    if (pack && total > 0 && left === total) sticker = 'Nuova di zecca!';
+    else if (pack && left === 1) sticker = 'Ultima lezione!';
+    else if (pack && left === 2) sticker = 'Ne restano 2';
+    else if (!pack && limit > 0 && used >= limit) sticker = 'Settimana piena!';
+  }
+  const holes = pack ? { n: total, on: left } : limit > 0 ? { n: limit, on: Math.max(0, limit - used) } : null;
+  const showHoles = holes && holes.n > 0 && holes.n <= MAX_PUNCH;
   return (
-    <article className="pass">
-      <header>
-        <h3>{p.name}</h3>
-        <PassStateBadge p={p} today={today} />
-      </header>
-      {pack ? (
-        <>
-          <div className="big"><b>{left}</b><span>su {total} {plural(total, 'lezione', 'lezioni')}</span></div>
+    <article className={`pass ${pack ? 'is-pack' : 'is-monthly'}${passState(p, today) === 'active' ? '' : ' is-off'}`}>
+      <div className="pass-top">
+        <header>
+          <h3>{p.name}</h3>
+          <PassStateBadge p={p} today={today} />
+        </header>
+        {pack
+          ? <div className="big"><b>{left}</b><span>su {total} {plural(total, 'lezione', 'lezioni')}</span></div>
+          : <div className="big"><b>{limit ? limit : '∞'}</b><span>{limit ? 'lezioni a settimana' : 'lezioni illimitate'}</span></div>}
+      </div>
+      <div className="pass-body">
+        {showHoles && holes && (
+          <>
+            <div className="punch" role="img" aria-label={pack ? `${left} lezioni su ${total}` : `${holes.on} lezioni ancora disponibili questa settimana, ${used} usate`}>
+              {Array.from({ length: holes.n }, (_, i) => <i key={i} className={i < holes.on ? 'on' : ''} style={{ '--i': i } as CSSProperties} />)}
+            </div>
+            {!pack && <p className="muted">Questa settimana: {used} su {limit}</p>}
+          </>
+        )}
+        {!showHoles && pack && (
           <div className="meter" role="img" aria-label={`${left} lezioni su ${total}`}><i style={{ width: `${total ? Math.max(0, Math.min(100, (left / total) * 100)) : 0}%` }} /></div>
-        </>
-      ) : (
-        <>
-          <div className="big"><b>{p.weeklyLimit ? p.weeklyLimit : '∞'}</b><span>{p.weeklyLimit ? 'lezioni a settimana' : 'lezioni illimitate'}</span></div>
-          {p.weeklyLimit ? <div className="meter" role="img" aria-label={`${used} usate su ${p.weeklyLimit} questa settimana`}><i style={{ width: `${Math.min(100, (used / p.weeklyLimit) * 100)}%` }} /></div> : null}
-          {p.weeklyLimit ? <p className="muted">Questa settimana: {used} su {p.weeklyLimit}</p> : null}
-        </>
-      )}
-      <dl>
-        <div><dt>Validità</dt><dd>{validity(p)}</dd></div>
-        <div><dt>Corsi</dt><dd>{typeNames(d, p.typeIds)}</dd></div>
-      </dl>
+        )}
+        {!showHoles && !pack && limit > 0 && (
+          <>
+            <div className="meter" role="img" aria-label={`${used} usate su ${limit} questa settimana`}><i style={{ width: `${Math.min(100, (used / limit) * 100)}%` }} /></div>
+            <p className="muted">Questa settimana: {used} su {limit}</p>
+          </>
+        )}
+        <dl>
+          <div><dt>Validità</dt><dd>{validity(p)}</dd></div>
+          <div><dt>Corsi</dt><dd>{typeNames(d, p.typeIds)}</dd></div>
+        </dl>
+      </div>
+      {sticker && <span className="pass-sticker">{sticker}</span>}
     </article>
   );
 }

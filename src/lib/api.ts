@@ -1,5 +1,5 @@
 // Contratto tra le schermate e i dati. Due implementazioni: local.ts (demo nel browser) e remote.ts (Supabase).
-import type { Data, Id, Member, Pack, Result, Role, Session, Settings, Template } from './types';
+import type { Data, Id, LeadStatus, Member, Pack, Result, Role, Session, Settings, Template } from './types';
 
 export interface AuthState { me: Member; data: Data }
 export type R<T extends object = Record<never, never>> = Promise<Result<{ data: Data } & T>>;
@@ -21,6 +21,8 @@ export interface Api {
   cancel(bookingId: Id): R<{ status: 'cancelled' | 'late_cancelled'; refunded: boolean; promoted: number }>;
   updateProfile(p: { name: string; phone: string }): R<{ me: Member }>;
   readNotices(): R;
+  /** Il socio chiede la consulenza con il nutrizionista (o una prova): nome, telefono ed email sono quelli del suo profilo. */
+  requestConsult(i: { topic: Id; note?: string }): R;
 
   // owner
   ownerBook(memberId: Id, sessionId: Id, allowNoPass: boolean): R<{ status: 'booked' | 'waitlist' }>;
@@ -37,4 +39,7 @@ export interface Api {
   adjustCredits(passId: Id, delta: number): R;
   savePack(p: Pack): R;
   saveSettings(s: Settings): R;
+  /** Richieste arrivate dal sito (prova gratuita, nutrizionista): stato e nota interna. */
+  saveLead(i: { id: Id; status?: LeadStatus; ownerNote?: string }): R;
+  deleteLead(id: Id): R;
 }

@@ -1,7 +1,7 @@
 // Modalità reale: Supabase (accesso con email e password + funzioni del database), senza librerie, con fetch.
 // Il database è descritto in supabase/schema.sql: qui si chiamano solo le sue funzioni (rpc).
 import type { Api, AuthState, R } from './api';
-import type { Booking, Data, Err, Id, Member, Notice, Pack, Pass, Result, Session, Settings, Template } from './types';
+import type { Booking, Data, Err, Id, Lead, LeadStatus, Member, Notice, Pack, Pass, Result, Session, Settings, Template } from './types';
 import { ERR_TEXT } from './types';
 
 const AUTH_KEY = 'kuko-auth';
@@ -43,6 +43,11 @@ export function mapSnapshot(j: any): AuthState {
       ...(b.position != null ? { position: Number(b.position) } : {}),
     })),
     notices: j.notices.map((n: any): Notice => ({ id: n.id, memberId: n.member_id, kind: n.kind, text: n.text, createdAt: iso(n.created_at), read: n.read })),
+    // le richieste dal sito le vede solo l'owner: per gli altri il database non manda nulla
+    leads: (j.leads ?? []).map((l: any): Lead => ({
+      id: l.id, kind: l.kind, topic: l.topic, name: l.name, phone: l.phone, email: l.email ?? '', slots: l.slots ?? [], note: l.note ?? '',
+      status: l.status, ownerNote: l.owner_note ?? '', source: l.source ?? 'sito', createdAt: iso(l.created_at), updatedAt: isoOrNull(l.updated_at),
+    })),
   };
   if (j.counts) data.counts = Object.fromEntries(Object.entries<any>(j.counts).map(([id, c]) => [id, { booked: Number(c.booked), waitlist: Number(c.waitlist) }]));
   const me = data.members.find((m) => m.id === j.me.id) ?? member(j.me);
@@ -241,6 +246,7 @@ export class RemoteApi implements Api {
   cancel(bookingId: Id) { return this.mutate('cancel_booking', { p_booking: bookingId }, (v) => ({ status: v.status as 'cancelled' | 'late_cancelled', refunded: !!v.refunded, promoted: Number(v.promoted) })); }
   updateProfile(p: { name: string; phone: string }) { return this.mutate('update_profile', { p_name: p.name, p_phone: p.phone }, (_v, s) => ({ me: s.me })); }
   readNotices() { return this.mutate('read_notices', {}); }
+  requestConsult(i: { topic: Id; note?: string }) { return this.mutate('request_consult', { p_topic: i.topic, p_note: i.note ?? '' }); }
 
   // ------------------------------------------------------------------ owner
   ownerBook(memberId: Id, sessionId: Id, allowNoPass: boolean) { return this.mutate('owner_book', { p_member: memberId, p_session: sessionId, p_allow_no_pass: allowNoPass }, (v) => ({ status: v.status as 'booked' | 'waitlist' })); }
@@ -259,4 +265,6 @@ export class RemoteApi implements Api {
   adjustCredits(passId: Id, delta: number) { return this.mutate('adjust_credits', { p_pass: passId, p_delta: delta }); }
   savePack(p: Pack) { return this.mutate('save_pack', { p }); }
   saveSettings(s: Settings) { return this.mutate('save_settings', { p: s }); }
+  saveLead(i: { id: Id; status?: LeadStatus; ownerNote?: string }) { return this.mutate('save_lead', { p_lead: i.id, p_status: i.status ?? null, p_owner_note: i.ownerNote ?? null }); }
+  deleteLead(id: Id) { return this.mutate('delete_lead', { p_lead: id }); }
 }

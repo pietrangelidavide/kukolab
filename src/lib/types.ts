@@ -106,6 +106,28 @@ export interface Notice {
   read: boolean;
 }
 
+export type LeadKind = 'trial' | 'nutrition';
+/** Cosa ha chiesto la persona: l'id di un corso (prova gratuita) oppure 'nutrition' (consulenza nutrizionale). */
+export type LeadTopic = Id;
+export type LeadStatus = 'new' | 'contacted' | 'scheduled' | 'done' | 'joined' | 'lost';
+
+/** Richiesta arrivata dal sito: prova gratuita di una lezione o consulenza nutrizionale. */
+export interface Lead {
+  id: Id;
+  kind: LeadKind;
+  topic: LeadTopic;
+  name: string;
+  phone: string;
+  email: string;
+  slots: string[]; // fasce preferite: mattina, pranzo, pomeriggio, sera, sabato
+  note: string; // quello che ha scritto la persona
+  status: LeadStatus;
+  ownerNote: string; // appunti dello studio
+  source: string;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
 export interface Data {
   settings: Settings;
   types: CourseType[];
@@ -116,6 +138,8 @@ export interface Data {
   passes: Pass[];
   bookings: Booking[];
   notices: Notice[];
+  /** Richieste di prova gratuita e consulenza (le vede solo l'owner). */
+  leads: Lead[];
   /** Conteggi per lezione quando il cliente non vede le prenotazioni degli altri (modalità remota). */
   counts?: Record<Id, { booked: number; waitlist: number }>;
 }
@@ -126,6 +150,8 @@ export type Err =
   | 'booking_not_found'
   | 'pass_not_found'
   | 'pack_not_found'
+  | 'lead_not_found'
+  | 'busy'
   | 'forbidden'
   | 'session_cancelled'
   | 'booking_closed'
@@ -149,6 +175,8 @@ export const ERR_TEXT: Record<Err, string> = {
   booking_not_found: 'Prenotazione non trovata.',
   pass_not_found: 'Abbonamento non trovato.',
   pack_not_found: 'Pacchetto non trovato.',
+  lead_not_found: 'Richiesta non trovata.',
+  busy: 'Troppe richieste in poco tempo: riprova tra qualche minuto.',
   forbidden: 'Non puoi farlo.',
   session_cancelled: 'Questa lezione è stata annullata.',
   booking_closed: 'Le prenotazioni per questa lezione sono chiuse.',

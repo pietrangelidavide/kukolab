@@ -46,3 +46,6 @@ export const manifest = JSON.stringify({
   background_color: '#070707', theme_color: '#070707',
   icons: [{ src: '/img/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/img/icon-512.png', sizes: '512x512', type: 'image/png' }],
 }, null, 2);
+
+/** Configurazione per il modulo della vetrina (prova gratuita): con Supabase le richieste vanno al database, senza restano in una coda locale (demo). La chiave anon è pubblica per natura. */
+export const siteConfig = () => `window.KUKO_SITE=${JSON.stringify({ supabaseUrl: process.env.KUKO_SUPABASE_URL ?? '', supabaseKey: process.env.KUKO_SUPABASE_ANON_KEY ?? '' })};\n`;

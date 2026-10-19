@@ -1,13 +1,17 @@
 // Modalità demo: tutto nel browser (localStorage), con le stesse regole di rules.ts.
 import type { Api, AuthState, R } from './api';
-import type { Data, Id, Member, Pack, Result, Role, Settings, Template } from './types';
+import type { Data, Id, LeadStatus, Member, Pack, Result, Role, Settings, Template } from './types';
 import { demoData, DEMO_CLIENT_ID, DEMO_OWNER_ID } from './seed';
 import * as rules from './rules';
+import * as leads from './leads';
+import type { LeadInput } from './leads';
 import { addDays, romeDay } from './time';
 import { newId } from './ids';
 
 const KEY = 'kuko-demo-v1';
 const ME = 'kuko-demo-me';
+/** Coda delle richieste inviate dal modulo del sito (stessa origine dell'app): la app la svuota e le trasforma in richieste vere. */
+export const SITE_LEADS = 'kuko-site-leads';
 
 const mem = new Map<string, string>();
 const store = {
@@ -37,11 +41,12 @@ export class LocalApi implements Api {
       const raw = store.get(KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Data;
-        if (parsed && Array.isArray(parsed.sessions) && Array.isArray(parsed.members) && parsed.settings) this.d = parsed;
+        if (parsed && Array.isArray(parsed.sessions) && Array.isArray(parsed.members) && parsed.settings) { parsed.leads ??= []; this.d = parsed; }
       }
     } catch { /* dati rovinati: si riparte dalla demo */ }
     this.meId = store.get(ME);
     this.extend();
+    this.drainSiteLeads();
     this.persist();
     return this.state();
   }
@@ -77,7 +82,21 @@ export class LocalApi implements Api {
 
   async signOut() { this.meId = null; this.persist(); }
 
-  async refresh(): R { this.extend(); this.persist(); return { ok: true, data: this.d }; }
+  async refresh(): R { this.extend(); this.drainSiteLeads(); this.persist(); return { ok: true, data: this.d }; }
+
+  /** Prende le richieste lasciate dal sito nella coda e le aggiunge ai dati. */
+  private drainSiteLeads() {
+    let queue: (LeadInput & { at?: string })[] = [];
+    try { const raw = store.get(SITE_LEADS); if (raw) queue = JSON.parse(raw); } catch { /* coda rovinata: si scarta */ }
+    if (!Array.isArray(queue) || !queue.length) { if (store.get(SITE_LEADS)) store.del(SITE_LEADS); return; }
+    for (const q of queue) {
+      const at = q.at && !Number.isNaN(Date.parse(q.at)) ? new Date(q.at) : this.now();
+      const r = leads.addLead(this.d, { input: q, now: at });
+      if (r.ok) this.d = r.data;
+    }
+    this.d = leads.purgeLeads(this.d, this.now());
+    store.del(SITE_LEADS);
+  }
 
   private actor() { const m = this.me(); return m ? { role: m.role, memberId: m.id } : null; }
 
@@ -101,6 +120,12 @@ export class LocalApi implements Api {
     const x = d.members.find((y) => y.id === m.id)!;
     x.name = p.name.trim(); x.phone = p.phone.trim();
     return this.commit({ ok: true, data: d, me: x });
+  }
+
+  async requestConsult(i: { topic: Id; note?: string }): R {
+    const m = this.me(); if (!m) return { ok: false, error: 'auth' };
+    const r = leads.addLead(this.d, { input: { topic: i.topic, name: m.name, phone: m.phone, email: m.email, note: i.note, consent: true }, now: this.now(), source: 'app' });
+    return r.ok ? this.commit(r) : r;
   }
 
   async readNotices(): R {
@@ -205,5 +230,17 @@ export class LocalApi implements Api {
     const d = structuredClone(this.d);
     d.settings = { ...s };
     return this.commit({ ok: true, data: d });
+  }
+
+  async saveLead(i: { id: Id; status?: LeadStatus; ownerNote?: string }): R {
+    if (!this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    const r = leads.updateLead(this.d, { ...i, now: this.now() });
+    return r.ok ? this.commit(r) : r;
+  }
+
+  async deleteLead(id: Id): R {
+    if (!this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    const r = leads.removeLead(this.d, { id });
+    return r.ok ? this.commit(r) : r;
   }
 }

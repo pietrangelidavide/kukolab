@@ -250,3 +250,49 @@ test('permessi: un cliente non può usare le funzioni da owner', async () => {
   bad(await api.adjustCredits(crypto.randomUUID(), 100), 'forbidden');
   await api.signOut();
 });
+
+test('richieste dal sito: il modulo scrive senza account, solo l’owner le vede e le gestisce', async () => {
+  // come fa il modulo del sito: chiamata diretta con la sola chiave pubblica
+  const send = (p: object) => fetch(BASE + '/rest/v1/rpc/submit_lead', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: 'anon-key', Authorization: 'Bearer anon-key' }, body: JSON.stringify({ p }) });
+  const r1 = await send({ topic: 'pilates', name: 'Chiara Neri', phone: '+39 347 000 1122', email: 'chiara@example.com', slots: ['sera', 'sabato'], note: 'Prima volta', consent: true });
+  assert.equal(r1.status, 200);
+  assert.deepEqual(await r1.json(), { ok: true });
+  const r2 = await send({ topic: 'nutrition', name: 'Chiara Neri', phone: '+39 347 000 1122', consent: false });
+  assert.equal(r2.status, 400, 'senza consenso la richiesta è rifiutata');
+  assert.equal((await r2.json()).message, 'invalid');
+  // chi non ha un account non può leggere nulla
+  const snap = await fetch(BASE + '/rest/v1/rpc/snapshot', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer anon-key' }, body: '{}' });
+  assert.equal(snap.status, 403);
+
+  // un cliente non le vede e non le gestisce
+  const c = ok(await api.signIn(marta.email, marta.password));
+  assert.equal(c.data.leads.length, 0);
+  bad(await api.saveLead({ id: crypto.randomUUID(), status: 'done' }), 'forbidden');
+  bad(await api.deleteLead(crypto.randomUUID()), 'forbidden');
+  // una socia chiede la consulenza dall'app: i dati vengono dal suo profilo
+  const rc = ok(await api.requestConsult({ topic: 'nutrition', note: 'Vorrei un piano per la gara' }));
+  assert.equal(rc.data.leads.length, 0, 'anche dopo la richiesta la socia non vede le richieste');
+  bad(await api.requestConsult({ topic: 'zumba' }), 'invalid');
+  await api.signOut();
+
+  // l'owner sì
+  const o = ok(await api.signIn(owner.email, owner.password));
+  assert.equal(o.data.leads.length, 2);
+  const mine = o.data.leads.find((l) => l.source === 'app')!;
+  assert.deepEqual([mine.kind, mine.topic, mine.name, mine.email, mine.note], ['nutrition', 'nutrition', 'Marta R.', marta.email.toLowerCase(), 'Vorrei un piano per la gara']);
+  const lead = o.data.leads.find((l) => l.source === 'sito')!;
+  assert.deepEqual([lead.kind, lead.topic, lead.name, lead.status], ['trial', 'pilates', 'Chiara Neri', 'new']);
+  assert.deepEqual(lead.slots.sort(), ['sabato', 'sera']);
+  assert.equal(lead.email, 'chiara@example.com');
+  const u = ok(await api.saveLead({ id: lead.id, status: 'contacted', ownerNote: 'Sentita al telefono' }));
+  const ul = u.data.leads.find((l) => l.id === lead.id)!;
+  assert.deepEqual([ul.status, ul.ownerNote], ['contacted', 'Sentita al telefono']);
+  assert.ok(ul.updatedAt);
+  const s = ok(await api.saveLead({ id: lead.id, status: 'scheduled' }));
+  assert.equal(s.data.leads.find((l) => l.id === lead.id)!.ownerNote, 'Sentita al telefono', 'la nota resta se cambia solo lo stato');
+  bad(await api.saveLead({ id: crypto.randomUUID(), status: 'done' }), 'lead_not_found');
+  const d = ok(await api.deleteLead(lead.id));
+  assert.equal(d.data.leads.length, 1);
+  assert.equal(ok(await api.deleteLead(mine.id)).data.leads.length, 0);
+  await api.signOut();
+});

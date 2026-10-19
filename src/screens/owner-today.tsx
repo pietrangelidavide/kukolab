@@ -7,6 +7,7 @@ import { expiringPasses, kpiBetween, sessionsOnDay, slotState, typeOf } from '..
 import { counts } from '../lib/rules';
 import { addDays, mondayOf, romeDay } from '../lib/time';
 import { cap, dayDM, dayLong, plural, timeOf, waLink } from '../lib/format';
+import { ago, leadLabel, leadsNew } from '../lib/leads';
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
@@ -27,6 +28,7 @@ export function Today() {
   const week = kpiBetween(d, wk, addDays(wk, 6));
 
   const soon = expiringPasses(d, s.now, 7);
+  const fresh = leadsNew(d);
   const waits = d.sessions
     .filter((x) => x.status === 'scheduled' && x.startsAt >= s.now.toISOString() && romeDay(new Date(x.startsAt)) <= addDays(today, 7) && counts(d, x.id).waitlist > 0)
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
@@ -94,6 +96,20 @@ export function Today() {
 
         <aside className="follow" aria-label="Da seguire">
           <h2 className="sec first">Da seguire</h2>
+          <div className="panel panel-leads">
+            <h3>Richieste dal sito{fresh.length > 0 && <Badge tone="accent">{fresh.length} {plural(fresh.length, 'nuova', 'nuove')}</Badge>}</h3>
+            {fresh.length === 0 ? <p className="muted">Nessuna richiesta nuova.</p> : (
+              <ul>
+                {fresh.slice(0, 4).map((l) => (
+                  <li key={l.id}>
+                    <div className="who"><b>{l.name}</b><small>{leadLabel(d, l)} · {ago(l.createdAt, s.now)}</small></div>
+                    {l.phone && <a className="icon-btn sm" href={`tel:${l.phone.replace(/\s/g, '')}`} aria-label={`Chiama ${l.name}`}><Icon n="phone" size={16} /></a>}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="row"><Btn kind="ghost" size="sm" onClick={() => s.route.go('/richieste')}>{fresh.length > 4 ? `Vedi tutte (${fresh.length})` : 'Apri le richieste'}</Btn></div>
+          </div>
           <div className="panel">
             <h3>Abbonamenti in scadenza</h3>
             {soon.length === 0 ? <p className="muted">Nessuno nei prossimi 7 giorni.</p> : (

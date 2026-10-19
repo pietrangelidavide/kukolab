@@ -8,7 +8,9 @@ import { Calendar, Templates } from './screens/owner-calendar';
 import { MemberDetail, Members } from './screens/owner-members';
 import { Packs, SettingsScreen } from './screens/owner-packs';
 import { Report } from './screens/owner-report';
+import { Leads } from './screens/owner-leads';
 import { unreadNotices } from './lib/selectors';
+import { leadsNew } from './lib/leads';
 
 const CLIENT_NAV = [
   { to: '/corsi', label: 'Corsi', icon: 'calendar' },
@@ -20,6 +22,7 @@ const OWNER_NAV = [
   { to: '/oggi', label: 'Oggi', icon: 'home' },
   { to: '/orari', label: 'Orari', icon: 'calendar' },
   { to: '/iscritti', label: 'Iscritti', icon: 'users' },
+  { to: '/richieste', label: 'Richieste', icon: 'inbox' },
   { to: '/pacchetti', label: 'Pacchetti', icon: 'ticket' },
   { to: '/report', label: 'Report', icon: 'chart' },
 ];
@@ -50,12 +53,15 @@ function Shell() {
   useEffect(() => { if (!known.includes(first)) go(home); }, [first, owner]); // eslint-disable-line
   const [notices, setNotices] = useState(false);
   const unread = owner ? 0 : unreadNotices(s.data!, me.id).length;
+  const newLeads = owner ? leadsNew(s.data!).length : 0;
+  const badge = (to: string) => (to === '/richieste' && newLeads > 0 ? newLeads : 0);
 
   let page;
   if (owner) {
     switch (parts[0]) {
       case 'orari': page = parts[1] === 'modelli' ? <Templates /> : <Calendar />; break;
       case 'iscritti': page = parts[1] ? <MemberDetail id={parts[1]} /> : <Members />; break;
+      case 'richieste': page = <Leads />; break;
       case 'pacchetti': page = <Packs />; break;
       case 'report': page = <Report />; break;
       case 'impostazioni': page = <SettingsScreen />; break;
@@ -77,7 +83,7 @@ function Shell() {
         <nav aria-label="Principale">
           {nav.map((n) => (
             <a key={n.to} href={'#' + n.to} className={first === n.to ? 'on' : ''} aria-current={first === n.to ? 'page' : undefined} onClick={(e) => { e.preventDefault(); go(n.to); }}>
-              <Icon n={n.icon} size={20} /><span>{n.label}</span>{first === n.to && <Chevron className="chev" />}
+              <Icon n={n.icon} size={20} /><span>{n.label}</span>{badge(n.to) > 0 && <i className="nav-pip" aria-label={`${badge(n.to)} nuove`}>{badge(n.to)}</i>}{first === n.to && <Chevron className="chev" />}
             </a>
           ))}
           {owner && <a href="#/impostazioni" className={first === '/impostazioni' ? 'on' : ''} onClick={(e) => { e.preventDefault(); go('/impostazioni'); }}><Icon n="gear" size={20} /><span>Impostazioni</span>{first === '/impostazioni' && <Chevron className="chev" />}</a>}
@@ -101,7 +107,7 @@ function Shell() {
       <nav className="tabs" aria-label="Principale">
         {nav.map((n) => (
           <a key={n.to} href={'#' + n.to} className={first === n.to ? 'on' : ''} aria-current={first === n.to ? 'page' : undefined} onClick={(e) => { e.preventDefault(); go(n.to); }}>
-            <Icon n={n.icon} size={22} /><span>{n.label}</span>
+            <span className="tab-ic"><Icon n={n.icon} size={22} />{badge(n.to) > 0 && <i className="nav-pip" aria-label={`${badge(n.to)} nuove`}>{badge(n.to)}</i>}</span><span>{n.label}</span>
           </a>
         ))}
       </nav>

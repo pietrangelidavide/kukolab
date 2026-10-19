@@ -1,7 +1,8 @@
 // Dati dimostrativi: lo studio con orari, iscritti, abbonamenti e prenotazioni attorno a "oggi".
 // Nomi e contatti sono inventati. Gli orari vengono da src/data/schedule.json.
 import schedule from '../data/schedule.json';
-import type { Booking, Data, Member, Pack, Pass, Template, Tone } from './types';
+import packsFile from '../data/packs.json';
+import type { Booking, Data, Lead, Member, Pack, Pass, Template, Tone } from './types';
 import { book, cancelBooking, generateSessions, pickPass } from './rules';
 import { newId } from './ids';
 import { HOUR, addDays, romeDay } from './time';
@@ -37,19 +38,11 @@ export function defaultTemplates(): Template[] {
 }
 
 export function defaultPacks(): Pack[] {
-  return [
-    { id: 'pk_single', name: 'Lezione singola', kind: 'pack', lessons: 1, validityDays: 30, priceCents: 1500, typeIds: [], weeklyLimit: null, active: true },
-    { id: 'pk_fun10', name: 'Functional 10 lezioni', kind: 'pack', lessons: 10, validityDays: 90, priceCents: 11000, typeIds: ['functional'], weeklyLimit: null, active: true },
-    { id: 'pk_pil8', name: 'Pilates 8 lezioni', kind: 'pack', lessons: 8, validityDays: 60, priceCents: 12000, typeIds: ['pilates'], weeklyLimit: null, active: true },
-    { id: 'pk_pt5', name: 'Personal training 5 sedute', kind: 'pack', lessons: 5, validityDays: 90, priceCents: 24000, typeIds: ['pt'], weeklyLimit: null, active: true },
-    { id: 'pk_mfun', name: 'Mensile Functional', kind: 'monthly', lessons: null, validityDays: 30, priceCents: 7500, typeIds: ['functional'], weeklyLimit: 3, active: true },
-    { id: 'pk_mpil', name: 'Mensile Pilates', kind: 'monthly', lessons: null, validityDays: 30, priceCents: 9500, typeIds: ['pilates'], weeklyLimit: 2, active: true },
-    { id: 'pk_open', name: 'Mensile Open (Functional + Pilates)', kind: 'monthly', lessons: null, validityDays: 30, priceCents: 12900, typeIds: ['functional', 'pilates'], weeklyLimit: 4, active: true },
-  ];
+  return packsFile.packs.map((p) => ({ id: p.id, name: p.name, kind: p.kind as Pack['kind'], lessons: p.lessons, validityDays: p.validityDays, priceCents: p.priceCents, typeIds: [...p.typeIds], weeklyLimit: p.weeklyLimit, active: p.active }));
 }
 
 export function emptyData(): Data {
-  return { settings: defaultSettings(), types: defaultTypes(), members: [], templates: defaultTemplates(), sessions: [], packs: defaultPacks(), passes: [], bookings: [], notices: [] };
+  return { settings: defaultSettings(), types: defaultTypes(), members: [], templates: defaultTemplates(), sessions: [], packs: defaultPacks(), passes: [], bookings: [], notices: [], leads: [] };
 }
 
 const PEOPLE: [string, string, string][] = [
@@ -189,6 +182,18 @@ export function demoData(now: Date): Data {
     const r = book(d, { memberId: DEMO_CLIENT_ID, sessionId: s.id, now: new Date(new Date(s.startsAt).getTime() - 40 * HOUR), actor: owner });
     if (r.ok) d = r.data;
   }
+
+  // richieste arrivate dal sito (esempi)
+  const lead = (o: Pick<Lead, 'kind' | 'topic' | 'name' | 'phone' | 'email' | 'slots' | 'note' | 'status'> & { hoursAgo: number; ownerNote?: string }): Lead => ({
+    id: newId('l'), kind: o.kind, topic: o.topic, name: o.name, phone: o.phone, email: o.email, slots: o.slots, note: o.note, status: o.status, ownerNote: o.ownerNote ?? '', source: 'sito',
+    createdAt: new Date(now.getTime() - o.hoursAgo * HOUR).toISOString(), updatedAt: o.status === 'new' ? null : new Date(now.getTime() - (o.hoursAgo - 2) * HOUR).toISOString(),
+  });
+  d.leads = [
+    lead({ kind: 'nutrition', topic: 'nutrition', name: 'Giulia Romano', phone: '333 000 02 01', email: 'giulia.romano@example.com', slots: ['pomeriggio'], note: 'Vorrei un piano per sostenere gli allenamenti.', status: 'new', hoursAgo: 3 }),
+    lead({ kind: 'trial', topic: 'functional', name: 'Davide Colombo', phone: '333 000 02 02', email: '', slots: ['sera', 'sabato'], note: '', status: 'new', hoursAgo: 20 }),
+    lead({ kind: 'trial', topic: 'pilates', name: 'Marta Neri', phone: '333 000 02 03', email: 'marta.neri@example.com', slots: ['mattina'], note: 'Mi interessa soprattutto la postura.', status: 'contacted', hoursAgo: 50, ownerNote: 'Chiamata: preferisce il mercoledì mattina.' }),
+    lead({ kind: 'trial', topic: 'pt', name: 'Paolo Greco', phone: '333 000 02 04', email: '', slots: ['pranzo'], note: 'Obiettivo: tornare in forma prima dell’estate.', status: 'scheduled', hoursAgo: 96, ownerNote: 'Prova fissata con Valerio.' }),
+  ];
 
   d.notices.push({ id: newId('n'), memberId: DEMO_CLIENT_ID, kind: 'info', text: 'Benvenuta in KUKO LAB! Qui trovi i corsi, i posti liberi e il tuo abbonamento.', createdAt: iso(1), read: true });
   return d;

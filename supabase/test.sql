@@ -381,3 +381,101 @@ begin
   assert t.err('anna', 'select public.update_profile(''  '', '''')') = 'invalid', 'nome vuoto rifiutato';
   raise notice 'ok  profilo';
 end $$;
+
+-- ------------------------------------------------------------------ richieste dal sito (prova gratuita, nutrizionista)
+create function t.anon_err(q text) returns text language plpgsql as $$
+declare m text;
+begin
+  execute 'set role anon';
+  begin
+    execute q;
+    m := 'nessun errore';
+  exception when others then
+    m := sqlerrm;
+  end;
+  execute 'reset role';
+  return m;
+end $$;
+
+do $$
+declare e text; r jsonb; lid uuid; n int;
+begin
+  delete from public.leads;
+  -- chi non ha un account può mandare una richiesta, e solo quella
+  e := t.anon_err($q$select public.submit_lead('{"topic":"functional","name":"  Elena   Bianchi ","phone":"+39 333 111 2222","email":"Elena@Example.com","slots":["sera","sera","boh"],"note":"ciao","consent":true}'::jsonb)$q$);
+  assert e = 'nessun errore', 'anon può mandare una richiesta: ' || e;
+  assert (select count(*) from public.leads) = 1, 'richiesta salvata';
+  assert (select name from public.leads) = 'Elena Bianchi' and (select email from public.leads) = 'elena@example.com' and (select kind from public.leads) = 'trial', 'dati puliti e tipo prova';
+  assert (select slots from public.leads) = array['sera'], 'solo fasce valide, senza doppioni';
+  assert t.anon_err('select * from public.leads') like 'permission denied%', 'anon non legge le richieste';
+  assert t.anon_err('select public.save_lead(gen_random_uuid(), ''done'', ''x'')') like 'permission denied%', 'anon non gestisce le richieste';
+  assert t.anon_err('select public.delete_lead(gen_random_uuid())') like 'permission denied%', 'anon non cancella';
+  assert t.anon_err('select public.snapshot()') like 'permission denied%', 'anon non vede lo snapshot';
+
+  -- stessa persona, stesso argomento, stessi dieci minuti: vale la prima (anche scritto senza +39)
+  perform t.anon_err($q$select public.submit_lead('{"topic":"functional","name":"Elena Bianchi","phone":"3331112222","consent":true}'::jsonb)$q$);
+  assert (select count(*) from public.leads) = 1, 'doppia richiesta scartata';
+  -- argomento diverso: è un'altra richiesta (e il nutrizionista ha il suo tipo)
+  perform t.anon_err($q$select public.submit_lead('{"topic":"nutrition","name":"Elena Bianchi","phone":"3331112222","consent":true}'::jsonb)$q$);
+  assert (select count(*) from public.leads) = 2 and exists (select 1 from public.leads where kind = 'nutrition' and topic = 'nutrition'), 'consulenza nutrizionale';
+
+  -- dati sbagliati
+  assert t.anon_err($q$select public.submit_lead('{"topic":"functional","name":"E","phone":"3331112222","consent":true}'::jsonb)$q$) = 'invalid', 'nome troppo corto';
+  assert t.anon_err($q$select public.submit_lead('{"topic":"functional","name":"Elena","phone":"12","consent":true}'::jsonb)$q$) = 'invalid', 'telefono troppo corto';
+  assert t.anon_err($q$select public.submit_lead('{"topic":"functional","name":"Elena","phone":"3331112222","email":"nonmail","consent":true}'::jsonb)$q$) = 'invalid', 'email sbagliata';
+  assert t.anon_err($q$select public.submit_lead('{"topic":"zumba","name":"Elena","phone":"3331112222","consent":true}'::jsonb)$q$) = 'invalid', 'argomento sconosciuto';
+  assert t.anon_err($q$select public.submit_lead('{"topic":"pilates","name":"Elena","phone":"3331112222"}'::jsonb)$q$) = 'invalid', 'senza consenso';
+  assert t.anon_err($q$select public.submit_lead('{"topic":"pilates","name":"Elena","phone":"3331112222","consent":"forse"}'::jsonb)$q$) = 'invalid', 'consenso non valido';
+  assert (select count(*) from public.leads) = 2, 'nessuna richiesta sbagliata salvata';
+
+  -- trappola per i bot: sembra riuscita ma non salva nulla
+  e := t.anon_err($q$select public.submit_lead('{"topic":"pilates","name":"Bot Bot","phone":"3339998888","consent":true,"website":"http://spam"}'::jsonb)$q$);
+  assert e = 'nessun errore' and (select count(*) from public.leads) = 2, 'bot scartato in silenzio';
+
+  -- cliente: nessun accesso. Owner: vede e gestisce
+  assert t.err('martina', 'select public.save_lead(gen_random_uuid(), ''done'', ''x'')') = 'forbidden', 'cliente non gestisce le richieste';
+  assert t.err('martina', 'select public.delete_lead(gen_random_uuid())') = 'forbidden', 'cliente non cancella le richieste';
+  assert jsonb_array_length(t.rpc('martina', 'select public.snapshot()') -> 'leads') = 0, 'il cliente non vede le richieste';
+  r := t.rpc('valerio', 'select public.snapshot()');
+  assert jsonb_array_length(r -> 'leads') = 2, 'l''owner vede le richieste';
+  assert (r -> 'leads' -> 0 ->> 'status') = 'new' and (r -> 'leads' -> 0 ->> 'created_at') is not null, 'stato iniziale';
+  select id into lid from public.leads where kind = 'trial';
+  perform t.run('valerio', format('select public.save_lead(%L, ''contacted'', ''Richiamata, viene giovedì'')', lid));
+  assert (select status from public.leads where id = lid) = 'contacted' and (select owner_note from public.leads where id = lid) = 'Richiamata, viene giovedì' and (select updated_at from public.leads where id = lid) is not null, 'stato e nota salvati';
+  perform t.run('valerio', format('select public.save_lead(%L, ''scheduled'')', lid));
+  assert (select owner_note from public.leads where id = lid) = 'Richiamata, viene giovedì', 'la nota non si perde se si cambia solo lo stato';
+  assert t.err('valerio', format('select public.save_lead(%L, ''boh'')', lid)) = 'invalid', 'stato sconosciuto';
+  assert t.err('valerio', 'select public.save_lead(gen_random_uuid(), ''done'')') = 'lead_not_found', 'richiesta inesistente';
+  perform t.run('valerio', format('select public.delete_lead(%L)', lid));
+  assert (select count(*) from public.leads) = 1 and t.err('valerio', format('select public.delete_lead(%L)', lid)) = 'lead_not_found', 'cancellata';
+
+  -- si tengono 12 mesi: le più vecchie spariscono
+  insert into public.leads (kind, topic, name, phone, created_at) values ('trial', 'pt', 'Vecchia Richiesta', '3330000000', now() - interval '13 months');
+  r := t.rpc('valerio', 'select public.snapshot()');
+  assert jsonb_array_length(r -> 'leads') = 1 and not exists (select 1 from public.leads where name = 'Vecchia Richiesta'), 'richieste vecchie cancellate';
+
+  -- freno generale: 30 richieste in un'ora e poi basta
+  delete from public.leads;
+  for n in 1..30 loop
+    insert into public.leads (kind, topic, name, phone) values ('trial', 'pt', 'Prova ' || n, '34000000' || lpad(n::text, 2, '0'));
+  end loop;
+  e := t.anon_err($q$select public.submit_lead('{"topic":"pilates","name":"Elena","phone":"3351234567","consent":true}'::jsonb)$q$);
+  assert e = 'busy', 'troppe richieste in un''ora: ' || e;
+  delete from public.leads;
+
+  -- un socio chiede la consulenza dall'app: i dati vengono dal suo profilo e la richiesta è segnata "app"
+  assert t.anon_err($q$select public.request_consult('nutrition')$q$) like 'permission denied%', 'anon non usa request_consult';
+  assert t.err('martina', $q$select public.request_consult('nutrition')$q$) = 'invalid', 'senza un telefono valido nel profilo non parte';
+  update public.members set phone = '+39 333 555 6677' where email = 'martina@example.com';
+  perform t.run('martina', $q$select public.request_consult('nutrition', 'vorrei un piano per la gara')$q$);
+  assert (select count(*) from public.leads) = 1, 'richiesta del socio salvata';
+  assert (select source from public.leads) = 'app' and (select kind from public.leads) = 'nutrition' and (select note from public.leads) = 'vorrei un piano per la gara', 'segnata come app';
+  assert (select name from public.leads) = 'Martina Test' and (select phone from public.leads) = '+39 333 555 6677' and (select email from public.leads) = 'martina@example.com', 'dati dal profilo';
+  perform t.run('martina', $q$select public.request_consult('nutrition')$q$);
+  assert (select count(*) from public.leads) = 1, 'doppia richiesta dello stesso socio scartata';
+  assert t.err('martina', $q$select public.request_consult('zumba')$q$) = 'invalid', 'argomento sconosciuto';
+  r := t.rpc('valerio', 'select public.snapshot()');
+  assert jsonb_array_length(r -> 'leads') = 1 and (r -> 'leads' -> 0 ->> 'source') = 'app', 'l''owner la vede con la provenienza';
+  delete from public.leads;
+  raise notice 'ok  richieste dal sito';
+end $$;

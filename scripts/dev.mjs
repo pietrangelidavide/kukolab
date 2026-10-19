@@ -4,12 +4,13 @@ import { context } from 'esbuild';
 import { createServer } from 'node:http';
 import { createReadStream, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
-import { appHtml, appOptions, manifest, root } from './lib/app.mjs';
+import { appHtml, appOptions, manifest, root, siteConfig } from './lib/app.mjs';
 
 const out = join(root, 'public', 'app');
 mkdirSync(out, { recursive: true });
 writeFileSync(join(out, 'index.html'), appHtml);
 writeFileSync(join(out, 'manifest.webmanifest'), manifest);
+writeFileSync(join(root, 'public', 'site-config.js'), siteConfig());
 
 const ctx = await context(appOptions({
   outdir: out, splitting: true, sourcemap: true,
