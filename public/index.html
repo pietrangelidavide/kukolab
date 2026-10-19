@@ -73,6 +73,7 @@
     <nav class="nav" aria-label="Principale">
       <a href="#chi-siamo">Chi siamo</a>
       <a href="#corsi">Corsi</a>
+      <a href="#trainer">Trainer</a>
       <a href="#nutrizione">Nutrizione</a>
       <a href="#abbonamenti">Abbonamenti</a>
       <a href="#orari">Orari</a>
@@ -84,6 +85,7 @@
   <nav class="drawer" id="drawer" aria-label="Menu">
     <a href="#chi-siamo">Chi siamo</a>
     <a href="#corsi">Corsi</a>
+    <a href="#trainer">Trainer</a>
     <a href="#nutrizione">Nutrizione</a>
     <a href="#abbonamenti">Abbonamenti</a>
     <a href="#prova">Prova gratuita</a>
@@ -187,7 +189,7 @@
 
       <article class="course c-functional c-flip" id="functional">
         <figure class="c-photo">
-          <img src="img/corso-functional.jpg" width="900" height="900" loading="lazy" alt="Valerio e una cliente fanno squat con la palla medica davanti alla vetrina dello studio">
+          <img src="img/corso-functional.jpg" width="760" height="752" loading="lazy" alt="Il trainer segue una cliente che fa un esercizio con l'elastico, mentre altri si allenano sullo sfondo">
           <span class="c-medal"><svg class="ic" aria-hidden="true"><use href="#i-functional"/></svg></span>
         </figure>
         <div class="c-body">
@@ -208,7 +210,7 @@
 
       <article class="course c-pt" id="personal">
         <figure class="c-photo">
-          <img src="img/corso-pt.jpg" width="760" height="752" loading="lazy" alt="Il trainer segue una cliente che fa un esercizio con l'elastico, mentre altri si allenano sullo sfondo">
+          <img src="img/corso-pt.jpg" width="900" height="896" loading="lazy" alt="Valerio e una cliente fanno squat con la palla medica davanti alla vetrina dello studio">
           <span class="c-medal"><svg class="ic" aria-hidden="true"><use href="#i-pt"/></svg></span>
         </figure>
         <div class="c-body">
@@ -226,15 +228,51 @@
           <div class="c-cta"><a class="btn" href="#prova" data-topic="pt"><span>Prova gratis</span></a><a class="more" href="#orari">Vedi gli orari</a></div>
         </div>
       </article>
+    </div>
+  </section>
 
-      <div class="spaces">
-        <h3>Gli spazi</h3>
-        <ul class="space-grid">
-          <li><img src="img/studio-pilates.jpg" width="820" height="1094" loading="lazy" alt="La sala Pilates, con gli attrezzi, il parquet e il rivestimento in legno"><span>Sala Pilates</span></li>
-          <li><img src="img/studio-forza.jpg" width="820" height="1094" loading="lazy" alt="L'area forza con il rack e i pesi, e la reception con il logo KUKO"><span>Area forza</span></li>
-          <li><img src="img/studio-cardio.jpg" width="820" height="1094" loading="lazy" alt="La zona cardio con i tapis roulant"><span>Zona cardio</span></li>
-        </ul>
-      </div>
+  <section id="spazi" class="sec ink spazi" aria-labelledby="spazi-t">
+    <div class="wrap"><h2 id="spazi-t">Gli spazi</h2></div>
+    <div class="reel" data-reel>
+      <ul class="reel-track">
+        <li class="frame tall"><img src="img/studio-pilates.jpg" width="820" height="1094" loading="lazy" draggable="false" alt="La sala Pilates, con gli attrezzi, il parquet e il rivestimento in legno"></li>
+        <li class="frame wide"><img src="img/studio-forza-wide.jpg" width="1000" height="715" loading="lazy" draggable="false" alt="Il rack con i dischi e lo specchio, nell'area forza"></li>
+        <li class="frame tall"><img src="img/studio-cardio.jpg" width="820" height="1094" loading="lazy" draggable="false" alt="La zona cardio con i tapis roulant"></li>
+        <li class="frame wide"><img src="img/studio-pilates-wide.jpg" width="1000" height="714" loading="lazy" draggable="false" alt="Un attrezzo da Pilates accanto a una pianta e al rivestimento in legno"></li>
+        <li class="frame tall"><img src="img/studio-forza.jpg" width="820" height="1094" loading="lazy" draggable="false" alt="L'area forza con il rack e i pesi, e la reception con il logo KUKO"></li>
+        <li class="frame wide"><img src="img/studio-cardio-wide.jpg" width="1000" height="713" loading="lazy" draggable="false" alt="Tapis roulant e bike nella zona cardio"></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="trainer" class="sec white" aria-labelledby="trainer-t">
+    <div class="wrap">
+      <header class="sec-head">
+        <h2 id="trainer-t">I trainer</h2>
+        <p>Chi ti segue in studio, corso per corso.</p>
+      </header>
+      <ul class="trainers">
+<!--TRAINERS-->
+        <li class="trainer" id="t-valerio">
+          <figure class="t-photo"><img src="img/trainer-valerio.jpg" loading="lazy" alt="Valerio Cuscianna, fondatore di KUKO LAB"></figure>
+          <div class="t-body">
+            <h3>Valerio Cuscianna</h3>
+            <p class="t-role">Fondatore e personal trainer</p>
+            <ul class="t-courses" aria-label="Corsi"><li><svg class="ic" aria-hidden="true"><use href="#i-functional"/></svg>Functional</li><li><svg class="ic" aria-hidden="true"><use href="#i-pt"/></svg>Personal training</li></ul>
+            <ul class="creds"><li>Laureato in Scienze Motorie</li><li>Master in Functional Training</li><li>Oltre quattro anni nel mondo del fitness</li></ul>
+            <div class="c-cta"><a class="btn btn-sm" href="#prova" data-topic="functional"><span>Prova una lezione</span></a></div>
+          </div>
+        </li>
+        <li class="trainer" id="t-pilates">
+          <figure class="t-photo"><span class="t-ph" role="img" aria-label="Foto in arrivo"><svg class="ic" aria-hidden="true"><use href="#i-pilates"/></svg><small>Foto in arrivo</small></span></figure>
+          <div class="t-body">
+            <h3>Maestra di Pilates</h3>
+            <ul class="t-courses" aria-label="Corsi"><li><svg class="ic" aria-hidden="true"><use href="#i-pilates"/></svg>Pilates</li></ul>
+            <div class="c-cta"><a class="btn btn-sm" href="#prova" data-topic="pilates"><span>Prova una lezione</span></a></div>
+          </div>
+        </li>
+<!--/TRAINERS-->
+      </ul>
     </div>
   </section>
 

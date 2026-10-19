@@ -1,7 +1,7 @@
 // Inserisce nella vetrina (public/index.html) le parti generate: orario settimanale (da src/data/schedule.json), anteprima dell'app, quadrante del ritratto,
-// tessere degli abbonamenti (da src/data/packs.json) e schede del nutrizionista (da src/data/nutritionist.json).
+// tessere degli abbonamenti (da src/data/packs.json), schede del nutrizionista (da src/data/nutritionist.json) e dei trainer (da src/data/trainers.json).
 // Uso: npm run site   (da rilanciare quando cambiano orari, pacchetti o dati del nutrizionista)
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = new URL('..', import.meta.url).pathname;
@@ -117,6 +117,26 @@ ${benefits}
           <a href="https://www.instagram.com/${esc(nutri.instagram)}/" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-ig"/></svg>@${esc(nutri.instagram)}</a>
         </p>`;
 
+// ------------------------------------------------------------------ trainer: una scheda a persona; se la foto non c'è ancora, un riquadro segnaposto
+const trainers = JSON.parse(readFileSync(join(root, 'src', 'data', 'trainers.json'), 'utf8')).trainers;
+const trainersHtml = trainers.map((t) => {
+  const hasPhoto = t.photo && existsSync(join(root, 'public', t.photo));
+  const label = t.name || t.role;
+  const photo = hasPhoto
+    ? `<img src="${esc(t.photo)}" loading="lazy" alt="${esc(t.alt || label)}">`
+    : `<span class="t-ph" role="img" aria-label="Foto in arrivo"><svg class="ic" aria-hidden="true"><use href="#${ICON[t.courses[0]]}"/></svg><small>Foto in arrivo</small></span>`;
+  const courses = t.courses.map((c) => `<li><svg class="ic" aria-hidden="true"><use href="#${ICON[c]}"/></svg>${esc(types[c].name)}</li>`).join('');
+  const creds = t.creds.length ? `\n            <ul class="creds">${t.creds.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : '';
+  return `        <li class="trainer" id="t-${esc(t.id)}">
+          <figure class="t-photo">${photo}</figure>
+          <div class="t-body">
+            <h3>${esc(label)}</h3>${t.name ? `\n            <p class="t-role">${esc(t.role)}</p>` : ''}
+            <ul class="t-courses" aria-label="Corsi">${courses}</ul>${creds}
+            <div class="c-cta"><a class="btn btn-sm" href="#prova" data-topic="${t.courses[0]}"><span>Prova una lezione</span></a></div>
+          </div>
+        </li>`;
+}).join('\n');
+
 const file = join(root, 'public', 'index.html');
 let src = readFileSync(file, 'utf8');
 const put = (tag, body) => {
@@ -130,5 +150,6 @@ put('DIAL', `    ${dial}`);
 put('PACKS', [ticket, ...cards].join('\n'));
 put('PACKSDATA', `<script type="application/json" id="packs-data">${JSON.stringify(packsData).replace(/</g, '\\u003c')}</script>`);
 put('NUTRI', nutriHtml);
+put('TRAINERS', trainersHtml);
 writeFileSync(file, src);
-console.log('orari, anteprima app, quadrante, tessere e nutrizionista inseriti');
+console.log('orari, anteprima app, quadrante, tessere, nutrizionista e trainer inseriti');

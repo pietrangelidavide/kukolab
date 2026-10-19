@@ -1,0 +1,23 @@
+{
+  "note": "Trainer mostrati nella vetrina (sezione \"I trainer\", generata da npm run site). Per aggiungere la foto della maestra di Pilates: salvarla come public/img/trainer-pilates.jpg (verticale, 4:5, almeno 600 px di larghezza), scrivere il suo nome in \"name\" e rilanciare npm run site. Finché il file non esiste compare un riquadro \"Foto in arrivo\".",
+  "trainers": [
+    {
+      "id": "valerio",
+      "name": "Valerio Cuscianna",
+      "role": "Fondatore e personal trainer",
+      "photo": "img/trainer-valerio.jpg",
+      "alt": "Valerio Cuscianna, fondatore di KUKO LAB",
+      "courses": ["functional", "pt"],
+      "creds": ["Laureato in Scienze Motorie", "Master in Functional Training", "Oltre quattro anni nel mondo del fitness"]
+    },
+    {
+      "id": "pilates",
+      "name": null,
+      "role": "Maestra di Pilates",
+      "photo": "img/trainer-pilates.jpg",
+      "alt": "La maestra di Pilates di KUKO LAB",
+      "courses": ["pilates"],
+      "creds": []
+    }
+  ]
+}

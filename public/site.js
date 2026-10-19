@@ -245,3 +245,76 @@
     ['topic', 'name', 'phone', 'email', 'consent', 'form'].forEach(clear);
   });
 })();
+
+// "Gli spazi": la fascia di foto scorre da sola, rallenta col mouse sopra e si trascina col dito o col mouse. Con "riduci animazioni" resta una fascia da scorrere a mano.
+(function () {
+  var el = document.querySelector('[data-reel]');
+  if (!el) return;
+  var track = el.querySelector('.reel-track');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!track || reduce) return;
+
+  var originals = Array.prototype.slice.call(track.children);
+  originals.forEach(function (li) {
+    var c = li.cloneNode(true);
+    c.setAttribute('aria-hidden', 'true');
+    var im = c.querySelector('img'); if (im) im.alt = '';
+    track.appendChild(c);
+  });
+  el.classList.add('is-live');
+
+  var BASE = -46;           // px al secondo, verso sinistra
+  var x = 0, v = BASE, period = 0;
+  var hover = false, drag = false, lastX = 0, lastT = 0, visible = false, raf = 0, prev = 0;
+
+  var measure = function () { period = track.children[originals.length].offsetLeft - track.children[0].offsetLeft; };
+  var wrap = function () { if (period > 0) { x = ((x % period) - period) % period; } };
+  var paint = function () { track.style.transform = 'translate3d(' + x.toFixed(2) + 'px,0,0)'; };
+
+  var tick = function (t) {
+    raf = 0;
+    if (!visible || document.hidden) { prev = 0; return; }
+    var dt = prev ? Math.min((t - prev) / 1000, .05) : 0; prev = t;
+    if (!drag) {
+      var target = hover ? BASE * .3 : BASE;
+      v += (target - v) * (1 - Math.exp(-dt * 2.2));
+      x += v * dt;
+    }
+    wrap(); paint();
+    raf = requestAnimationFrame(tick);
+  };
+  var start = function () { if (!raf && visible) raf = requestAnimationFrame(tick); };
+
+  el.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') hover = true; });
+  el.addEventListener('pointerleave', function () { hover = false; });
+  el.addEventListener('pointerdown', function (e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    drag = true; lastX = e.clientX; lastT = e.timeStamp; el.classList.add('drag');
+    try { el.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  el.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    var dx = e.clientX - lastX, dt = (e.timeStamp - lastT) / 1000;
+    x += dx; if (dt > 0) v = Math.max(-1400, Math.min(1400, dx / dt));
+    lastX = e.clientX; lastT = e.timeStamp;
+  });
+  var release = function () { drag = false; el.classList.remove('drag'); prev = 0; };
+  el.addEventListener('pointerup', release);
+  el.addEventListener('pointercancel', release);
+  el.addEventListener('dragstart', function (e) { e.preventDefault(); });
+
+  window.addEventListener('resize', measure);
+  window.addEventListener('load', measure);
+  measure();
+
+  var show = function () { el.classList.add('in'); };
+  if ('IntersectionObserver' in window) {
+    var seen = false;
+    new IntersectionObserver(function (entries) {
+      visible = entries[0].isIntersecting;
+      if (visible && !seen) { seen = true; show(); }
+      start();
+    }, { rootMargin: '120px 0px' }).observe(el);
+  } else { visible = true; show(); start(); }
+  document.addEventListener('visibilitychange', start);
+})();
