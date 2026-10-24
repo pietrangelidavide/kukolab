@@ -624,6 +624,55 @@ html.fx .fig-dial { translate: 0 calc(var(--hp, 0) * 44px); }
 .drag-tag.on { opacity: 1; scale: 1; }
 .drag-tag.grab { scale: .82; }
 
+/* ---------------------------------------------------------------- parti espandibili (telefono, site.js)
+   I contenitori .fold esistono solo sotto i 760 px, creati da site.js. Chiusi occupano zero altezza, aperti scorrono con una transizione di righe di griglia.
+   Senza JS non esistono e la pagina resta tutta aperta. */
+.sec { --fold-line: var(--line-light); }
+.sec.ink, .sec.coal { --fold-line: var(--line-dark); }
+.sec.orange { --fold-line: rgba(10, 10, 11, .42); }
+
+.fold { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .5s var(--ease), margin .5s var(--ease); }
+.fold.open { grid-template-rows: 1fr; }
+.fold-in { min-height: 0; overflow: hidden; visibility: hidden; opacity: 0; transition: opacity .25s ease, visibility 0s .5s; }
+.fold.open > .fold-in { visibility: visible; opacity: 1; transition: opacity .4s ease .1s, visibility 0s; }
+
+.fold-tgl { display: flex; align-items: center; gap: .8rem; width: 100%; min-height: 3.4rem; margin: 0; padding: .55rem 0; border: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; text-align: left; cursor: pointer; }
+.fold-tgl .cnt { margin-left: auto; font: 700 .85rem/1 var(--text); letter-spacing: 0; text-transform: none; opacity: .72; white-space: nowrap; }
+.fold-tgl .chev { flex: none; width: 2.3rem; height: 2.3rem; padding: .5rem; border: 1.5px solid currentColor; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .45s var(--ease), background-color .2s ease; }
+.fold-tgl .chev { margin-left: auto; }
+.fold-tgl .cnt + .chev { margin-left: 0; }
+.fold-tgl[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.fold-tgl:active .chev { background-color: rgba(128, 128, 128, .28); }
+
+/* riga nuova sopra il contenuto (tessere, nutrizione, passi) */
+.fold, .fold-head { width: 100%; justify-self: stretch; }
+.fold-head { margin-top: 1.5rem; border-block: 1.5px solid var(--fold-line); }
+.fold-head .fold-tgl { font-weight: 700; font-size: 1.05rem; }
+.fold-head .lbl { min-width: 0; }
+.fold-head + .fold > .fold-in > .passes { margin-top: 1.6rem; }
+.fold-head + .fold > .fold-in > .steps { border-top: 0; }
+.fold-head + .fold > .fold-in > .benefits { margin-top: 0; border-top: 0; }
+
+/* titoli che diventano interruttori: riga "Una lezione, in quattro tappe" e giorni degli orari */
+.c-sub.is-tgl { width: 100%; margin-top: .3rem; border-block: 1.5px solid var(--fold-line); }
+.c-body .fold-in { display: grid; gap: 1.1rem; justify-items: start; }
+.c-body > .fold:not(.open) + .c-cta { margin-top: -.6rem; } /* chiusa, la riga vuota non deve aggiungere altro spazio */
+.c-cta { transition: margin-top .5s var(--ease); }
+
+.day h3.is-tgl { margin-bottom: 0; transition: margin .5s var(--ease); }
+.day h3.is-tgl.is-open { margin-bottom: 1rem; }
+.day h3.is-tgl .fold-tgl { min-height: 3rem; padding-block: 0; }
+.day h3.is-tgl .cnt { margin-top: .2rem; }
+html.has-folds .day { padding-block: 1.5rem 1rem; }
+
+/* chiusura in fondo a una lista lunga */
+.fold-close { display: block; width: 100%; margin: 1.4rem 0 .4rem; padding: .9rem 1rem; border: 1.5px solid currentColor; background: none; color: inherit; font: 700 1rem/1 var(--text); cursor: pointer; }
+.fold-close:active { background: rgba(128, 128, 128, .22); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fold, .fold-in, .fold-tgl .chev, .day h3.is-tgl { transition: none !important; }
+}
+
 /* ---------------------------------------------------------------- pagina privacy */
 .legal-page { background: var(--paper); color: var(--on-light); }
 .legal-page .bar .back { margin-left: auto; }

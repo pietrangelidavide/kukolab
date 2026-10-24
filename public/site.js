@@ -359,3 +359,131 @@
   } else { visible = true; show(); start(); }
   document.addEventListener('visibilitychange', start);
 })();
+
+// ------------------------------------------------------------------ sezioni espandibili (solo telefono, fino a 760 px)
+// Le parti più lunghe (tappe dei corsi, tessere, orari, nutrizione, "come funziona") si aprono a un tocco: meno scorrimento.
+// I contenitori si creano solo sotto i 760 px e si tolgono sopra: sul desktop la pagina è identica a prima. Senza JS tutto resta aperto.
+(function () {
+  var mq = window.matchMedia && window.matchMedia('(max-width: 760px)');
+  if (!mq) return;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var CHEV = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg>';
+  var folds = [], uid = 0;
+
+  function Fold(o) {
+    var f = { open: !!o.open, mounted: false };
+
+    f.mount = function () {
+      if (f.mounted) return;
+      var items = o.items();
+      if (!items.length || !items[0].parentNode) return;
+      f.items = items; f.parent = items[0].parentNode;
+      var id = 'fold-' + (++uid);
+      f.el = document.createElement('div'); f.el.className = 'fold'; f.el.id = id;
+      f.inn = document.createElement('div'); f.inn.className = 'fold-in';
+      f.parent.insertBefore(f.el, items[0]);
+      items.forEach(function (n) { f.inn.appendChild(n); });
+      f.el.appendChild(f.inn);
+
+      f.btn = document.createElement('button');
+      f.btn.type = 'button'; f.btn.className = 'fold-tgl'; f.btn.setAttribute('aria-controls', id);
+      f.own = o.head ? o.head() : null;
+      if (f.own) {                         // si trasforma un titolo che c'è già
+        f.head = f.own;
+        f.moved = Array.prototype.slice.call(f.head.childNodes);
+        f.moved.forEach(function (n) { f.btn.appendChild(n); });
+        f.head.appendChild(f.btn); f.head.classList.add('is-tgl');
+      } else {                             // si crea una riga nuova sopra il contenuto
+        f.head = document.createElement('div'); f.head.className = 'fold-head';
+        f.lbl = document.createElement('span'); f.lbl.className = 'lbl';
+        f.btn.appendChild(f.lbl);
+        f.head.appendChild(f.btn); f.parent.insertBefore(f.head, f.el);
+      }
+      if (o.count) { var c = document.createElement('span'); c.className = 'cnt'; c.textContent = o.count; f.btn.appendChild(c); }
+      f.btn.insertAdjacentHTML('beforeend', CHEV);
+      if (o.closer) {
+        f.close = document.createElement('button'); f.close.type = 'button'; f.close.className = 'fold-close'; f.close.textContent = o.closer;
+        f.inn.appendChild(f.close);
+        f.close.addEventListener('click', function () { f.set(false, true); f.head.scrollIntoView({ block: 'center', behavior: 'instant' }); f.btn.focus({ preventScroll: true }); });
+      }
+      f.btn.addEventListener('click', function () { f.set(!f.open); });
+      f.mounted = true;
+      f.set(f.open, true);
+    };
+
+    f.set = function (open, instant) {
+      f.open = open;
+      if (!f.mounted) return;
+      var still = instant || reduce.matches;
+      if (still) { f.el.style.transition = 'none'; f.head.style.transition = 'none'; }
+      f.el.classList.toggle('open', open);
+      f.head.classList.toggle('is-open', open);
+      f.btn.setAttribute('aria-expanded', String(open));
+      if (f.lbl) f.lbl.textContent = open ? (o.labelOpen || o.label) : o.label;
+      if (open) f.inn.removeAttribute('inert'); else f.inn.setAttribute('inert', '');
+      if (still) { void f.el.offsetHeight; f.el.style.transition = ''; f.head.style.transition = ''; }
+    };
+
+    f.unmount = function () {
+      if (!f.mounted) return;
+      f.items.forEach(function (n) { f.parent.insertBefore(n, f.el); });
+      f.el.remove();
+      if (f.own) { f.moved.forEach(function (n) { f.head.insertBefore(n, f.btn); }); f.btn.remove(); f.head.classList.remove('is-tgl', 'is-open'); }
+      else f.head.remove();
+      f.mounted = false;
+    };
+    folds.push(f);
+    return f;
+  }
+
+  var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
+  var one = function (s, c) { return (c || document).querySelector(s); };
+
+  // corsi: la riga "Una lezione, in quattro tappe" apre tappe, parole chiave e dimensione del gruppo
+  $$('.course').forEach(function (c) {
+    Fold({ head: function () { return one('.c-sub', c); }, items: function () { return ['.flow', '.tags', '.group'].map(function (s) { return one(s, c); }).filter(Boolean); } });
+  });
+
+  // abbonamenti: le tessere si aprono sotto il gioco; la nota sotto resta sempre visibile
+  var passes = one('.passes');
+  if (passes) Fold({
+    label: 'Vedi tutte le tessere e i prezzi', labelOpen: 'Nascondi le tessere', count: passes.children.length + ' tessere', closer: 'Richiudi le tessere',
+    items: function () { return [passes]; },
+  });
+
+  // orari: un giorno alla volta, si apre quello di oggi (o il primo)
+  var dayFolds = [];
+  $$('.week .day').forEach(function (d) {
+    var n = d.querySelectorAll('.slot').length;
+    dayFolds.push(Fold({ open: d.classList.contains('is-today'), count: n + (n === 1 ? ' lezione' : ' lezioni'), head: function () { return one('h3', d); }, items: function () { var u = one('.slots', d); return u ? [u] : []; } }));
+  });
+  if (dayFolds.length && !dayFolds.some(function (f) { return f.open; })) dayFolds[0].open = true;
+  var legend = one('.legend');
+  if (legend) legend.addEventListener('click', function () { dayFolds.forEach(function (f) { f.set(true); }); });
+
+  // nutrizione e "come funziona"
+  var ben = one('.benefits');
+  if (ben) Fold({ label: 'Cosa include la consulenza', labelOpen: 'Nascondi i dettagli', count: ben.children.length + ' punti', items: function () { return [ben]; } });
+  $$('#prova .steps, #prenota .steps').forEach(function (st) {
+    Fold({ label: 'Come funziona', labelOpen: 'Nascondi i passi', count: st.children.length + ' passi', items: function () { return [st]; } });
+  });
+
+  var sync = function () { folds.forEach(function (f) { if (mq.matches) f.mount(); else f.unmount(); }); document.documentElement.classList.toggle('has-folds', mq.matches); };
+  sync();
+  if (mq.addEventListener) mq.addEventListener('change', sync); else if (mq.addListener) mq.addListener(sync);
+
+  // un link che punta dentro una parte chiusa (per esempio "Guarda la tessera") la apre prima di scorrere
+  var reveal = function (id) {
+    if (!id || !mq.matches) return;
+    var t = document.getElementById(id), w = t && t.closest ? t.closest('.fold') : null;
+    while (w) {
+      var hit = folds.filter(function (x) { return x.el === w; })[0];
+      if (hit && !hit.open) hit.set(true, true);
+      w = w.parentElement ? w.parentElement.closest('.fold') : null;
+    }
+  };
+  var dec = function (h) { try { return decodeURIComponent(h); } catch (e) { return h; } };
+  document.addEventListener('click', function (e) { var a = e.target.closest && e.target.closest('a[href^="#"]'); if (a && a.hash.length > 1) reveal(dec(a.hash.slice(1))); }, true);
+  window.addEventListener('hashchange', function () { reveal(dec(location.hash.slice(1))); });
+  if (location.hash.length > 1) reveal(dec(location.hash.slice(1)));
+})();
