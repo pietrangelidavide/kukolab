@@ -2,7 +2,7 @@
 
 Sito vetrina + web app per prenotare i corsi (area cliente e area owner), in italiano.
 
-- **Vetrina** (`public/`): HTML e CSS statici, senza framework. Parte da Valerio: la sua foto (`public/img/valerio.jpg`) sta nel quadrante del titolo. Sezioni: Chi siamo, **Corsi** (Pilates, Functional e Personal training con foto, le quattro tappe di una lezione e i dettagli, più "Gli spazi", una striscia di foto che scorre), **Trainer** (Valerio e la maestra di Pilates), **Nutrizione** (il Dott. Maurizio Calabrò), **Abbonamenti** (tessere a biglietto e gioco "Trova il tuo abbonamento"), **Prova gratuita** (modulo), Orari, Contatti. Quadrante, anteprima dell'app, orari, tessere e schede dei trainer e del nutrizionista sono generati da `npm run site` (da `src/data/schedule.json`, `packs.json`, `nutritionist.json`, `trainers.json`). `public/site.js` fa il resto: "Oggi" e prossima lezione (ora di Roma), scelta dell'abbonamento, modulo.
+- **Vetrina** (`public/`): HTML e CSS statici, senza framework. Parte da Valerio: la sua foto (`public/img/valerio.jpg`) sta nel quadrante del titolo. Sezioni: Chi siamo, **Corsi** (Pilates, Functional e Personal training con foto, le quattro tappe di una lezione e i dettagli, più "Gli spazi", una striscia di foto che scorre), **Trainer** (Valerio e la maestra di Pilates), **Nutrizione** (il Dott. Maurizio Calabrò), **Abbonamenti** (tessere a biglietto e gioco "Trova il tuo abbonamento"), **Prova gratuita** (modulo), Orari, Contatti. Quadrante, anteprima dell'app, orari, tessere e schede dei trainer e del nutrizionista sono generati da `npm run site` (da `src/data/schedule.json`, `packs.json`, `nutritionist.json`, `trainers.json`). `public/site.js` fa il resto: "Oggi" e prossima lezione con il conto alla rovescia (ora di Roma), scelta dell'abbonamento, modulo. `public/fx.js` aggiunge gli effetti (vedi sotto).
 - **Web app** (`src/` → `public/app/`): React 19 compilato con esbuild, installabile come app dal telefono. Due modalità:
   - **demo**: i dati stanno nel browser (localStorage), con persone, lezioni e abbonamenti di esempio. È quella che si apre senza configurare nulla;
   - **reale**: i dati stanno su Supabase (accesso con email e password, database PostgreSQL).
@@ -75,7 +75,7 @@ Gli iscritti già conosciuti si possono inserire prima da *Iscritti → Nuovo is
 ## Dove sta cosa
 
 ```
-public/            vetrina (index.html, privacy.html, style.css, site.js, img/, fonts/)
+public/            vetrina (index.html, privacy.html, style.css, site.js, fx.js, img/, fonts/)
 public/app/        generata da npm run build (non in git)
 src/lib/rules.ts   regole di prenotazione (pure funzioni)
 src/lib/leads.ts   richieste dal sito (modulo, stati, scadenza a 12 mesi)
@@ -88,6 +88,13 @@ tests/             prove delle regole e dei dati demo
 ```
 
 **Tema chiaro e scuro (app)**: segue le impostazioni del telefono o del computer (`prefers-color-scheme`), senza interruttore manuale. I colori sono variabili CSS in cima a `src/styles.css` (scuro di base, chiaro nel blocco `@media`); le tessere dell'abbonamento restano scure di proposito. Le schede del manifest PWA (`theme_color`) restano scure.
+
+**Effetti della vetrina** (`public/fx.js` + la parte "effetti" di `public/style.css`). Filo conduttore: il quadrante del logo come strumento della pagina.
+- *Apertura*: il titolo sale riga per riga, il quadrante si accende in senso orario, il ritratto di Valerio si apre a iride (solo CSS, parte anche senza `fx.js`). Poi le tacche del quadrante si alzano dove punti mouse o dito, il ritratto galleggia, una luce arancione segue il mouse, e scorrendo il quadrante gira.
+- *Orientamento*: attorno al logo in alto un anello si riempie scorrendo (un giro completo = fondo pagina); la barretta del menu scivola sulla sezione in cui sei; su telefono la testata si nasconde scendendo e torna risalendo, e compare una barra fissa "Prova gratuita / Prenota" (sparisce nella sezione del modulo).
+- *Sezioni*: il taglio diagonale è un cuneo che si apre mentre la sezione sale; la fascia bianca sul taglio dopo l'apertura va da sola e la velocità dello scroll la spinge e la inclina; il titolo di "Chi siamo" si accende parola per parola; le foto di corsi, trainer e nutrizionista si scoprono con un taglio inclinato e quelle dei corsi scorrono dentro la cornice; le quattro tappe di ogni lezione si accendono una dopo l'altra insieme a un anello che fa un quarto di giro a tappa.
+- *Dettagli d'uso*: le tessere si inclinano verso il mouse con un riflesso; la legenda degli orari filtra il calendario; "Prossima lezione" mostra quanto manca (si aggiorna ogni mezzo minuto) e il calendario segna lezioni passate e prossima; il corso scelto da un pulsante "Prova gratis" lampeggia nel modulo; gettone "Trascina" sulla fascia delle foto; pulsanti che si riempiono con un taglio.
+- *Regole*: ogni cosa che nasconde o sposta contenuti sta dietro la classe `html.fx`, che si attiva solo se il browser supporta `IntersectionObserver` e **non** è attivo "riduci animazioni"; se `fx.js` non parte entro 3,5 secondi la classe viene tolta e la pagina resta completa e ferma. Senza JavaScript tutto il contenuto è visibile.
 
 **Striscia "Gli spazi" (vetrina)**: `[data-reel]` in `public/index.html`, animata da `public/site.js` (scorrimento continuo, trascinabile, rallenta al passaggio del mouse). Con `prefers-reduced-motion` o senza JavaScript diventa una normale fila scorrevole a mano.
 

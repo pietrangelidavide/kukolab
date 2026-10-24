@@ -6,48 +6,85 @@
     var set = function (open) { d.classList.toggle('open', open); b.setAttribute('aria-expanded', open); b.setAttribute('aria-label', open ? 'Chiudi il menu' : 'Apri il menu'); };
     b.addEventListener('click', function () { set(!d.classList.contains('open')); });
     d.addEventListener('click', function (e) { if (e.target.tagName === 'A') set(false); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && d.classList.contains('open')) { set(false); b.focus(); } });
+    var wide = window.matchMedia && window.matchMedia('(min-width: 1221px)');
+    if (wide && wide.addEventListener) wide.addEventListener('change', function (m) { if (m.matches) set(false); });
   }
 
-  // "Oggi": evidenzia il giorno nel calendario e mostra le lezioni di oggi (ora di Roma), leggendo l'orario già in pagina
-  try {
+  // "Oggi": evidenzia il giorno nel calendario, mostra le lezioni di oggi (ora di Roma) e quanto manca alla prossima. Si aggiorna da solo ogni mezzo minuto.
+  (function () {
     var NAMES = ['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'];
-    var p = {};
-    new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date()).forEach(function (x) { p[x.type] = x.value; });
-    var wd = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 }[p.weekday];
-    var now = (Number(p.hour) % 24) * 60 + Number(p.minute);
     var min = function (t) { return Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5)); };
     var days = {};
     document.querySelectorAll('.day').forEach(function (el) {
-      days[el.getAttribute('data-day')] = Array.prototype.map.call(el.querySelectorAll('.slot[data-time]'), function (s) { return { time: s.getAttribute('data-time'), name: s.querySelector('span').textContent, type: s.className.replace(/.*(t-\w+).*/, '$1') }; });
+      days[el.getAttribute('data-day')] = Array.prototype.map.call(el.querySelectorAll('.slot[data-time]'), function (s) { return { el: s, time: s.getAttribute('data-time'), name: s.querySelector('span').textContent, type: s.className.replace(/.*(t-\w+).*/, '$1') }; });
     });
-    var today = document.querySelector('.day[data-day="' + wd + '"]');
-    if (today) { today.classList.add('is-today'); today.setAttribute('aria-current', 'date'); }
-
     var list = document.getElementById('oggi-list'), fb = document.getElementById('oggi-fallback'), next = document.getElementById('next');
-    var slots = days[wd] || [], upcoming = null;
-    slots.forEach(function (s) { if (!upcoming && min(s.time) > now) upcoming = s; });
-    if (slots.length) {
-      list.innerHTML = '';
-      slots.forEach(function (s) {
-        var li = document.createElement('li');
-        li.className = s.type + (min(s.time) <= now ? ' past' : '') + (s === upcoming ? ' next' : '');
-        li.innerHTML = '<time></time><span></span>';
-        li.firstChild.textContent = s.time; li.lastChild.textContent = s.name;
-        list.appendChild(li);
-      });
-      fb.hidden = true;
-    } else { fb.textContent = 'Oggi lo studio è chiuso.'; }
+    var sig = '';
 
-    var when = null, slot = upcoming;
-    if (upcoming) when = 'oggi';
-    else for (var i = 1; i <= 7 && !slot; i++) {
-      var n = ((wd - 1 + i) % 7) + 1;
-      if (days[n] && days[n].length) { slot = days[n][0]; when = i === 1 ? 'domani' : NAMES[n - 1]; }
+    var eta = function (m) {
+      if (m < 1) return 'tra meno di un minuto';
+      if (m < 60) return 'tra ' + m + ' min';
+      var h = Math.floor(m / 60), r = m % 60;
+      return h < 24 ? 'tra ' + h + ' h' + (r ? ' ' + r + ' min' : '') : '';
+    };
+
+    function render() {
+      try {
+        var p = {};
+        new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date()).forEach(function (x) { p[x.type] = x.value; });
+        var wd = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 }[p.weekday];
+        var now = (Number(p.hour) % 24) * 60 + Number(p.minute);
+        var slots = days[wd] || [], upcoming = null;
+        slots.forEach(function (s) { if (!upcoming && min(s.time) > now) upcoming = s; });
+
+        // calendario: giorno di oggi, lezioni passate, prossima
+        document.querySelectorAll('.day').forEach(function (el) {
+          var on = el.getAttribute('data-day') === String(wd);
+          el.classList.toggle('is-today', on);
+          if (on) el.setAttribute('aria-current', 'date'); else el.removeAttribute('aria-current');
+        });
+        slots.forEach(function (s) { s.el.classList.toggle('is-past', min(s.time) <= now); s.el.classList.toggle('is-next', s === upcoming); });
+
+        // elenco "Oggi"
+        var key = wd + '|' + (upcoming ? upcoming.time : '-') + '|' + slots.length;
+        if (key !== sig) {
+          sig = key;
+          if (slots.length) {
+            list.innerHTML = '';
+            slots.forEach(function (s) {
+              var li = document.createElement('li');
+              li.className = s.type + (min(s.time) <= now ? ' past' : '') + (s === upcoming ? ' next' : '');
+              li.innerHTML = '<time></time><span></span>';
+              li.firstChild.textContent = s.time; li.lastChild.textContent = s.name;
+              list.appendChild(li);
+            });
+            fb.hidden = true;
+          } else { fb.hidden = false; fb.textContent = 'Oggi lo studio è chiuso.'; }
+          if (!upcoming && slots.length) { fb.hidden = false; fb.textContent = 'Le lezioni di oggi sono finite.'; }
+        }
+
+        // prossima lezione, anche nei giorni dopo, con il conto alla rovescia se manca meno di un giorno
+        var when = null, slot = upcoming, ahead = 0;
+        if (upcoming) { when = 'oggi'; ahead = min(upcoming.time) - now; }
+        else for (var i = 1; i <= 7 && !slot; i++) {
+          var n = ((wd - 1 + i) % 7) + 1;
+          if (days[n] && days[n].length) { slot = days[n][0]; when = i === 1 ? 'domani' : NAMES[n - 1]; ahead = i * 1440 + min(slot.time) - now; }
+        }
+        if (slot && next) {
+          var e = eta(ahead);
+          next.textContent = '';
+          next.appendChild(document.createTextNode('Prossima lezione' + (e ? ' ' : ': ')));
+          if (e) { var sp = document.createElement('span'); sp.className = 'eta'; sp.textContent = e; next.appendChild(sp); next.appendChild(document.createTextNode(': ')); }
+          next.appendChild(document.createTextNode(slot.name + ', ' + when + ' alle ' + slot.time));
+          next.hidden = false;
+        }
+      } catch (e) { /* senza questa parte il sito funziona uguale */ }
     }
-    if (slot && next) { next.textContent = 'Prossima lezione: ' + when + ' alle ' + slot.time + ', ' + slot.name; next.hidden = false; }
-    if (!upcoming && slots.length && fb) { fb.hidden = false; fb.textContent = 'Le lezioni di oggi sono finite.'; }
-  } catch (e) { /* senza questa parte il sito funziona uguale */ }
+    render();
+    setInterval(render, 30000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) render(); });
+  })();
 })();
 
 // ------------------------------------------------------------------ "Trova il tuo abbonamento": gioco a due domande
@@ -150,7 +187,11 @@
     if (!a) return;
     var v = a.getAttribute('data-topic');
     var r = v ? form.querySelector('input[name="topic"][value="' + v + '"]') : null;
-    if (r) { r.checked = true; clear('topic'); }
+    if (r) {
+      r.checked = true; clear('topic');
+      var sp = r.nextElementSibling;
+      if (sp) { sp.classList.remove('flash'); void sp.offsetWidth; sp.classList.add('flash'); }
+    }
   });
 
   var MSG = {

@@ -18,6 +18,10 @@
 <link rel="preload" href="fonts/instrumentsans-regular.woff" as="font" type="font/woff" crossorigin>
 <link rel="preload" href="img/valerio.jpg" as="image">
 <link rel="stylesheet" href="style.css">
+<script>
+/* Effetti attivi solo se il browser li regge e se non è chiesto di ridurre le animazioni. Se fx.js non parte entro 3,5 s, il sito resta statico e leggibile. */
+(function(){var d=document.documentElement,m=window.matchMedia;d.classList.add('js');if('IntersectionObserver' in window&&!(m&&m('(prefers-reduced-motion: reduce)').matches)){d.classList.add('fx');setTimeout(function(){if(!window.__fx)d.classList.remove('fx')},3500)}})();
+</script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -67,8 +71,11 @@
 <header class="site-head">
   <div class="wrap bar">
     <a class="brand" href="#top" aria-label="KUKO LAB, torna all'inizio">
-      <img src="img/logo-cerchio.png" width="96" height="96" alt="">
-      <span>KUKO LAB</span>
+      <span class="brand-mark">
+        <svg class="ring-prog" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle class="rp-bg" cx="24" cy="24" r="22"/><circle class="rp-fg" cx="24" cy="24" r="22" pathLength="100"/></svg>
+        <img src="img/logo-cerchio.png" width="96" height="96" alt="">
+      </span>
+      <span class="brand-name">KUKO LAB</span>
     </a>
     <nav class="nav" aria-label="Principale">
       <a href="#chi-siamo">Chi siamo</a>
@@ -98,7 +105,7 @@
   <section id="top" class="hero">
     <div class="wrap hero-in">
       <div class="hero-text">
-        <h1><span>Il tuo</span> <span>benessere</span> <span>a 360°++</span></h1>
+        <h1><span class="ln"><span>Il tuo</span></span> <span class="ln"><span>benessere</span></span> <span class="ln"><span>a 360°++</span></span></h1>
         <p class="lead">Personal training, corsi funzionali e Pilates in piccoli gruppi, nel nostro studio all'EUR.</p>
         <div class="cta">
           <a class="btn" href="#prova"><span>Prova gratuita</span></a>
@@ -107,7 +114,7 @@
         <p class="next" id="next" hidden></p>
       </div>
       <figure class="fig">
-        <div class="fig-dial">
+        <div class="fig-dial" data-dial>
 <!--DIAL-->
     <svg class="dial" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false">
   <circle cx="500" cy="500" r="480" class="ring"/>
@@ -142,10 +149,18 @@
     </div>
   </section>
 
+  <div class="band" aria-hidden="true">
+    <div class="band-in" data-band>
+      <ul class="band-track">
+        <li>Functional</li><li>Pilates</li><li>Personal training</li><li>Nutrizione sportiva</li><li>Piccoli gruppi</li>
+      </ul>
+    </div>
+  </div>
+
   <section id="chi-siamo" class="sec orange">
     <div class="wrap">
       <div class="about">
-        <h2>Movimento, benessere e performance delle persone.</h2>
+        <h2 data-words>Movimento, benessere e performance delle persone.</h2>
         <div class="about-text">
           <p>KUKO LAB nasce da un obiettivo preciso: avere uno spazio in cui mettere in pratica un'idea di allenamento e accompagnare ognuno nel proprio percorso.</p>
           <p>Valerio continua a studiare e ad approfondire: più lavora, più capisce quanto l'allenamento può fare la differenza nella vita di una persona.</p>
@@ -168,13 +183,13 @@
 
       <article class="course c-pilates" id="pilates">
         <figure class="c-photo">
-          <img src="img/corso-pilates.jpg" width="900" height="900" loading="lazy" alt="Una cliente fa un esercizio per gambe e addome su un attrezzo da Pilates">
+          <span class="c-clip"><img src="img/corso-pilates.jpg" width="900" height="900" loading="lazy" alt="Una cliente fa un esercizio per gambe e addome su un attrezzo da Pilates"></span>
           <span class="c-medal"><svg class="ic" aria-hidden="true"><use href="#i-pilates"/></svg></span>
         </figure>
         <div class="c-body">
           <h3>Pilates</h3>
           <p class="c-lead">Esercizi controllati, dosati a poco a poco. Lavori su postura, forza, mobilità, equilibrio e stabilità, con una cura particolare per i muscoli profondi.</p>
-          <p class="c-sub">Una lezione, in quattro tappe</p>
+          <p class="c-sub">Una lezione, in quattro tappe <span class="lap-ring" aria-hidden="true"></span></p>
           <ol class="flow">
             <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-breath"/></svg></span><b>Respiro</b><small>Si parte da respirazione e postura.</small></li>
             <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-core"/></svg></span><b>Muscoli profondi</b><small>Attivi il centro del corpo, a piccole dosi.</small></li>
@@ -189,13 +204,13 @@
 
       <article class="course c-functional c-flip" id="functional">
         <figure class="c-photo">
-          <img src="img/corso-functional.jpg" width="760" height="752" loading="lazy" alt="Il trainer segue una cliente che fa un esercizio con l'elastico, mentre altri si allenano sullo sfondo">
+          <span class="c-clip"><img src="img/corso-functional.jpg" width="760" height="752" loading="lazy" alt="Il trainer segue una cliente che fa un esercizio con l'elastico, mentre altri si allenano sullo sfondo"></span>
           <span class="c-medal"><svg class="ic" aria-hidden="true"><use href="#i-functional"/></svg></span>
         </figure>
         <div class="c-body">
           <h3>Corsi di Functional</h3>
           <p class="c-lead">Si allena a circuito, alternando esercizi diversi che coinvolgono tutto il corpo. Il risultato: più forza, più resistenza, più mobilità e coordinazione.</p>
-          <p class="c-sub">Una lezione, in quattro tappe</p>
+          <p class="c-sub">Una lezione, in quattro tappe <span class="lap-ring" aria-hidden="true"></span></p>
           <ol class="flow">
             <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-flame"/></svg></span><b>Riscaldamento</b><small>Prepari articolazioni e muscoli.</small></li>
             <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-circuit"/></svg></span><b>Circuito</b><small>Alterni esercizi a tutto corpo, stazione dopo stazione.</small></li>
@@ -210,13 +225,13 @@
 
       <article class="course c-pt" id="personal">
         <figure class="c-photo">
-          <img src="img/corso-pt.jpg" width="900" height="896" loading="lazy" alt="Valerio e una cliente fanno squat con la palla medica davanti alla vetrina dello studio">
+          <span class="c-clip"><img src="img/corso-pt.jpg" width="900" height="896" loading="lazy" alt="Valerio e una cliente fanno squat con la palla medica davanti alla vetrina dello studio"></span>
           <span class="c-medal"><svg class="ic" aria-hidden="true"><use href="#i-pt"/></svg></span>
         </figure>
         <div class="c-body">
           <h3>Personal training</h3>
           <p class="c-lead">Sedute individuali, costruite su di te. Si parte da una valutazione iniziale, poi il programma segue i tuoi obiettivi e si aggiorna settimana dopo settimana.</p>
-          <p class="c-sub">Un percorso, in quattro tappe</p>
+          <p class="c-sub">Un percorso, in quattro tappe <span class="lap-ring" aria-hidden="true"></span></p>
           <ol class="flow">
             <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg></span><b>Valutazione</b><small>Si parte da dove sei oggi.</small></li>
             <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-plan"/></svg></span><b>Programma</b><small>Su misura, sui tuoi obiettivi.</small></li>
@@ -464,9 +479,9 @@
           </fieldset>
 
           <div class="tf-grid">
-            <label class="tf-field"><span>Nome e cognome</span><input name="name" autocomplete="name" maxlength="80" required><p class="tf-err" data-err="name" role="alert" hidden></p></label>
-            <label class="tf-field"><span>Telefono</span><input name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" required><p class="tf-err" data-err="phone" role="alert" hidden></p></label>
-            <label class="tf-field tf-wide"><span>Email <em>(facoltativa)</em></span><input name="email" type="email" autocomplete="email" maxlength="120"><p class="tf-err" data-err="email" role="alert" hidden></p></label>
+            <label class="tf-field"><span>Nome e cognome</span><input name="name" autocomplete="name" autocapitalize="words" enterkeyhint="next" maxlength="80" required><p class="tf-err" data-err="name" role="alert" hidden></p></label>
+            <label class="tf-field"><span>Telefono</span><input name="phone" type="tel" inputmode="tel" autocomplete="tel" enterkeyhint="next" maxlength="30" required><p class="tf-err" data-err="phone" role="alert" hidden></p></label>
+            <label class="tf-field tf-wide"><span>Email <em>(facoltativa)</em></span><input name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" enterkeyhint="next" maxlength="120"><p class="tf-err" data-err="email" role="alert" hidden></p></label>
           </div>
 
           <fieldset class="tf-slots">
@@ -509,10 +524,10 @@
         <h2>Orari settimanali</h2>
         <p>Posti limitati: scegli la lezione e prenota il tuo posto dall'app, dove il calendario è sempre aggiornato.</p>
       </header>
-      <ul class="legend" aria-label="Legenda">
-        <li class="t-functional">Functional</li>
-        <li class="t-pilates">Pilates</li>
-        <li class="t-pt">Personal training</li>
+      <ul class="legend" aria-label="Mostra solo un corso">
+        <li class="t-functional"><button type="button" data-type="functional" aria-pressed="false">Functional</button></li>
+        <li class="t-pilates"><button type="button" data-type="pilates" aria-pressed="false">Pilates</button></li>
+        <li class="t-pt"><button type="button" data-type="pt" aria-pressed="false">Personal training</button></li>
       </ul>
 <!--ORARI-->
       <div class="week">
@@ -638,7 +653,13 @@
   </div>
 </footer>
 
+<div class="dock" id="dock">
+  <a class="btn btn-sm" href="#prova"><span>Prova gratuita</span></a>
+  <a class="btn btn-sm btn-line" href="/app/"><span>Prenota</span></a>
+</div>
+
 <script src="site-config.js"></script>
 <script src="site.js"></script>
+<script src="fx.js" defer></script>
 </body>
 </html>
