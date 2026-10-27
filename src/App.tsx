@@ -9,6 +9,8 @@ import { MemberDetail, Members } from './screens/owner-members';
 import { Packs, SettingsScreen } from './screens/owner-packs';
 import { Report } from './screens/owner-report';
 import { Leads } from './screens/owner-leads';
+import { Messages, messagesToSend } from './screens/owner-messages';
+import { useSentLog } from './sentlog';
 import { unreadNotices } from './lib/selectors';
 import { leadsNew } from './lib/leads';
 
@@ -49,11 +51,13 @@ function Shell() {
   const { parts, go } = s.route;
   const first = '/' + (parts[0] ?? '');
   const home = owner ? '/oggi' : '/corsi';
-  const known = [...nav.map((n) => n.to), owner ? '/impostazioni' : ''];
+  const known = [...nav.map((n) => n.to), owner ? '/impostazioni' : '', owner ? '/messaggi' : ''];
   useEffect(() => { if (!known.includes(first)) go(home); }, [first, owner]); // eslint-disable-line
   const [notices, setNotices] = useState(false);
   const unread = owner ? 0 : unreadNotices(s.data!, me.id).length;
   const newLeads = owner ? leadsNew(s.data!).length : 0;
+  const sentLog = useSentLog();
+  const toSend = owner ? messagesToSend(s.data!, s.now, sentLog) : 0;
   const badge = (to: string) => (to === '/richieste' && newLeads > 0 ? newLeads : 0);
 
   let page;
@@ -64,6 +68,7 @@ function Shell() {
       case 'richieste': page = <Leads />; break;
       case 'pacchetti': page = <Packs />; break;
       case 'report': page = <Report />; break;
+      case 'messaggi': page = <Messages />; break;
       case 'impostazioni': page = <SettingsScreen />; break;
       default: page = <Today />;
     }
@@ -86,6 +91,7 @@ function Shell() {
               <Icon n={n.icon} size={20} /><span>{n.label}</span>{badge(n.to) > 0 && <i className="nav-pip" aria-label={`${badge(n.to)} nuove`}>{badge(n.to)}</i>}{first === n.to && <Chevron className="chev" />}
             </a>
           ))}
+          {owner && <a href="#/messaggi" className={first === '/messaggi' ? 'on' : ''} onClick={(e) => { e.preventDefault(); go('/messaggi'); }}><Icon n="wa" size={20} /><span>Messaggi</span>{toSend > 0 && <i className="nav-pip" aria-label={`${toSend} da mandare`}>{toSend}</i>}{first === '/messaggi' && <Chevron className="chev" />}</a>}
           {owner && <a href="#/impostazioni" className={first === '/impostazioni' ? 'on' : ''} onClick={(e) => { e.preventDefault(); go('/impostazioni'); }}><Icon n="gear" size={20} /><span>Impostazioni</span>{first === '/impostazioni' && <Chevron className="chev" />}</a>}
         </nav>
         <div className="side-user">
@@ -99,6 +105,7 @@ function Shell() {
           <a className="brand" href={'#' + home} onClick={(e) => { e.preventDefault(); go(home); }}><img src={logoSrc()} alt="KUKO LAB" width="40" height="40" /></a>
           <p className="hello">{owner ? 'Area owner' : <>Ciao, <b>{me.name.split(' ')[0]}</b></>}</p>
           {!owner && <button className="icon-btn bell" onClick={() => setNotices(true)} aria-label={unread ? `Avvisi, ${unread} nuovi` : 'Avvisi'}><Icon n="bell" size={22} />{unread > 0 && <i className="pip">{unread}</i>}</button>}
+          {owner && <button className="icon-btn" onClick={() => go('/messaggi')} aria-label={toSend ? `Messaggi, ${toSend} da mandare` : 'Messaggi'}><Icon n="wa" size={22} />{toSend > 0 && <i className="pip">{toSend}</i>}</button>}
           {owner && <button className="icon-btn" onClick={() => go('/impostazioni')} aria-label="Impostazioni"><Icon n="gear" size={22} /></button>}
           <button className="icon-btn mob-out" onClick={() => s.logout()} aria-label="Esci"><Icon n="logout" size={20} /></button>
         </header>

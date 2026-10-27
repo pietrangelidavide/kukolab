@@ -8,6 +8,8 @@ import { counts } from '../lib/rules';
 import { addDays, mondayOf, romeDay } from '../lib/time';
 import { cap, dayDM, dayLong, plural, timeOf, waLink } from '../lib/format';
 import { ago, leadLabel, leadsNew } from '../lib/leads';
+import { messagesToSend } from './owner-messages';
+import { useSentLog } from '../sentlog';
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
@@ -29,6 +31,7 @@ export function Today() {
 
   const soon = expiringPasses(d, s.now, 7);
   const fresh = leadsNew(d);
+  const toSend = messagesToSend(d, s.now, useSentLog());
   const waits = d.sessions
     .filter((x) => x.status === 'scheduled' && x.startsAt >= s.now.toISOString() && romeDay(new Date(x.startsAt)) <= addDays(today, 7) && counts(d, x.id).waitlist > 0)
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
@@ -96,6 +99,11 @@ export function Today() {
 
         <aside className="follow" aria-label="Da seguire">
           <h2 className="sec first">Da seguire</h2>
+          <div className="panel">
+            <h3>Messaggi WhatsApp{toSend > 0 && <Badge tone="accent">{toSend}</Badge>}</h3>
+            <p className="muted">{toSend === 0 ? 'Nessun messaggio da mandare.' : `${toSend} ${plural(toSend, 'messaggio pronto da mandare', 'messaggi pronti da mandare')}: promemoria, posti liberati, abbonamenti in scadenza.`}</p>
+            <div className="row"><Btn kind="ghost" size="sm" onClick={() => s.route.go('/messaggi')}>Apri i messaggi</Btn></div>
+          </div>
           <div className="panel panel-leads">
             <h3>Richieste dal sito{fresh.length > 0 && <Badge tone="accent">{fresh.length} {plural(fresh.length, 'nuova', 'nuove')}</Badge>}</h3>
             {fresh.length === 0 ? <p className="muted">Nessuna richiesta nuova.</p> : (

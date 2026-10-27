@@ -636,3 +636,26 @@ tbody tr:last-child > * { border-bottom: 0; }
   .lead-main .who small { white-space: normal; }
   .lead-act { padding-left: 3.6rem; }
 }
+
+/* messaggi WhatsApp */
+.msg-hint { color: var(--mute); margin: -.2rem 0 .8rem; max-width: 60ch; }
+.msgs { display: grid; gap: .6rem; margin: 0 0 1.2rem; padding: 0; list-style: none; }
+.msg { display: grid; gap: .45rem; padding: .75rem .9rem; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); }
+.msg-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .7rem; }
+.msg-top .who { display: grid; min-width: 0; }
+.msg-top .who small { color: var(--mute); overflow-wrap: anywhere; }
+.msg-act { display: flex; align-items: center; gap: .4rem; }
+.msg-act .btn span { display: inline-flex; align-items: center; gap: .4rem; }
+.msg-text summary { cursor: pointer; color: var(--mute); font-size: .85rem; font-weight: 700; }
+.msg-text p { margin: .5rem 0 0; padding: .7rem .8rem; border-radius: 10px; background: var(--wash); white-space: pre-wrap; overflow-wrap: anywhere; font-size: .92rem; line-height: 1.45; }
+.msg-off { opacity: .7; }
+.msg-done { margin-top: 1.2rem; }
+.msg-done > summary { cursor: pointer; font-weight: 700; color: var(--mute); margin-bottom: .6rem; }
+.fill-list { display: grid; gap: 1rem; margin-bottom: .8rem; }
+.fill-head { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.fill-head b { font-size: 1.02rem; }
+.fill-slot .msgs { margin-bottom: 0; }
+@media (max-width: 560px) {
+  .msg-top { grid-template-columns: auto minmax(0, 1fr); }
+  .msg-act { grid-column: 1 / -1; justify-content: flex-end; }
+}

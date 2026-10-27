@@ -56,6 +56,19 @@ Senza le due variabili l'app resta in **demo**: va bene per mostrarla al cliente
 
 **Prova da fare una volta sul progetto vero** (le prove automatiche usano un finto Supabase): 1) con l'email di un iscritto inserito dall'owner arriva il codice e si entra; 2) con un'email qualsiasi non arriva niente e l'app dice comunque "Se è tra le email degli iscritti…"; 3) in *Authentication → Users* non compare nessun utente nuovo per quella email; 4) se non arriva niente per un iscritto, guardare *Logs → Auth* e i modelli email (punto 5).
 
+## Messaggi WhatsApp (pagina *Messaggi*, solo owner)
+
+L'app **non manda niente da sola**: ogni giorno prepara chi va avvisato e con quale testo, l'owner tocca *Invia*, si apre WhatsApp con il messaggio già scritto e preme invio (nessun costo, nessuna approvazione di Meta). Si trova nel menu (con il numero di messaggi da mandare), dall'icona WhatsApp in alto e dal riquadro "Messaggi WhatsApp" di *Oggi*.
+
+- **Posto liberato**: chi è entrato dalla lista d'attesa nelle ultime 36 ore.
+- **Lezione annullata**: chi era prenotato o in lista (tolte le persone che avevano già annullato da sole).
+- **Promemoria lezione**: dalle 20:00 della sera prima, per le lezioni del giorno dopo; ricorda fino a che ora si può annullare senza perdere la lezione (`cancelWindowHours`), se non è già passata.
+- **Abbonamento in scadenza**: entro 7 giorni o con 2 lezioni o meno, tranne chi ha già un altro abbonamento.
+- **Benvenuto nell'app**: iscritti degli ultimi 14 giorni con email che non hanno ancora fatto il primo accesso.
+- **Posti da riempire**: per ogni lezione delle prossime 36 ore con posti liberi propone 3 persone da invitare. Solo chi può prenotare davvero (abbonamento valido per quel corso, nessuna lezione sovrapposta, telefono). Punteggio: ha fatto quel tipo di allenamento negli ultimi 3 mesi (3 punti a volta, massimo 6), di solito viene lo stesso giorno e alla stessa ora (2 a volta, massimo 3), il pacchetto scade entro 14 giorni con lezioni da usare (4), nessuna lezione nei prossimi 7 giorni (2); meno punti per chi ha saltato 2 lezioni senza avvisare (−3) o annullato tardi (−1), ha già una lezione quel giorno (−2) o è stato invitato da poco (−5).
+
+La logica sta in `src/lib/messages.ts` (funzioni pure, testi e pesi in un posto solo, test in `tests/messages.test.ts`). Cosa è già stato mandato o scartato lo ricorda il dispositivo (`src/sentlog.ts`, localStorage): su un altro telefono l'elenco riparte da zero. Gli stessi testi si possono usare come modelli quando si passerà all'API ufficiale di WhatsApp (invio automatico, a pagamento per messaggio).
+
 ## Regole di prenotazione (valori modificabili in Impostazioni)
 
 - Si prenota fino a N giorni prima (14) e fino a M minuti prima dell'inizio (15).
