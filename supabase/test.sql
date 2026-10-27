@@ -52,6 +52,10 @@ begin
 end $$;
 create function t.uid(who text) returns uuid language sql as $$ select id from public.members where email = who || '@example.com' $$;
 
+-- Le prove qui sotto creano gli account direttamente, senza iscrivere prima le persone: la guardia sulle registrazioni
+-- (kuko_signup_guard) si spegne per questa parte e si riaccende, con le sue prove, in fondo.
+alter table auth.users disable trigger kuko_signup_guard;
+
 -- ------------------------------------------------------------------ persone, pacchetti
 do $$
 declare w text;
@@ -351,14 +355,14 @@ declare before_n int; gid uuid; uid uuid;
 begin
   select id into gid from public.members where name = 'Giulia Nuova';
   select count(*) into before_n from public.members;
-  -- registrazione con email non confermata: nasce un profilo nuovo, non si prende quello di Giulia
+  -- email non confermata: non si prende la scheda di Giulia e non se ne crea una seconda (l'owner non vede doppioni)
   insert into auth.users (email, raw_user_meta_data) values ('giulia@example.com', '{"name": "Giulia"}') returning id into uid;
   assert (select user_id from public.members where id = gid) is null, 'non si collega prima della conferma';
-  assert (select count(*) from public.members) = before_n + 1, 'profilo provvisorio';
-  -- conferma: i due profili si uniscono
+  assert (select count(*) from public.members) = before_n, 'nessun profilo provvisorio per chi è già iscritto';
+  -- conferma: la scheda dell'owner si collega all'account
   update auth.users set email_confirmed_at = now() where id = uid;
   assert (select user_id from public.members where id = gid) = uid, 'collegato dopo la conferma';
-  assert (select count(*) from public.members) = before_n, 'profilo provvisorio rimosso';
+  assert (select count(*) from public.members) = before_n, 'ancora nessun doppione';
   assert (select name from public.members where id = gid) = 'Giulia Nuova', 'resta la scheda dell''owner';
   raise notice 'ok  collegamento dopo conferma';
 end $$;
@@ -478,4 +482,44 @@ begin
   assert jsonb_array_length(r -> 'leads') = 1 and (r -> 'leads' -> 0 ->> 'source') = 'app', 'l''owner la vede con la provenienza';
   delete from public.leads;
   raise notice 'ok  richieste dal sito';
+end $$;
+
+-- ------------------------------------------------------------------ registrazioni chiuse: un account nasce solo per chi è già tra gli iscritti
+alter table auth.users enable trigger kuko_signup_guard;
+do $$
+declare mid uuid; uid uuid; n int; r jsonb;
+begin
+  -- sconosciuti e email vuote: rifiutati dal database
+  begin
+    insert into auth.users (email) values ('sconosciuto@example.com');
+    raise exception 'ASSERT: la registrazione di uno sconosciuto doveva essere rifiutata';
+  exception when others then
+    assert sqlerrm = 'signup_closed', 'sconosciuto rifiutato con signup_closed, trovato: ' || sqlerrm;
+  end;
+  begin
+    insert into auth.users (email) values (null);
+    raise exception 'ASSERT: senza email doveva essere rifiutata';
+  exception when others then
+    assert sqlerrm = 'signup_closed', 'email vuota rifiutata con signup_closed, trovato: ' || sqlerrm;
+  end;
+  assert not exists (select 1 from auth.users where email in ('sconosciuto@example.com')), 'nessun account creato per lo sconosciuto';
+
+  -- iscritto dall'owner (maiuscole e spazi non contano): il primo accesso crea l'account e lo collega alla sua scheda
+  insert into public.members (name, email, phone) values ('Chiara Socia', 'chiara@example.com', '333 000') returning id into mid;
+  select count(*) into n from public.members;
+  r := t.rpc('valerio', 'select public.snapshot()');
+  assert exists (select 1 from jsonb_array_elements(r -> 'members') m where m ->> 'name' = 'Chiara Socia' and (m ->> 'has_account')::boolean = false), 'l''owner vede che Chiara non ha ancora un account';
+  insert into auth.users (email, encrypted_password) values (' Chiara@Example.com ', 'password-di-un-altro') returning id into uid;
+  assert (select user_id from public.members where id = mid) is null, 'prima della conferma non si collega';
+  update auth.users set email_confirmed_at = now() where id = uid;
+  assert (select user_id from public.members where id = mid) = uid, 'dopo il codice l''account è collegato alla scheda dell''owner';
+  assert (select count(*) from public.members) = n, 'nessuna scheda doppia';
+  assert (select encrypted_password from auth.users where id = uid) = '', 'la password messa prima della conferma non vale più';
+  r := t.rpc('valerio', 'select public.snapshot()');
+  assert exists (select 1 from jsonb_array_elements(r -> 'members') m where m ->> 'name' = 'Chiara Socia' and (m ->> 'has_account')::boolean = true), 'ora risulta con account';
+  update auth.users set email = lower(trim(email)) where id = uid;   -- Supabase salva l'email già in minuscolo
+  assert (t.rpc('chiara', 'select public.snapshot()') -> 'me' ->> 'name') = 'Chiara Socia', 'Chiara entra e vede la propria scheda';
+  delete from auth.users where id = uid;
+  delete from public.members where id = mid;
+  raise notice 'ok  registrazioni chiuse';
 end $$;

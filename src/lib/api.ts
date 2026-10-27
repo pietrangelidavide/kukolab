@@ -8,6 +8,10 @@ export interface Api {
   readonly mode: 'demo' | 'remote';
   init(): Promise<AuthState | null>;
   signIn(email: string, password: string): Promise<Result<AuthState>>;
+  /** Vero con l'archivio online: si entra solo con un codice mandato per email, e solo se l'owner ha già iscritto quella email. */
+  readonly codeLogin?: boolean;
+  requestCode?(email: string): Promise<Result>;
+  verifyCode?(email: string, code: string): Promise<Result<AuthState>>;
   signUp(i: { name: string; email: string; phone: string; password: string }): Promise<Result<Partial<AuthState> & { needsConfirm?: boolean }>>;
   resetPassword?(email: string): Promise<Result>;
   changePassword?(password: string): Promise<Result>;

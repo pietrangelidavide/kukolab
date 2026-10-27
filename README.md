@@ -5,7 +5,7 @@ Sito vetrina + web app per prenotare i corsi (area cliente e area owner), in ita
 - **Vetrina** (`public/`): HTML e CSS statici, senza framework. Parte da Valerio: la sua foto (`public/img/valerio.jpg`) sta nel quadrante del titolo. Ordine delle sezioni (pensato per portare in fretta alla prova gratuita: cosa fai, com'è il posto, chi ti segue, quanto costa, come si comincia, quando): **Corsi** (Pilates, Functional e Personal training con foto, le quattro tappe di una lezione e i dettagli, più "Gli spazi", una striscia di foto che scorre), Chi siamo, **Trainer** ("Chi ti segue": Valerio; la scheda della maestra di Pilates compare quando c'è la foto), **Abbonamenti** (tessere a biglietto e gioco "Trova il tuo abbonamento"), **Prova gratuita** (modulo), Orari, Prenota nell'app, **Nutrizione** (il Dott. Maurizio Calabrò), Contatti. Sul telefono la barra in basso ha Prova gratuita, Prenota e WhatsApp. Quadrante, anteprima dell'app, orari, tessere e schede dei trainer e del nutrizionista sono generati da `npm run site` (da `src/data/schedule.json`, `packs.json`, `nutritionist.json`, `trainers.json`). `public/site.js` fa il resto: "Oggi" e prossima lezione con il conto alla rovescia (ora di Roma), scelta dell'abbonamento, modulo. `public/fx.js` aggiunge gli effetti (vedi sotto).
 - **Web app** (`src/` → `public/app/`): React 19 compilato con esbuild, installabile come app dal telefono. Due modalità:
   - **demo**: i dati stanno nel browser (localStorage), con persone, lezioni e abbonamenti di esempio. È quella che si apre senza configurare nulla;
-  - **reale**: i dati stanno su Supabase (accesso con email e password, database PostgreSQL).
+  - **reale**: i dati stanno su Supabase (database PostgreSQL). **Solo per iscritti**: non ci si registra da soli. L'account esiste per chi lo studio ha iscritto di persona (*Iscritti → Nuovo iscritto*, con l'email); si entra con un **codice a 6 cifre mandato per email**, senza password. Dalla scheda l'owner vede se la persona ha già fatto il primo accesso e la invita con un messaggio WhatsApp già scritto.
 - **Richieste dal sito** (prova gratuita di una lezione e consulenza con il nutrizionista): il modulo della vetrina chiama la funzione `submit_lead` (l'unica aperta anche a chi non ha un account); l'owner le trova nell'app alla voce **Richieste** (e nel riquadro "Richieste dal sito" di *Oggi*), cambia stato (da contattare → contattata → prova fissata → fatta → iscritta / non interessata), scrive una nota, chiama o scrive su WhatsApp, e con un tocco crea l'iscritto. I soci già iscritti possono chiedere la consulenza dalla schermata *Abbonamento*. Le richieste si cancellano da sole dopo 12 mesi.
 - Le regole di prenotazione sono scritte due volte, di proposito: in `src/lib/rules.ts` (demo e anteprime) e in `supabase/schema.sql` (database vero). Se si cambia una, si cambia anche l'altra; le prove lo controllano.
 
@@ -37,18 +37,24 @@ Senza le due variabili l'app resta in **demo**: va bene per mostrarla al cliente
 ## Attivare la modalità reale (Supabase)
 
 1. Creare un progetto su supabase.com (regione UE, ad esempio Francoforte).
-2. **SQL Editor** → incollare tutto `supabase/schema.sql` → *Run*. Si può rieseguire senza perdere dati (anche dopo un aggiornamento dello schema).
-3. **Authentication → Providers → Email**: lasciare **Confirm email attivo** (è una protezione: senza conferma, chiunque potrebbe registrarsi con l'email di un iscritto e vederne l'abbonamento). Lunghezza minima password: 8.
-4. **Authentication → URL Configuration**: *Site URL* = `https://DOMINIO/app/`; *Redirect URLs* = `https://DOMINIO/app/**`. Opzionale ma consigliato: configurare un mittente email proprio (SMTP), perché il servizio predefinito di Supabase ha limiti molto bassi.
-5. **Project Settings → API**: copiare *Project URL* e la chiave `anon` nelle due variabili di build su Cloudflare e rifare il deploy. La chiave `anon` è pubblica per natura: le tabelle sono chiuse (RLS attiva, nessuna policy) e l'app può solo chiamare le funzioni di `schema.sql`, che controllano chi sei.
-6. Il primo owner si crea a mano: Valerio si iscrive dall'app, conferma l'email, poi nello SQL Editor:
+2. **SQL Editor** → incollare tutto `supabase/schema.sql` → *Run*. Si può rieseguire senza perdere dati (anche su un progetto già attivo: aggiunge il blocco delle registrazioni).
+3. **Authentication → Providers → Email**: lasciare **Enable Email provider** e **Confirm email** attivi. Il codice per email è il solo modo di entrare, quindi la mail deve funzionare (punto 5).
+4. **Authentication → Sign In / Providers → "Allow new users to sign up"**: lasciarlo **attivo**. Sembra strano ma serve: il primo accesso con il codice crea l'account. A chiudere le registrazioni ci pensa il database (`kuko_signup_guard` in `schema.sql`): un account nasce solo se quell'email è già tra gli iscritti dello studio. Chi non lo è riceve da Supabase un errore interno, che l'app mostra come se il codice fosse partito (così da fuori non si scopre chi è iscritto).
+5. **Mail con il codice**. Authentication → Emails → Templates: in **Confirm signup** (la usa il primo accesso) e in **Magic Link** (gli accessi successivi) il testo deve contenere `{{ .Token }}`, il codice. Modelli già pronti in `supabase/email-templates/` (incollare l'HTML e l'oggetto indicato). Authentication → Providers → Email: *Email OTP Expiration* 600 secondi (10 minuti) e *OTP length* 6. **SMTP**: il servizio predefinito di Supabase manda poche mail all'ora e solo agli indirizzi della squadra del progetto: per i clienti serve un SMTP proprio (Project Settings → Authentication → SMTP Settings), con un mittente del dominio dello studio (es. `prenotazioni@dominio.it`).
+6. **Authentication → URL Configuration**: *Site URL* = `https://DOMINIO/app/`; *Redirect URLs* = `https://DOMINIO/app/**`.
+7. **Project Settings → API**: copiare *Project URL* e la chiave `anon` nelle due variabili di build su Cloudflare e rifare il deploy. La chiave `anon` è pubblica per natura: le tabelle sono chiuse (RLS attiva, nessuna policy) e l'app può solo chiamare le funzioni di `schema.sql`, che controllano chi sei.
+8. **Il primo owner** si inserisce a mano, nello SQL Editor (non può iscriversi da solo: le registrazioni sono chiuse):
    ```sql
-   update public.members set role = 'owner' where lower(email) = lower('EMAIL_DI_VALERIO');
+   insert into public.members (name, email, phone, role) values ('Valerio Cuscianna', 'EMAIL_DI_VALERIO', 'TELEFONO', 'owner');
    ```
-   Gli altri owner (se servono) si fanno allo stesso modo.
-7. Da owner: *Pacchetti* (crea i pacchetti in vendita), *Orari → Orario settimanale* (le lezioni si generano da sole per i giorni di prenotazione previsti), *Impostazioni*.
+   Poi Valerio apre `https://DOMINIO/app/`, scrive la sua email e il codice che riceve: la scheda si collega al suo account. Altri owner: stessa cosa, oppure `update public.members set role = 'owner' where lower(email) = lower('EMAIL');` dopo il loro primo accesso.
+9. Da owner: *Pacchetti* (crea i pacchetti in vendita), *Orari → Orario settimanale* (le lezioni si generano da sole per i giorni di prenotazione previsti), *Impostazioni*.
 
-Gli iscritti già conosciuti si possono inserire prima da *Iscritti → Nuovo iscritto*: quando la persona si iscrive con la stessa email e conferma, trova abbonamento e storico già pronti.
+**Come si iscrive un cliente.** In studio, quando fa l'abbonamento: *Iscritti → Nuovo iscritto* con nome, telefono ed **email giusta** (se è sbagliata, il codice non arriva alla persona e non entra). Poi dalla scheda *Invita nell'app su WhatsApp* manda il link dell'app con due righe di istruzioni. Alla scheda compare "Account attivo" dopo il primo accesso. Chi ha l'email scritta male si corregge da *Modifica*. Chi non ha email può comunque essere prenotato dall'owner.
+
+**Sicurezza, in breve.** Senza il codice ricevuto per email non si entra: nessuna password da dimenticare o rubare. Chi conosce l'email di un iscritto non può lasciarci sopra una sua password: alla prima conferma l'app la azzera (`handle_confirmed`, provato con la prova end-to-end contro un finto GoTrue; su Supabase vero conviene rifare la prova una volta, vedi sotto). Il codice dura 10 minuti e vale una volta sola.
+
+**Prova da fare una volta sul progetto vero** (le prove automatiche usano un finto Supabase): 1) con l'email di un iscritto inserito dall'owner arriva il codice e si entra; 2) con un'email qualsiasi non arriva niente e l'app dice comunque "Se è tra le email degli iscritti…"; 3) in *Authentication → Users* non compare nessun utente nuovo per quella email; 4) se non arriva niente per un iscritto, guardare *Logs → Auth* e i modelli email (punto 5).
 
 ## Regole di prenotazione (valori modificabili in Impostazioni)
 
@@ -70,7 +76,9 @@ Gli iscritti già conosciuti si possono inserire prima da *Iscritti → Nuovo is
 - [ ] **Numero WhatsApp**: in `src/config.ts` è `393920948122` (interpretato da "13920948122"); da confermare.
 - [ ] **Dati societari** (ragione sociale, P. IVA, sede legale) nel footer: il segnaposto è in `public/index.html`. **Informativa privacy**: `public/privacy.html` è una bozza (parti tra parentesi quadre da completare: titolare, email, fornitori e paese dei server) da far rivedere da un consulente prima della pubblicazione.
 - [ ] **Dominio**: collegarlo a Cloudflare, poi togliere `noindex` da `public/index.html`, cancellare `public/robots.txt` (blocca Google), aggiungere canonical/og:url/JSON-LD con l'indirizzo definitivo e i `routes` con `custom_domain` in `wrangler.jsonc`.
-- [ ] Attivare la modalità reale (sopra) e provare un giro completo: iscrizione, prenotazione, annullo, lista d'attesa.
+- [ ] Attivare la modalità reale (sopra) e provare un giro completo: iscrizione in studio, invito WhatsApp, primo accesso con il codice, prenotazione, annullo, lista d'attesa.
+- [ ] **Mittente email del dominio** (SMTP) per i codici: va configurato prima del lancio, con SPF/DKIM del dominio (punto 5 sopra). Senza, i clienti non ricevono il codice e non entrano.
+- [ ] **Acquisti online** (non ancora fatti): vendita di pacchetti dal sito/app con pagamento online. Richiede un provider di pagamento, le condizioni di vendita (recesso), lo scontrino/fattura e l'informativa privacy aggiornata; oggi i pacchetti si vendono in studio e l'owner li assegna dalla scheda.
 
 ## Dove sta cosa
 

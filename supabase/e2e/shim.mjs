@@ -2,7 +2,8 @@
 // Serve solo a verificare che l'app (src/lib/remote.ts) e lo schema SQL si capiscano. Non è per la produzione.
 //
 // Variabili: SHIM_PORT, PGHOST, PGPORT, PGUSER, PGDATABASE. Ogni richiesta è eseguita con psql.
-// Rotte di prova (non esistono su Supabase): POST /__confirm {email}, POST /__expire, POST /__sql {sql} -> righe.
+// Rotte di prova (non esistono su Supabase): POST /__confirm {email}, POST /__expire, POST /__sql {sql} -> righe,
+// POST /__code {email} -> {code} (l'ultimo codice "mandato per email"), POST /__expire_codes (i codici emessi finora non valgono più).
 import http from 'node:http';
 import { spawn } from 'node:child_process';
 
@@ -10,7 +11,8 @@ const PORT = Number(process.env.SHIM_PORT ?? 54330);
 const PG = ['-h', process.env.PGHOST ?? '127.0.0.1', '-p', process.env.PGPORT ?? '54329', '-U', process.env.PGUSER ?? 'postgres', '-d', process.env.PGDATABASE ?? 'kuko'];
 const CONFIRM = process.env.SHIM_CONFIRM !== '0'; // come Supabase con "Confirm email" attivo
 
-const passwords = new Map(); // email -> password
+const codes = new Map(); // email -> { code, epoch } (i codici che Supabase manderebbe per email)
+let codeEpoch = 0;
 let seq = 0;
 let epoch = 0; // /__expire alza il numero: i token di prima non valgono più
 
@@ -46,19 +48,43 @@ async function auth(req, res, path, query, body) {
   if (path === '/auth/v1/signup') {
     const email = String(body.email ?? '').trim().toLowerCase();
     if (!email || String(body.password ?? '').length < 6) return send(res, 422, { error_code: 'weak_password', msg: 'Password too short' });
-    if (passwords.has(email)) return send(res, 422, { error_code: 'user_already_exists', msg: 'User already registered' });
+    const exists = await psql(`select 1 from auth.users where email = ${lit(email)};`);
+    if (exists.out) return send(res, 422, { error_code: 'user_already_exists', msg: 'User already registered' });
     const meta = JSON.stringify(body.data ?? {});
-    const r = await psql(`insert into auth.users (email, raw_user_meta_data, email_confirmed_at) values (${lit(email)}, ${lit(meta)}::jsonb, ${CONFIRM ? 'null' : 'now()'}) returning id;`);
-    if (r.err) return send(res, 500, { msg: r.err });
-    passwords.set(email, String(body.password));
+    const r = await psql(`insert into auth.users (email, raw_user_meta_data, email_confirmed_at, encrypted_password) values (${lit(email)}, ${lit(meta)}::jsonb, ${CONFIRM ? 'null' : 'now()'}, md5(${lit(body.password)})) returning id;`);
+    // come GoTrue: un errore del database nel trigger diventa un 500 generico
+    if (r.err) return send(res, 500, { error_code: 'unexpected_failure', msg: 'Database error saving new user' });
     return send(res, 200, CONFIRM ? { id: r.out, email, confirmation_sent_at: new Date().toISOString() } : { ...session(r.out), user: { id: r.out, email } });
+  }
+  // accesso con codice: crea l'utente se non c'è (qui scatta il blocco del database per chi non è iscritto) e "manda" un codice
+  if (path === '/auth/v1/otp') {
+    const email = String(body.email ?? '').trim().toLowerCase();
+    if (!email) return send(res, 422, { error_code: 'validation_failed', msg: 'To signup, please provide your email' });
+    const exists = await psql(`select 1 from auth.users where email = ${lit(email)};`);
+    if (!exists.out) {
+      if (body.create_user === false) return send(res, 422, { error_code: 'otp_disabled', msg: 'Signups not allowed for otp' });
+      const r = await psql(`insert into auth.users (email, raw_user_meta_data) values (${lit(email)}, '{}'::jsonb);`);
+      if (r.err) return send(res, 500, { error_code: 'unexpected_failure', msg: 'Database error saving new user' });
+    }
+    codes.set(email, { code: String(100000 + Math.floor(Math.random() * 900000)), epoch: codeEpoch });
+    return send(res, 200, {});
+  }
+  if (path === '/auth/v1/verify') {
+    const email = String(body.email ?? '').trim().toLowerCase();
+    const c = codes.get(email);
+    if (body.type !== 'email' || !c || c.epoch !== codeEpoch || c.code !== String(body.token ?? '')) return send(res, 403, { error_code: 'otp_expired', msg: 'Token has expired or is invalid' });
+    codes.delete(email); // il codice vale una volta sola
+    const r = await psql(`update auth.users set email_confirmed_at = coalesce(email_confirmed_at, now()) where email = ${lit(email)} returning id;`);
+    if (r.err || !r.out) return send(res, 403, { error_code: 'otp_expired', msg: 'Token has expired or is invalid' });
+    return send(res, 200, { ...session(r.out), user: { id: r.out, email } });
   }
   if (path === '/auth/v1/token' && query.get('grant_type') === 'password') {
     const email = String(body.email ?? '').trim().toLowerCase();
-    if (!passwords.has(email) || passwords.get(email) !== body.password) return send(res, 400, { error_code: 'invalid_credentials', msg: 'Invalid login credentials' });
-    const r = await psql(`select id, email_confirmed_at is not null from auth.users where email = ${lit(email)};`);
-    const [id, ok] = r.out.split('|');
-    if (ok !== 't') return send(res, 400, { error_code: 'email_not_confirmed', msg: 'Email not confirmed' });
+    // la password sta nel database (md5 per finta): se l'app la azzera, non si entra più
+    const r = await psql(`select id, email_confirmed_at is not null, coalesce(encrypted_password, '') <> '' and encrypted_password = md5(${lit(body.password ?? '')}) from auth.users where email = ${lit(email)};`);
+    const [id, confirmed, match] = r.out.split('|');
+    if (!id || match !== 't') return send(res, 400, { error_code: 'invalid_credentials', msg: 'Invalid login credentials' });
+    if (confirmed !== 't') return send(res, 400, { error_code: 'email_not_confirmed', msg: 'Email not confirmed' });
     return send(res, 200, { ...session(id), user: { id, email } });
   }
   if (path === '/auth/v1/token' && query.get('grant_type') === 'refresh_token') {
@@ -70,8 +96,7 @@ async function auth(req, res, path, query, body) {
     const uid = uidOf(bearer);
     if (!uid) return send(res, 401, { msg: 'invalid JWT' });
     if (String(body.password ?? '').length < 6) return send(res, 422, { error_code: 'weak_password', msg: 'Password too short' });
-    const r = await psql(`select email from auth.users where id = '${uid}';`);
-    passwords.set(r.out, String(body.password));
+    await psql(`update auth.users set encrypted_password = md5(${lit(body.password)}) where id = '${uid}';`);
     return send(res, 200, { id: uid });
   }
   if (path === '/auth/v1/recover') return send(res, 200, {});
@@ -104,6 +129,8 @@ http.createServer(async (req, res) => {
     const url = new URL(req.url, 'http://x');
     const body = req.method === 'GET' ? {} : await readBody(req);
     if (url.pathname === '/__expire') { epoch += 1; return send(res, 200, { epoch }); }
+    if (url.pathname === '/__expire_codes') { codeEpoch += 1; return send(res, 200, {}); }
+    if (url.pathname === '/__code') { return send(res, 200, { code: codes.get(String(body.email).trim().toLowerCase())?.code ?? null }); }
     if (url.pathname === '/__confirm') { await psql(`update auth.users set email_confirmed_at = now() where email = ${lit(String(body.email).toLowerCase())};`); return send(res, 200, {}); }
     if (url.pathname === '/__sql') { const r = await psql(String(body.sql)); return send(res, r.err ? 400 : 200, r.err ? { message: r.err } : { out: r.out }); }
     if (url.pathname.startsWith('/auth/v1/')) return await auth(req, res, url.pathname, url.searchParams, body);

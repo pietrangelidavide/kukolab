@@ -13,7 +13,13 @@ const BASE = process.env.SHIM_URL ?? 'http://127.0.0.1:54330';
 
 const post = async (path: string, body: unknown) => (await fetch(BASE + path, { method: 'POST', body: JSON.stringify(body) })).json() as Promise<any>;
 const sql = async (q: string) => (await post('/__sql', { sql: q })).out as string;
-const confirm = (email: string) => post('/__confirm', { email });
+/** Come fa una persona: chiede il codice, lo legge dalla mail (qui: dal finto Supabase) e lo scrive. */
+const loginCode = async (email: string) => {
+  ok(await api.requestCode(email));
+  const { code } = await post('/__code', { email });
+  assert.match(String(code), /^\d{6}$/, 'è partito un codice');
+  return ok(await api.verifyCode(email, code));
+};
 
 const api = new RemoteApi(BASE, 'anon-key');
 const ok = <T extends { ok: boolean }>(r: T): Extract<T, { ok: true }> => {
@@ -25,9 +31,9 @@ const bad = (r: { ok: boolean; error?: string }, code: string) => {
   assert.equal((r as any).error, code);
 };
 
-const owner = { name: 'Valerio Test', email: 'valerio@kuko.test', phone: '3331234567', password: 'segreta123' };
-const marta = { name: 'Marta Rossi', email: 'marta@kuko.test', phone: '3330001111', password: 'martapass1' };
-const luca = { name: 'Luca Bianchi', email: 'luca@kuko.test', phone: '3330002222', password: 'lucapass12' };
+const owner = { name: 'Valerio Test', email: 'valerio@kuko.test', phone: '3331234567' };
+const marta = { name: 'Marta Rossi', email: 'marta@kuko.test', phone: '3330001111' };
+const luca = { name: 'Luca Bianchi', email: 'luca@kuko.test', phone: '3330002222' };
 
 // una lezione tra 3 giorni alle 10:00 (ora di Roma): abbastanza lontana per annullare gratis
 const inDays = (n: number, hm = '10:00') => romeWall(addDays(romeDay(new Date()), n), hm).toISOString();
@@ -44,34 +50,61 @@ test('senza accesso non c’è sessione; credenziali sbagliate danno un errore c
   assert.match((r as any).message, /Email o password/);
 });
 
-test('iscrizione: serve confermare l’email prima di entrare', async () => {
-  const r = ok(await api.signUp(owner));
-  assert.equal((r as any).needsConfirm, true);
-  const login = await api.signIn(owner.email, owner.password);
-  assert.equal(login.ok, false);
-  assert.match((login as any).message, /Conferma/);
-  const dup = await api.signUp(owner);
-  assert.equal(dup.ok, false);
-  assert.match((dup as any).message, /Esiste già/);
-  await confirm(owner.email);
-  const s = ok(await api.signIn(owner.email, owner.password));
-  assert.equal(s.me.role, 'client', 'chi si iscrive è un cliente');
-  assert.equal(s.me.name, 'Valerio Test');
-  assert.equal(s.me.phone, '3331234567');
-  await api.signOut();
+test('registrazioni chiuse: chi lo studio non ha iscritto non crea nessun account, e da fuori non si capisce chi è iscritto', async () => {
+  const users = async () => Number(await sql('select count(*) from auth.users;'));
+  const members = async () => Number(await sql('select count(*) from public.members;'));
+  // il codice "parte" lo stesso per chiunque (stessa risposta), ma non nasce nessun utente e nessuna scheda
+  ok(await api.requestCode('sconosciuto@kuko.test'));
+  assert.equal((await post('/__code', { email: 'sconosciuto@kuko.test' })).code, null, 'nessun codice per chi non è iscritto');
+  assert.equal(await users(), 0);
+  assert.equal(await members(), 0);
+  // il vecchio modulo "crea profilo con password" ora è respinto dal database
+  const reg = await api.signUp({ name: 'Intruso', email: 'intruso@kuko.test', phone: '', password: 'password123' });
+  assert.equal(reg.ok, false);
+  assert.equal(await users(), 0);
+  // un codice a caso non fa entrare nessuno
+  const wrong = await api.verifyCode('sconosciuto@kuko.test', '123456');
+  assert.equal(wrong.ok, false);
+  assert.match((wrong as any).message, /codice/i);
+  assert.equal(await api.init(), null);
 });
 
-test('l’owner si promuove da SQL, poi vede tutto', async () => {
-  await sql(`update public.members set role = 'owner' where lower(email) = '${owner.email}';`);
-  const s = ok(await api.signIn(owner.email, owner.password));
+test('l’owner si inserisce da SQL ed entra con il codice, poi vede tutto', async () => {
+  await sql(`insert into public.members (name, email, phone, role) values ('${owner.name}', '${owner.email}', '${owner.phone}', 'owner');`);
+  ok(await api.requestCode(owner.email));
+  const { code } = await post('/__code', { email: owner.email });
+  // codice sbagliato: respinto, e non brucia quello giusto
+  const wrong = await api.verifyCode(owner.email, code === '000000' ? '000001' : '000000');
+  assert.equal(wrong.ok, false);
+  // lo spazio in mezzo (come lo si copia dalla mail) non conta
+  const s = ok(await api.verifyCode(owner.email, `${code.slice(0, 3)} ${code.slice(3)}`));
   assert.equal(s.me.role, 'owner');
+  assert.equal(s.me.name, owner.name);
+  assert.equal(s.me.phone, owner.phone);
+  assert.equal(await sql(`select count(*) from public.members where lower(email) = '${owner.email}';`), '1', 'nessun doppione');
   data = s.data;
   assert.deepEqual(data.types.map((t) => t.id).sort(), ['functional', 'pilates', 'pt']);
   assert.equal(data.settings.cancelWindowHours, 12);
   assert.equal(data.counts, undefined, 'l’owner non usa i conteggi: ha tutte le prenotazioni');
+  await api.signOut();
+  // il codice vale una volta sola
+  assert.equal((await api.verifyCode(owner.email, code)).ok, false);
+});
+
+test('un codice scaduto non vale; con il nuovo si entra, anche più volte', async () => {
+  ok(await api.requestCode(owner.email));
+  const old = (await post('/__code', { email: owner.email })).code;
+  await post('/__expire_codes', {});
+  const r = await api.verifyCode(owner.email, old);
+  assert.equal(r.ok, false);
+  assert.match((r as any).message, /scaduto/);
+  const s = await loginCode(owner.email);
+  assert.equal(s.me.role, 'owner');
+  await api.signOut();
 });
 
 test('owner: pacchetto, lezione, iscritto, abbonamento', async () => {
+  await loginCode(owner.email);
   data = ok(await api.savePack({ id: '', name: 'Functional 10', kind: 'pack', lessons: 10, validityDays: 90, priceCents: 11000, typeIds: ['functional'], weeklyLimit: null, active: true })).data;
   const pack = data.packs.find((p) => p.name === 'Functional 10')!;
   assert.ok(pack, 'pacchetto creato');
@@ -98,11 +131,11 @@ test('owner: pacchetto, lezione, iscritto, abbonamento', async () => {
   await api.signOut();
 });
 
-test('cliente: l’iscrizione si collega alla scheda creata dall’owner e porta con sé l’abbonamento', async () => {
-  ok(await api.signUp(marta));
-  await confirm(marta.email);
-  const s = ok(await api.signIn(marta.email, marta.password));
+test('cliente: al primo accesso con il codice trova la scheda creata dall’owner, con l’abbonamento', async () => {
+  const s = await loginCode(marta.email);
   assert.equal(s.me.id, martaMemberId, 'stessa persona della scheda dell’owner');
+  assert.equal(s.me.name, 'Marta Rossi');
+  assert.equal(await sql(`select count(*) from public.members where lower(email) = '${marta.email}';`), '1', 'nessun doppione');
   assert.equal(s.me.role, 'client');
   assert.equal(s.data.members.length, 1, 'un cliente vede solo se stesso');
   assert.equal(s.data.passes.length, 1);
@@ -145,13 +178,15 @@ test('sessione ripristinata dopo un ricaricamento della pagina', async () => {
 });
 
 test('lista d’attesa: con posti finiti entra in coda con la posizione; l’owner vede tutto', async () => {
-  // Luca si iscrive e ha un abbonamento; l'owner lo mette sulla lezione (2 posti: Marta + Luca = pieno)
+  // Luca viene iscritto in studio e ha un abbonamento; l'owner lo mette sulla lezione (2 posti: Marta + Luca = pieno)
   await api.signOut();
-  ok(await api.signUp(luca));
-  await confirm(luca.email);
-  await api.signIn(owner.email, owner.password);
-  const lucaMember = (await api.refresh() as any).data.members.find((m: any) => m.email === luca.email);
-  assert.ok(lucaMember, 'l’owner vede Luca');
+  await loginCode(owner.email);
+  const lucaMember = ok(await api.addMember({ name: luca.name, email: luca.email, phone: luca.phone })).member;
+  assert.ok(lucaMember, 'l’owner ha iscritto Luca');
+  // l'owner vede chi ha già un account e a chi manca ancora l'invito
+  const seen = (await api.refresh() as any).data.members as Array<{ email: string; hasAccount?: boolean }>;
+  assert.equal(seen.find((m) => m.email === marta.email)!.hasAccount, true, 'Marta è già entrata');
+  assert.equal(seen.find((m) => m.email === luca.email)!.hasAccount, false, 'Luca non è ancora entrato');
   ok(await api.assignPass(lucaMember.id, packId, romeDay(new Date()), ''));
   const r = ok(await api.ownerBook(lucaMember.id, sessionId, false));
   assert.equal(r.status, 'booked');
@@ -210,12 +245,16 @@ test('annullare una lezione avvisa i clienti; il cliente vede l’avviso e lo se
   const c = ok(await api.cancelSession(sessionId));
   assert.ok(c.affected >= 1);
   await api.signOut();
-  const s = ok(await api.signIn(marta.email, marta.password));
+  const s = await loginCode(marta.email);
   assert.equal(s.me.name, 'Marta R.');
   assert.equal(s.data.members[0].notes, '', 'il cliente non vede le note private dell’owner');
   // Marta era già stata tolta dalla lezione: l'avviso arriva a chi era prenotato (Luca e Sara)
   await api.signOut();
-  const l = ok(await api.signIn(luca.email, luca.password));
+  // Luca entra per la prima volta: la sua scheda è quella creata dall'owner, con l'abbonamento e la lezione
+  const l = await loginCode(luca.email);
+  assert.equal(l.me.name, luca.name);
+  assert.equal(await sql(`select count(*) from public.members where lower(email) = '${luca.email}';`), '1', 'nessun doppione');
+  assert.equal(l.data.passes.length, 1, 'ritrova il suo abbonamento');
   const unread = l.data.notices.filter((n) => !n.read);
   assert.ok(unread.length >= 1, 'Luca ha un avviso');
   assert.match(unread[0].text, /annullat/i);
@@ -226,24 +265,41 @@ test('annullare una lezione avvisa i clienti; il cliente vede l’avviso e lo se
   assert.equal(read.data.passes[0].creditsLeft, 10, 'la lezione torna nell’abbonamento');
 });
 
-test('profilo, cambio password, uscita', async () => {
+test('profilo, uscita, nuovo accesso con il codice', async () => {
   const p = ok(await api.updateProfile({ name: 'Luca B.', phone: '3331110000' }));
   assert.equal(p.me.name, 'Luca B.');
   assert.equal(p.data.members[0].phone, '3331110000');
   bad(await api.updateProfile({ name: '  ', phone: '' }), 'invalid');
 
-  assert.equal((await api.changePassword!('nuovapass99')).ok, true);
-  await api.signOut();
-  const old = await api.signIn(luca.email, luca.password);
-  assert.equal(old.ok, false);
-  ok(await api.signIn(luca.email, 'nuovapass99'));
   await api.signOut();
   assert.equal(await new RemoteApi(BASE, 'anon-key').init(), null, 'dopo l’uscita non resta nessuna sessione');
-  assert.equal((await api.resetPassword!(luca.email)).ok, true);
+  // niente password: l'unico modo di rientrare è un codice nuovo
+  assert.equal((await api.signIn(luca.email, 'qualunquecosa')).ok, false);
+  const again = await loginCode(luca.email);
+  assert.equal(again.me.name, 'Luca B.', 'ritrova il profilo aggiornato');
+  await api.signOut();
+});
+
+test('chi conosce l’email di un iscritto non può lasciarci sopra una sua password: alla prima conferma viene azzerata', async () => {
+  await loginCode(owner.email);
+  ok(await api.addMember({ name: 'Carla Esposito', email: 'carla@kuko.test', phone: '' }));
+  await api.signOut();
+  // un estraneo conosce l'email e ci registra sopra una password prima che Carla entri
+  const trap = await api.signUp({ name: 'Estraneo', email: 'carla@kuko.test', phone: '', password: 'passwordtrappola' });
+  assert.equal(trap.ok, true);
+  assert.equal((await api.signIn('carla@kuko.test', 'passwordtrappola')).ok, false, 'senza conferma non entra');
+  assert.equal(await sql(`select count(*) from public.members where lower(email) = 'carla@kuko.test';`), '1', 'nessun doppione');
+  // Carla entra con il codice che arriva a lei: da lì in poi la password dell'estraneo non vale più
+  const c = await loginCode('carla@kuko.test');
+  assert.equal(c.me.name, 'Carla Esposito', 'la scheda è quella creata dallo studio, non quella dell’estraneo');
+  await api.signOut();
+  const late = await api.signIn('carla@kuko.test', 'passwordtrappola');
+  assert.equal(late.ok, false, 'la password dell’estraneo è azzerata');
+  assert.equal(await sql(`select encrypted_password from auth.users where email = 'carla@kuko.test';`), '');
 });
 
 test('permessi: un cliente non può usare le funzioni da owner', async () => {
-  ok(await api.signIn(marta.email, marta.password));
+  await loginCode(marta.email);
   bad(await api.addSession({ typeId: 'pt', startsAt: inDays(4), capacity: 1, duration: 60, trainer: 'x' }), 'forbidden');
   bad(await api.cancelSession(sessionId), 'forbidden');
   bad(await api.savePack({ id: '', name: 'Gratis', kind: 'pack', lessons: 99, validityDays: 999, priceCents: 0, typeIds: [], weeklyLimit: null, active: true }), 'forbidden');
@@ -265,7 +321,7 @@ test('richieste dal sito: il modulo scrive senza account, solo l’owner le vede
   assert.equal(snap.status, 403);
 
   // un cliente non le vede e non le gestisce
-  const c = ok(await api.signIn(marta.email, marta.password));
+  const c = await loginCode(marta.email);
   assert.equal(c.data.leads.length, 0);
   bad(await api.saveLead({ id: crypto.randomUUID(), status: 'done' }), 'forbidden');
   bad(await api.deleteLead(crypto.randomUUID()), 'forbidden');
@@ -276,7 +332,7 @@ test('richieste dal sito: il modulo scrive senza account, solo l’owner le vede
   await api.signOut();
 
   // l'owner sì
-  const o = ok(await api.signIn(owner.email, owner.password));
+  const o = await loginCode(owner.email);
   assert.equal(o.data.leads.length, 2);
   const mine = o.data.leads.find((l) => l.source === 'app')!;
   assert.deepEqual([mine.kind, mine.topic, mine.name, mine.email, mine.note], ['nutrition', 'nutrition', 'Marta R.', marta.email.toLowerCase(), 'Vorrei un piano per la gara']);

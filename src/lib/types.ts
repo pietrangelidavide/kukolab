@@ -19,6 +19,8 @@ export interface Member {
   role: Role;
   notes: string;
   createdAt: string;
+  /** Solo per l'owner, con l'archivio online: la persona ha già fatto il primo accesso (ha un account). */
+  hasAccount?: boolean;
 }
 
 /** Riga dell'orario settimanale: ogni settimana genera una lezione. */

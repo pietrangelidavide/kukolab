@@ -127,7 +127,7 @@ export function SettingsScreen() {
           </div>
         </div>
       )}
-      {s.api.changePassword && <><h2 className="sec">Password</h2><PasswordForm /></>}
+      {s.api.changePassword && !s.api.codeLogin && <><h2 className="sec">Password</h2><PasswordForm /></>}
       <Btn kind="quiet" onClick={() => s.logout()}><Icon n="logout" size={18} /> Esci</Btn>
     </>
   );

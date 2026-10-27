@@ -6,6 +6,7 @@ import { memberStatus, myBookings, passState, passesOf, typeOf } from '../lib/se
 import { romeDay } from '../lib/time';
 import { cap, dayDMY, dayLong, euro, plural, timeOf, waLink, waNumber } from '../lib/format';
 import type { Id, Member } from '../lib/types';
+import { STUDIO } from '../config';
 
 type Filter = 'all' | 'active' | 'soon' | 'none';
 
@@ -74,10 +75,12 @@ function NewMember({ onClose }: { onClose: () => void }) {
   };
   return (
     <Sheet open onClose={onClose} title="Nuovo iscritto" footer={<><Btn kind="quiet" onClick={onClose}>Chiudi</Btn><Btn onClick={save} disabled={!name.trim()}>Aggiungi</Btn></>}>
-      <p className="muted">Se ha già un profilo nell&#8217;app, usa la stessa email: i due profili si collegano da soli.</p>
+      {s.api.codeLogin
+        ? <p className="muted">Per entrare nell&#8217;app la persona scrive la sua email e riceve un codice: serve quindi l&#8217;email giusta. Dopo averla aggiunta puoi invitarla su WhatsApp dalla sua scheda.</p>
+        : <p className="muted">Se ha già un profilo nell&#8217;app, usa la stessa email: i due profili si collegano da soli.</p>}
       <Field label="Nome e cognome"><input value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" data-autofocus /></Field>
       <Field label="Telefono"><input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" autoComplete="off" /></Field>
-      <Field label="Email" hint="Facoltativa."><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="off" /></Field>
+      <Field label="Email" hint={s.api.codeLogin ? 'Serve per l\u2019accesso all\u2019app.' : 'Facoltativa.'}><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="off" /></Field>
     </Sheet>
   );
 }
@@ -97,6 +100,11 @@ export function MemberDetail({ id }: { id: Id }) {
   const st = memberStatus(d, m.id, s.now);
   const { upcoming, past } = myBookings(d, m.id, s.now);
   const wa = m.phone ? waLink(m.phone, `Ciao ${m.name.split(' ')[0]}, ti scrivo da KUKO LAB.`) : null;
+  // con l'archivio online l'owner vede se la persona ha già fatto il primo accesso e può invitarla su WhatsApp
+  const online = !!s.api.codeLogin && m.hasAccount !== undefined;
+  const invite = online && !m.hasAccount && m.phone && m.email
+    ? waLink(m.phone, `Ciao ${m.name.split(' ')[0]}, sei iscritto a ${STUDIO.name}! Per prenotare le lezioni apri ${location.origin}/app/ e scrivi la tua email (${m.email}): ti arriva un codice per entrare. Nessuna password da ricordare.`)
+    : null;
   const attended = d.bookings.filter((b) => b.memberId === m.id && b.status === 'attended').length;
   const noshow = d.bookings.filter((b) => b.memberId === m.id && b.status === 'no_show').length;
 
@@ -122,6 +130,13 @@ export function MemberDetail({ id }: { id: Id }) {
             {wa && <a href={wa} target="_blank" rel="noopener"><Icon n="wa" size={15} /> WhatsApp</a>}
             {m.email && <a href={`mailto:${m.email}`}>{m.email}</a>}
           </p>
+          {online && (
+            <p className="macc">
+              {m.hasAccount ? <Badge tone="ok">Account attivo</Badge> : <Badge tone="warn">Non ha ancora fatto il primo accesso</Badge>}
+              {!m.hasAccount && !m.email && <span className="muted small">Manca l&#8217;email: senza non può entrare nell&#8217;app (puoi prenotare tu al suo posto).</span>}
+              {invite && <a href={invite} target="_blank" rel="noopener"><Icon n="wa" size={15} /> Invita nell&#8217;app su WhatsApp</a>}
+            </p>
+          )}
         </div>
         <Btn kind="ghost" size="sm" onClick={() => setEdit(true)}><Icon n="edit" size={16} /> Modifica</Btn>
       </header>

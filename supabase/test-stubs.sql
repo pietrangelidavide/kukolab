@@ -5,6 +5,7 @@ create schema auth;
 create table auth.users (
   id uuid primary key default gen_random_uuid(),
   email text,
+  encrypted_password text,
   raw_user_meta_data jsonb not null default '{}',
   email_confirmed_at timestamptz
 );

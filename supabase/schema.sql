@@ -351,8 +351,24 @@ begin
   end if;
 end $$;
 
+-- =========================================================================================== registrazioni chiuse
+-- L'app è solo per chi è stato iscritto dallo studio: un account può nascere solo se l'owner ha già inserito quell'email tra gli iscritti
+-- (Iscritti › Nuovo iscritto). Il controllo sta qui, nel database, e vale per qualunque strada porti a creare un account
+-- (anche chiamando direttamente l'API pubblica di Supabase con la chiave anon): le registrazioni in Supabase restano attive proprio perché
+-- il primo accesso con codice crea l'account, ma il database lo rifiuta se l'email non è nell'elenco degli iscritti.
+create or replace function private.guard_signup() returns trigger language plpgsql security definer set search_path = public, pg_temp as $$
+declare em text := lower(trim(coalesce(new.email, '')));
+begin
+  if em = '' or not exists (select 1 from public.members where lower(email) = em) then
+    raise exception 'signup_closed';
+  end if;
+  return new;
+end $$;
+drop trigger if exists kuko_signup_guard on auth.users;
+create trigger kuko_signup_guard before insert on auth.users for each row execute function private.guard_signup();
+
 -- =========================================================================================== collegamento account ↔ iscritto
--- Chi si registra diventa un iscritto. Se l'owner lo aveva già inserito con la stessa email e l'email è confermata, i due profili si uniscono.
+-- Chi accede la prima volta diventa un iscritto. Se l'owner lo aveva già inserito con la stessa email e l'email è confermata, i due profili si uniscono.
 create or replace function private.handle_new_user() returns trigger language plpgsql security definer set search_path = public, pg_temp as $$
 declare mid uuid; em text := lower(trim(coalesce(new.email, '')));
 begin
@@ -361,6 +377,10 @@ begin
   end if;
   if mid is not null then
     update public.members set user_id = new.id where id = mid;
+  elsif em <> '' and exists (select 1 from public.members where user_id is null and lower(email) = em) then
+    -- La scheda c'è già (l'ha creata lo studio) e l'email non è ancora confermata: ci si collega alla conferma (handle_confirmed).
+    -- Fino ad allora non se ne crea una seconda, o l'owner vedrebbe un doppione per chi ha chiesto il codice e non l'ha ancora scritto.
+    return new;
   else
     insert into public.members (user_id, name, email, phone)
     values (new.id, coalesce(nullif(trim(new.raw_user_meta_data ->> 'name'), ''), nullif(split_part(em, '@', 1), ''), 'Nuovo iscritto'), em, coalesce(trim(new.raw_user_meta_data ->> 'phone'), ''));
@@ -372,6 +392,9 @@ create or replace function private.handle_confirmed() returns trigger language p
 declare ex uuid; fresh uuid; em text := lower(trim(coalesce(new.email, '')));
 begin
   if em = '' then return new; end if;
+  -- Si entra solo con il codice ricevuto per email. Una password messa da qualcun altro prima della prima conferma (chi conosce l'email di un
+  -- iscritto potrebbe averla creata prima di lui) non deve restare valida.
+  update auth.users set encrypted_password = '' where id = new.id;
   select id into ex from public.members where user_id is null and lower(email) = em order by created_at limit 1;
   if ex is null then return new; end if;
   select id into fresh from public.members where user_id = new.id;
@@ -422,7 +445,7 @@ begin
     'me', to_jsonb(me) - 'user_id' - case when own then '' else 'notes' end,
     'settings', to_jsonb(st) - 'id' - 'generated_until',
     'types', (select coalesce(jsonb_agg(to_jsonb(t) order by t.name), '[]'::jsonb) from public.course_types t),
-    'members', case when own then (select coalesce(jsonb_agg(to_jsonb(m) - 'user_id' order by m.name), '[]'::jsonb) from public.members m) else jsonb_build_array(to_jsonb(me) - 'user_id' - 'notes') end,
+    'members', case when own then (select coalesce(jsonb_agg((to_jsonb(m) - 'user_id') || jsonb_build_object('has_account', m.user_id is not null) order by m.name), '[]'::jsonb) from public.members m) else jsonb_build_array(to_jsonb(me) - 'user_id' - 'notes') end,
     'templates', case when own then (select coalesce(jsonb_agg(to_jsonb(t) order by t.weekday, t.time), '[]'::jsonb) from public.templates t) else '[]'::jsonb end,
     'sessions', (select coalesce(jsonb_agg(to_jsonb(s) order by s.starts_at, s.id), '[]'::jsonb) from ss s),
     'packs', (select coalesce(jsonb_agg(to_jsonb(p) order by p.price_cents, p.name), '[]'::jsonb) from public.packs p where own or p.active),

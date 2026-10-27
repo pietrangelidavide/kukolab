@@ -253,6 +253,12 @@ input[type="checkbox"] { width: 1.3rem; min-height: 1.3rem; height: 1.3rem; acce
 .auth .sub { text-align: center; color: var(--mute); }
 .auth .seg { justify-self: center; margin-top: .6rem; }
 .auth .form { margin-bottom: .4rem; }
+.code-links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .4rem 1rem; }
+.code-links .link:disabled { color: var(--mute); text-decoration: none; cursor: default; }
+.not-yet { margin-top: .4rem; }
+.not-yet a { color: var(--orange-hi); font-weight: 700; }
+.macc { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .9rem; margin-top: .5rem; }
+.macc a { display: inline-flex; align-items: center; gap: .35rem; font-weight: 700; }
 .back { justify-self: center; color: var(--mute); font-size: .88rem; text-decoration: none; padding: .4rem; }
 .back:hover { color: var(--text); }
 

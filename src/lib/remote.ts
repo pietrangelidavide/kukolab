@@ -1,4 +1,5 @@
-// Modalità reale: Supabase (accesso con email e password + funzioni del database), senza librerie, con fetch.
+// Modalità reale: Supabase (accesso con un codice mandato per email + funzioni del database), senza librerie, con fetch.
+// Le registrazioni sono chiuse: un account nasce solo per chi l'owner ha già iscritto (lo decide il database, vedi supabase/schema.sql).
 // Il database è descritto in supabase/schema.sql: qui si chiamano solo le sue funzioni (rpc).
 import type { Api, AuthState, R } from './api';
 import type { Booking, Data, Err, Id, Lead, LeadStatus, Member, Notice, Pack, Pass, Result, Session, Settings, Template } from './types';
@@ -26,7 +27,7 @@ export function mapSnapshot(j: any): AuthState {
     studioName: j.settings.studio_name, cancelWindowHours: j.settings.cancel_window_hours, bookingHorizonDays: j.settings.booking_horizon_days,
     bookingCloseMinutes: j.settings.booking_close_minutes, waitlistEnabled: j.settings.waitlist_enabled,
   };
-  const member = (m: any): Member => ({ id: m.id, name: m.name, email: m.email ?? '', phone: m.phone ?? '', role: m.role, notes: m.notes ?? '', createdAt: iso(m.created_at) });
+  const member = (m: any): Member => ({ id: m.id, name: m.name, email: m.email ?? '', phone: m.phone ?? '', role: m.role, notes: m.notes ?? '', createdAt: iso(m.created_at), ...(m.has_account !== undefined ? { hasAccount: !!m.has_account } : {}) });
   const data: Data = {
     settings,
     types: j.types.map((t: any) => ({ id: t.id, name: t.name, capacity: t.capacity, duration: t.duration, tone: t.tone })),
@@ -65,10 +66,13 @@ const AUTH_MSG: Record<string, string> = {
   over_request_rate_limit: 'Troppi tentativi: aspetta un minuto e riprova.',
   over_email_send_rate_limit: 'Troppe email inviate: aspetta qualche minuto e riprova.',
   signup_disabled: 'Le nuove iscrizioni non sono attive.',
+  otp_expired: 'Il codice non è valido o è scaduto: chiedine uno nuovo.',
+  otp_disabled: 'L’accesso con codice non è attivo: avvisa lo studio.',
 };
 
 export class RemoteApi implements Api {
   readonly mode = 'remote' as const;
+  readonly codeLogin = true;
   private tokens: Tokens | null = null;
 
   constructor(private url: string, private key: string) {
@@ -191,6 +195,38 @@ export class RemoteApi implements Api {
     return s;
   }
 
+  /** Manda il codice per email. Con un'email che non è tra gli iscritti il database rifiuta di creare l'account e Supabase risponde con un errore del
+   *  database: all'esterno lo si tratta come un invio riuscito, così non si scopre chi è iscritto e chi no. */
+  async requestCode(email: string): Promise<Result> {
+    try {
+      const r = await this.http('/auth/v1/otp', 'POST', { email: email.trim(), create_user: true });
+      if (r.status < 300) return { ok: true };
+      const code: string = r.body?.error_code ?? r.body?.code ?? '';
+      const text = String(r.body?.msg ?? r.body?.message ?? '');
+      if (r.status >= 500 && /database error/i.test(text)) return { ok: true };
+      if (code === 'signup_disabled') return { ok: false, error: 'invalid', message: 'L’accesso con codice non è attivo: avvisa lo studio.' };
+      return { ok: false, error: 'invalid', message: AUTH_MSG[code] ?? (r.status >= 500 ? 'Il server non risponde: riprova tra poco.' : 'Non riesco a mandare il codice: controlla l’email e riprova.') };
+    } catch {
+      return { ok: false, error: 'network' };
+    }
+  }
+
+  async verifyCode(email: string, code: string): Promise<Result<AuthState>> {
+    try {
+      const r = await this.http('/auth/v1/verify', 'POST', { type: 'email', email: email.trim(), token: code.replace(/\s/g, '') });
+      if (r.status !== 200 || !this.setFromAuth(r.body)) {
+        const c: string = r.body?.error_code ?? r.body?.code ?? '';
+        return { ok: false, error: 'auth', message: AUTH_MSG[c] ?? (r.status >= 500 ? 'Il server non risponde: riprova tra poco.' : 'Il codice non è valido o è scaduto: controlla di averlo scritto giusto, oppure chiedine uno nuovo.') };
+      }
+    } catch {
+      return { ok: false, error: 'network' };
+    }
+    const s = await this.snapshot();
+    if (!s.ok) { this.save(null); return s; }
+    return s;
+  }
+
+  /** Non usata dall'interfaccia: con le registrazioni chiuse funziona solo per email già iscritte dall'owner. */
   async signUp(i: { name: string; email: string; phone: string; password: string }): Promise<Result<Partial<AuthState> & { needsConfirm?: boolean }>> {
     try {
       const redirect = encodeURIComponent(location.origin + '/app/');
