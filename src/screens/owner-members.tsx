@@ -1,11 +1,14 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '../store';
-import { Avatar, Badge, Btn, Empty, Field, Icon, Sheet, toneClass } from '../ui';
+import { Avatar, Badge, Btn, Empty, Field, Icon, Sheet, Toggle, toneClass } from '../ui';
 import { PageHead, PassStateBadge, passSummary, typeNames, validity } from './common';
+import { NewPayment, PayFields } from './payments';
+import { can } from '../lib/access';
+import { euroField, methodLabel, parseEuro } from '../lib/payments';
 import { memberStatus, myBookings, passState, passesOf, typeOf } from '../lib/selectors';
 import { romeDay } from '../lib/time';
 import { cap, dayDMY, dayLong, euro, plural, timeOf, waLink, waNumber } from '../lib/format';
-import type { Id, Member } from '../lib/types';
+import type { Id, Member, PayMethod } from '../lib/types';
 import { STUDIO } from '../config';
 
 type Filter = 'all' | 'active' | 'soon' | 'none';
@@ -64,7 +67,7 @@ export function Members() {
   );
 }
 
-function NewMember({ onClose }: { onClose: () => void }) {
+export function NewMember({ onClose }: { onClose: () => void }) {
   const s = useStore();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -93,6 +96,8 @@ export function MemberDetail({ id }: { id: Id }) {
   const [edit, setEdit] = useState(false);
   const [sell, setSell] = useState(false);
   const [all, setAll] = useState(false);
+  const [pay, setPay] = useState(false);
+  const role = s.me!.role;
   if (!m) return <Empty icon="users" title="Iscritto non trovato" action={<Btn size="sm" onClick={() => s.route.go('/iscritti')}>Torna all’elenco</Btn>} />;
 
   const today = romeDay(s.now);
@@ -107,6 +112,7 @@ export function MemberDetail({ id }: { id: Id }) {
     : null;
   const attended = d.bookings.filter((b) => b.memberId === m.id && b.status === 'attended').length;
   const noshow = d.bookings.filter((b) => b.memberId === m.id && b.status === 'no_show').length;
+  const pays = d.payments.filter((p) => p.memberId === m.id).sort((a, b) => b.paidAt.localeCompare(a.paidAt));
 
   const adjust = (passId: Id, delta: number) => s.run(s.api.adjustCredits(passId, delta));
   const removeBooking = async (bid: Id, label: string) => {
@@ -141,7 +147,7 @@ export function MemberDetail({ id }: { id: Id }) {
         <Btn kind="ghost" size="sm" onClick={() => setEdit(true)}><Icon n="edit" size={16} /> Modifica</Btn>
       </header>
 
-      {m.notes && <div className="note"><Icon n="info" size={20} /><div><b>Note</b><p>{m.notes}</p></div></div>}
+      {m.notes && can(role, 'notes') && <div className="note"><Icon n="info" size={20} /><div><b>Note</b><p>{m.notes}</p></div></div>}
 
       <dl className="kpis small">
         <div><dt>Presenze</dt><dd>{attended}</dd></div>
@@ -162,7 +168,8 @@ export function MemberDetail({ id }: { id: Id }) {
                   <small>{passSummary(p)}{p.note ? ` · ${p.note}` : ''}</small>
                 </div>
                 <PassStateBadge p={p} today={today} />
-                {p.kind === 'pack' && (
+                {p.kind === 'pack' && !can(role, 'credits') && <div className="stepper"><b>{p.creditsLeft}</b></div>}
+                {p.kind === 'pack' && can(role, 'credits') && (
                   <div className="stepper" role="group" aria-label={`Lezioni di ${p.name}`}>
                     <button className="icon-btn sm" onClick={() => adjust(p.id, -1)} disabled={(p.creditsLeft ?? 0) <= 0} aria-label="Togli una lezione"><Icon n="minus" size={15} /></button>
                     <b>{p.creditsLeft}</b>
@@ -173,6 +180,24 @@ export function MemberDetail({ id }: { id: Id }) {
             );
           })}
         </ul>
+      )}
+
+      {can(role, 'revenue') && (
+        <>
+          <div className="sec-row"><h2 className="sec">Pagamenti</h2><Btn kind="ghost" size="sm" onClick={() => setPay(true)}><Icon n="cash" size={16} /> Registra incasso</Btn></div>
+          {pays.length === 0 ? <p className="muted">Nessun pagamento registrato.</p> : (
+            <ul className="hist">
+              {pays.slice(0, 8).map((p) => (
+                <li key={p.id} className={p.voidedAt ? 'void' : ''}>
+                  <span className="bar tone-orange" />
+                  <div><b>{p.amountCents === 0 ? 'Omaggio' : euro(p.amountCents)}</b><small>{dayDMY(romeDay(new Date(p.paidAt)))} · {p.note || 'Incasso'} · {methodLabel(p.method)}</small></div>
+                  {p.voidedAt && <Badge tone="bad">Stornato</Badge>}
+                </li>
+              ))}
+            </ul>
+          )}
+          {pays.length > 8 && <p className="muted small">E altri {pays.length - 8}. Tutti gli incassi sono nella pagina Incassi.</p>}
+        </>
       )}
 
       <h2 className="sec">In programma</h2>
@@ -212,6 +237,7 @@ export function MemberDetail({ id }: { id: Id }) {
 
       {edit && <EditMember m={m} onClose={() => setEdit(false)} />}
       {sell && <SellPack m={m} onClose={() => setSell(false)} />}
+      {pay && <NewPayment memberId={m.id} onClose={() => setPay(false)} />}
     </>
   );
 }
@@ -222,6 +248,7 @@ function EditMember({ m, onClose }: { m: Member; onClose: () => void }) {
   const [phone, setPhone] = useState(m.phone);
   const [email, setEmail] = useState(m.email);
   const [notes, setNotes] = useState(m.notes);
+  const withNotes = can(s.me!.role, 'notes');
   const bad = phone.trim() !== '' && waNumber(phone) === null;
   const save = async () => { const r = await s.run(s.api.saveMember({ id: m.id, name, email, phone, notes }), 'Scheda aggiornata.'); if (r.ok) onClose(); };
   return (
@@ -229,29 +256,48 @@ function EditMember({ m, onClose }: { m: Member; onClose: () => void }) {
       <Field label="Nome e cognome"><input value={name} onChange={(e) => setName(e.target.value)} data-autofocus /></Field>
       <Field label="Telefono" hint={bad ? 'Il numero non sembra valido: controlla le cifre.' : 'Serve per i messaggi WhatsApp.'}><input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" /></Field>
       <Field label="Email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
-      <Field label="Note" hint="Visibili solo a te: infortuni, preferenze, accordi."><textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></Field>
+      {withNotes && <Field label="Note" hint="Visibili solo a te: infortuni, preferenze, accordi."><textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></Field>}
     </Sheet>
   );
 }
 
-function SellPack({ m, onClose }: { m: Member; onClose: () => void }) {
+export function SellPack({ m, onClose }: { m: Member; onClose: () => void }) {
   const s = useStore();
   const d = s.data!;
+  const owner = s.me!.role === 'owner';
   const packs = d.packs.filter((p) => p.active);
   const [packId, setPackId] = useState(packs[0]?.id ?? '');
   const [startsOn, setStartsOn] = useState(romeDay(s.now));
   const [note, setNote] = useState('');
   const pack = packs.find((p) => p.id === packId);
-  const save = async () => { const r = await s.run(s.api.assignPass(m.id, packId, startsOn, note.trim()), `${pack?.name ?? 'Pacchetto'} registrato per ${m.name.split(' ')[0]}.`); if (r.ok) onClose(); };
+  // la Segreteria registra sempre l'incasso; l'owner può assegnare un pacchetto già pagato prima, senza incasso
+  const [record, setRecord] = useState(true);
+  const [amount, setAmount] = useState(pack ? euroField(pack.priceCents) : '');
+  const [method, setMethod] = useState<PayMethod>('cash');
+  const recording = !owner || record;
+  const cents = parseEuro(amount);
+  const pick = (id: Id) => { setPackId(id); const p = packs.find((x) => x.id === id); if (p) setAmount(euroField(p.priceCents)); };
+  const first = m.name.split(' ')[0];
+  const valid = !!packId && !!startsOn && (!recording || cents !== null);
+  const save = async () => {
+    const pay = recording && cents !== null ? { amountCents: cents, method } : undefined;
+    const done = !pay ? `${pack?.name ?? 'Pacchetto'} registrato per ${first}.` : pay.amountCents === 0 ? `${pack?.name ?? 'Pacchetto'} regalato a ${first}.` : `${pack?.name ?? 'Pacchetto'} per ${first}: incassati ${euro(pay.amountCents)}.`;
+    const r = await s.run(s.api.assignPass(m.id, packId, startsOn, note.trim(), pay), done);
+    if (r.ok) onClose();
+  };
   return (
-    <Sheet open onClose={onClose} title="Vendi pacchetto" footer={<><Btn kind="quiet" onClick={onClose}>Chiudi</Btn><Btn onClick={save} disabled={!packId || !startsOn}>Registra</Btn></>}>
-      <p className="muted">Registra un pagamento già ricevuto in studio. Il pacchetto si attiva subito.</p>
-      <Field label="Pacchetto">
-        <select value={packId} onChange={(e) => setPackId(e.target.value)} data-autofocus>{packs.map((p) => <option key={p.id} value={p.id}>{p.name} · {euro(p.priceCents)}</option>)}</select>
-      </Field>
+    <Sheet open onClose={onClose} title="Vendi pacchetto" footer={<><Btn kind="quiet" onClick={onClose}>Chiudi</Btn><Btn onClick={save} disabled={!valid}>{recording ? 'Incassa e registra' : 'Registra'}</Btn></>}>
+      <p className="muted">{recording ? 'Il pacchetto si attiva subito e l’incasso va in cassa.' : 'Il pacchetto si attiva subito, senza registrare nessun incasso.'}</p>
+      {packs.length === 0 ? <p className="form-err">Non ci sono pacchetti in vendita: aggiungili dalla pagina Pacchetti.</p> : (
+        <Field label="Pacchetto">
+          <select value={packId} onChange={(e) => pick(e.target.value)} data-autofocus>{packs.map((p) => <option key={p.id} value={p.id}>{p.name} · {euro(p.priceCents)}</option>)}</select>
+        </Field>
+      )}
       {pack && <p className="small muted">{pack.kind === 'pack' ? `${pack.lessons} ${plural(pack.lessons ?? 0, 'lezione', 'lezioni')}` : pack.weeklyLimit ? `Fino a ${pack.weeklyLimit} a settimana` : 'Lezioni illimitate'} · {pack.validityDays} giorni · {typeNames(d, pack.typeIds)}</p>}
       <Field label="Inizia il"><input type="date" value={startsOn} onChange={(e) => setStartsOn(e.target.value)} /></Field>
-      <Field label="Nota" hint="Facoltativa: ad esempio “pagato in contanti”."><input value={note} onChange={(e) => setNote(e.target.value)} /></Field>
+      {owner && <div className="row between"><span><b>Registra l&#8217;incasso</b><br /><small className="muted">Spegni se {m.name.split(' ')[0]} aveva già pagato prima di usare l&#8217;app.</small></span><Toggle on={record} onChange={setRecord} label="Registra l’incasso" /></div>}
+      {recording && <PayFields amount={amount} setAmount={setAmount} method={method} setMethod={setMethod} listCents={pack?.priceCents} free />}
+      <Field label="Nota" hint="Facoltativa."><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} /></Field>
     </Sheet>
   );
 }

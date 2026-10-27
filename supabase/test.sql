@@ -349,6 +349,183 @@ begin
   raise notice 'ok  snapshot owner';
 end $$;
 
+-- ------------------------------------------------------------------ Segreteria, Trainer e incassi
+do $$
+declare r jsonb; e text; q text; n int; sm uuid; se uuid; sx uuid; sn uuid; bm uuid; be uuid; bs uuid; mid uuid; pay uuid; marco uuid; stf uuid;
+        ll uuid := t.uid('luca'); aa uuid := t.uid('anna'); sa uuid := t.uid('sara'); pk uuid; pk_off uuid; nobody text := '00000000-0000-0000-0000-000000000000';
+        day4 timestamptz := date_trunc('day', now()) + interval '4 days 3 hours';
+begin
+  -- il team lo crea solo l'owner, con un'email vera e un ruolo ammesso
+  assert t.err('luca', $q$select public.add_team_member('Segreteria', 'segreteria@example.com', 'staff')$q$) = 'forbidden', 'un iscritto non crea il team';
+  assert t.err('valerio', $q$select public.add_team_member('Segreteria', 'non-una-email', 'staff')$q$) = 'invalid', 'serve un''email vera';
+  assert t.err('valerio', $q$select public.add_team_member('Boss', 'boss@example.com', 'owner')$q$) = 'invalid', 'owner non si crea da qui';
+  assert t.err('valerio', $q$select public.add_team_member('Valerio', 'valerio@example.com', 'trainer')$q$) = 'email_in_use', 'l''owner non diventa Trainer';
+  perform t.rpc('valerio', $q$select public.add_team_member('Segreteria', ' Segreteria@Example.com ', 'staff')$q$);
+  perform t.rpc('valerio', $q$select public.add_team_member('Marco Rossi', 'marco@example.com', 'trainer', '333 111')$q$);
+  perform t.rpc('valerio', $q$select public.add_team_member('Elena Bianchi', 'elena@example.com', 'trainer')$q$);
+  assert t.err('valerio', $q$select public.add_team_member('Altra Segreteria', 'altra@example.com', 'staff')$q$) = 'staff_exists', 'la Segreteria è una sola';
+  begin
+    insert into public.members (name, email, role) values ('Seconda', 'seconda@example.com', 'staff');
+    assert false, 'il database ammette due Segreterie';
+  exception when unique_violation then null;
+  end;
+  assert (select email from public.members where role = 'staff') = 'segreteria@example.com', 'email normalizzata';
+  -- il primo accesso collega l'account alla scheda del team (non se ne crea un'altra)
+  insert into auth.users (email, email_confirmed_at) values ('segreteria@example.com', now()), ('marco@example.com', now()), ('elena@example.com', now());
+  assert (select count(*) from public.members where role in ('staff', 'trainer') and user_id is not null) = 3, 'tre account del team collegati';
+  assert (select count(*) from public.members where lower(email) = 'marco@example.com') = 1, 'nessun doppione';
+
+  -- a quali lezioni è abbinato un Trainer: stesso nome o solo il nome di battesimo, senza badare a maiuscole e spazi
+  insert into public.sessions (type_id, starts_at, capacity, trainer) values ('functional', day4 + interval '1 hour', 8, 'Marco') returning id into sm;
+  insert into public.sessions (type_id, starts_at, capacity, trainer) values ('pilates', day4 + interval '3 hours', 4, '  ELENA   bianchi ') returning id into se;
+  insert into public.sessions (type_id, starts_at, capacity, trainer) values ('functional', day4 + interval '5 hours', 8, 'Marcos') returning id into sx;
+  assert (select private.teaches(m, x) from public.members m, public.sessions x where m.email = 'marco@example.com' and x.id = sm), 'il nome di battesimo basta';
+  assert (select private.teaches(m, x) from public.members m, public.sessions x where m.email = 'elena@example.com' and x.id = se), 'maiuscole e spazi non contano';
+  assert not (select private.teaches(m, x) from public.members m, public.sessions x where m.email = 'marco@example.com' and x.id = sx), 'un altro nome non vale';
+  assert not (select private.teaches(m, x) from public.members m, public.sessions x where m.email = 'marco@example.com' and x.id = se), 'non le lezioni di un altro';
+  assert not (select private.teaches(m, x) from public.members m, public.sessions x where m.email = 'luca@example.com' and x.id = sm), 'un iscritto non tiene lezioni';
+  insert into public.sessions (type_id, starts_at, capacity, trainer) values ('functional', day4 + interval '7 hours', 8, '') returning id into sn;
+  assert not (select private.teaches(m, x) from public.members m, public.sessions x where m.email = 'marco@example.com' and x.id = sn), 'senza istruttore non è di nessuno';
+
+  perform t.run('valerio', format('select public.owner_book(%L, %L, true)', ll, sm));
+  perform t.run('valerio', format('select public.owner_book(%L, %L, true)', aa, se));
+  perform t.run('valerio', format('select public.owner_book(%L, %L, true)', sa, sx));
+  select id into bm from public.bookings where session_id = sm and member_id = ll;
+  select id into be from public.bookings where session_id = se and member_id = aa;
+  select id into pk from public.packs where name = 'Functional 10';
+
+  -- ---- Trainer
+  r := t.rpc('marco', 'select public.snapshot()');
+  assert (r -> 'me' ->> 'role') = 'trainer' and not (r -> 'me' ? 'notes'), 'ruolo Trainer';
+  assert exists (select 1 from jsonb_array_elements(r -> 'sessions') x where x ->> 'id' = sm::text), 'vede la sua lezione';
+  assert not exists (select 1 from jsonb_array_elements(r -> 'sessions') x where x ->> 'trainer' <> 'Marco'), 'solo le sue lezioni';
+  assert jsonb_array_length(r -> 'bookings') = 1, 'solo chi è iscritto alle sue lezioni';
+  assert not exists (select 1 from jsonb_array_elements(r -> 'members') m where m ? 'email' or m ? 'phone' or m ? 'notes'), 'dei partecipanti solo il nome';
+  assert exists (select 1 from jsonb_array_elements(r -> 'members') m where m ->> 'name' like 'Luca%'), 'il partecipante c''è';
+  assert not exists (select 1 from jsonb_array_elements(r -> 'members') m where m ->> 'id' in (aa::text, sa::text)), 'non gli iscritti ad altre lezioni';
+  assert r -> 'leads' = '[]'::jsonb and r -> 'templates' = '[]'::jsonb and r -> 'passes' = '[]'::jsonb and r -> 'payments' = '[]'::jsonb and r -> 'notices' = '[]'::jsonb, 'niente richieste, orario, abbonamenti, incassi';
+  perform t.run('marco', format('select public.set_attendance(%L, ''attended'')', bm));
+  assert (select status from public.bookings where id = bm) = 'attended', 'segna la presenza';
+  perform t.run('marco', format('select public.set_attendance(%L, ''no_show'')', bm));
+  assert t.err('marco', format('select public.set_attendance(%L, ''attended'')', be)) = 'forbidden', 'non le presenze di un altro';
+  assert t.err('marco', format('select public.cancel_booking(%L)', be)) = 'forbidden', 'non annulla prenotazioni altrui';
+  select id into bs from public.bookings where session_id = sx and member_id = sa;
+  assert t.err('elena', format('select public.set_attendance(%L, ''attended'')', bm)) = 'forbidden', 'nemmeno l''altro Trainer';
+  assert t.err('luca', format('select public.set_attendance(%L, ''attended'')', bm)) = 'forbidden', 'un iscritto non segna presenze';
+
+  -- ---- tutto quello che né il Trainer né la Segreteria possono fare
+  foreach q in array array[
+    format('select public.edit_session(%L, ''{"trainer": "Io"}'')', sm),
+    format('select public.cancel_session(%L)', sm),
+    format('select public.add_session(''functional'', now() + interval ''9 days'', 8, 50, ''Io'')'),
+    'select public.save_template(''{"typeId": "functional", "weekday": 2, "time": "10:00", "capacity": 4}'')',
+    format('select public.delete_template(%L)', nobody),
+    'select public.save_pack(''{"name": "X", "kind": "pack", "lessons": 1, "validityDays": 5}'')',
+    format('select public.adjust_credits(%L, 1)', nobody),
+    'select public.save_settings(''{"cancelWindowHours": 1}'')',
+    format('select public.save_lead(%L, ''done'')', nobody),
+    format('select public.delete_lead(%L)', nobody),
+    format('select public.void_payment(%L)', nobody),
+    'select public.add_team_member(''X'', ''x@example.com'', ''trainer'')',
+    format('select public.remove_team_member(%L)', nobody)
+  ] loop
+    assert t.err('marco', q) = 'forbidden', 'Trainer: ' || q;
+    assert t.err('segreteria', q) = 'forbidden', 'Segreteria: ' || q;
+  end loop;
+  foreach q in array array[
+    format('select public.owner_book(%L, %L, true)', sa, sm),
+    'select public.add_member(''Y'', ''y@example.com'', '''')',
+    format('select public.save_member(%L, ''Y'', '''', '''', '''')', ll),
+    format('select public.assign_pass(%L, %L, current_date, '''', 100, ''cash'')', ll, pk),
+    format('select public.add_payment(%L, 100, ''cash'')', ll)
+  ] loop
+    assert t.err('marco', q) = 'forbidden', 'Trainer: ' || q;
+  end loop;
+
+  -- ---- Segreteria: cosa vede
+  insert into public.payments (member_id, amount_cents, method, paid_at, by_name) values (ll, 9500, 'cash', now() - interval '3 days', 'Valerio');
+  r := t.rpc('segreteria', 'select public.snapshot()');
+  assert (r -> 'me' ->> 'role') = 'staff', 'ruolo Segreteria';
+  assert not exists (select 1 from jsonb_array_elements(r -> 'members') m where m ? 'notes'), 'senza le note degli iscritti';
+  assert not exists (select 1 from jsonb_array_elements(r -> 'members') m where m ->> 'role' <> 'client' and m ->> 'email' <> 'segreteria@example.com'), 'né owner né Trainer tra gli iscritti';
+  assert jsonb_array_length(r -> 'members') >= 6 and jsonb_array_length(r -> 'bookings') >= 6 and jsonb_array_length(r -> 'passes') >= 1, 'vede iscritti, prenotazioni, abbonamenti';
+  assert r -> 'leads' = '[]'::jsonb and r -> 'templates' = '[]'::jsonb and r -> 'counts' = 'null'::jsonb, 'niente richieste dal sito né orario';
+  assert r -> 'payments' = '[]'::jsonb, 'gli incassi di giorni passati non li vede';
+
+  -- ---- Segreteria: cosa fa
+  perform t.run('segreteria', format('select public.owner_book(%L, %L, true)', ll, sx));
+  assert exists (select 1 from public.bookings where session_id = sx and member_id = ll and status = 'booked'), 'prenota al banco';
+  perform t.run('segreteria', format('select public.set_attendance(%L, ''attended'')', bs));
+  assert (select status from public.bookings where id = bs) = 'attended', 'segna presenze';
+  perform t.run('segreteria', format('select public.set_attendance(%L, ''booked'')', bs));
+  perform t.run('segreteria', format('select public.cancel_booking(%L)', bs));
+  assert (select status from public.bookings where id = bs) = 'cancelled', 'annulla per un iscritto';
+
+  r := t.rpc('segreteria', $q$select public.add_member('Nuovo Cliente', 'Nuovo.Cliente@example.com', '333 000')$q$);
+  mid := (r ->> 'memberId')::uuid;
+  assert (select role from public.members where id = mid) = 'client' and (select email from public.members where id = mid) = 'nuovo.cliente@example.com', 'iscrive un cliente';
+  perform t.run('segreteria', format('select public.save_member(%L, ''Giulia Corretta'', ''giulia@example.com'', ''333 7'', ''scritto dal banco'')', (select id from public.members where notes = 'Note private')));
+  assert (select name from public.members where notes = 'Note private') = 'Giulia Corretta', 'corregge i dati';
+  assert exists (select 1 from public.members where name = 'Giulia Corretta' and notes = 'Note private'), 'le note restano dell''owner';
+  perform t.run('valerio', format('select public.save_member(%L, ''Giulia Nuova'', ''giulia@example.com'', ''333 2'', ''Note private'')', (select id from public.members where name = 'Giulia Corretta')));
+  assert t.err('segreteria', format('select public.save_member(%L, ''Valerio'', ''valerio@example.com'', '''', '''')', t.uid('valerio'))) = 'forbidden', 'non tocca l''owner';
+  assert t.err('segreteria', format('select public.save_member(%L, ''Marco'', ''marco@example.com'', '''', '''')', (select id from public.members where role = 'trainer' limit 1))) = 'forbidden', 'né il team';
+
+  -- vendita con incasso
+  perform t.run('valerio', 'select public.save_pack(jsonb_build_object(''name'', ''Vecchio'', ''kind'', ''pack'', ''lessons'', 5, ''validityDays'', 30, ''priceCents'', 5000, ''active'', false))');
+  select id into pk_off from public.packs where name = 'Vecchio';
+  assert t.err('segreteria', format('select public.assign_pass(%L, %L, current_date)', mid, pk)) = 'invalid', 'la Segreteria registra sempre l''incasso';
+  assert t.err('segreteria', format('select public.assign_pass(%L, %L, current_date, '''', 11000, ''bitcoin'')', mid, pk)) = 'invalid', 'metodo non ammesso';
+  assert t.err('segreteria', format('select public.assign_pass(%L, %L, current_date, '''', -5, ''cash'')', mid, pk)) = 'invalid', 'importo negativo';
+  assert t.err('segreteria', format('select public.assign_pass(%L, %L, current_date, '''', 5000, ''cash'')', mid, pk_off)) = 'invalid', 'solo pacchetti attivi';
+  assert (select count(*) from public.passes where member_id = mid) = 0 and (select count(*) from public.payments) = 1, 'nulla è stato registrato per metà';
+  perform t.run('segreteria', format('select public.assign_pass(%L, %L, current_date, ''al banco'', 11000, ''cash'')', mid, pk));
+  assert (select count(*) from public.passes where member_id = mid) = 1, 'abbonamento venduto';
+  assert exists (select 1 from public.payments y where y.member_id = mid and y.amount_cents = 11000 and y.method = 'cash' and y.by_name = 'Segreteria' and y.pass_id = (select id from public.passes where member_id = mid)), 'incasso collegato all''abbonamento';
+  perform t.run('segreteria', format('select public.assign_pass(%L, %L, current_date, ''omaggio'', 0, ''other'')', mid, pk));
+  assert exists (select 1 from public.payments y where y.member_id = mid and y.amount_cents = 0), 'l''omaggio si registra a zero';
+  perform t.run('segreteria', format('select public.add_payment(%L, 2500, ''card'', ''Quota iscrizione'')', mid));
+  assert t.err('segreteria', format('select public.add_payment(%L, 0, ''card'')', mid)) = 'invalid', 'un incasso a zero non ha senso';
+  assert t.err('segreteria', format('select public.add_payment(%L, 100, ''assegno'')', mid)) = 'invalid', 'metodo non ammesso';
+  assert t.err('segreteria', format('select public.add_payment(%L, 100, ''cash'')', t.uid('valerio'))) = 'member_not_found', 'non per l''owner';
+  r := t.rpc('segreteria', 'select public.snapshot()');
+  assert jsonb_array_length(r -> 'payments') = 3, 'vede gli incassi di oggi: ' || jsonb_array_length(r -> 'payments');
+
+  -- ---- owner: tutto, e lo storno
+  r := t.rpc('valerio', 'select public.snapshot()');
+  assert jsonb_array_length(r -> 'payments') = 4, 'l''owner vede anche quelli dei giorni scorsi';
+  perform t.run('valerio', format('select public.assign_pass(%L, %L, current_date)', mid, pk));
+  assert (select count(*) from public.payments) = 4, 'senza importo non si registra nessun incasso';
+  select id into pay from public.payments where amount_cents = 2500;
+  perform t.run('valerio', format('select public.void_payment(%L)', pay));
+  assert (select voided_at from public.payments where id = pay) is not null, 'stornato';
+  perform t.run('valerio', format('select public.void_payment(%L, false)', pay));
+  assert (select voided_at from public.payments where id = pay) is null, 'ripristinato';
+  assert t.err('valerio', format('select public.void_payment(%L)', nobody)) = 'payment_not_found', 'incasso inesistente';
+
+  -- ---- togliere dal team
+  assert t.err('valerio', format('select public.remove_team_member(%L)', ll)) = 'member_not_found', 'un iscritto non è del team';
+  select id into marco from public.members where email = 'marco@example.com';
+  r := t.rpc('valerio', format('select public.remove_team_member(%L)', marco));
+  assert (r ->> 'kept') = 'false' and not exists (select 1 from public.members where id = marco), 'senza storia la scheda sparisce';
+  assert t.err('marco', 'select public.snapshot()') = 'auth', 'e l''accesso con essa';
+  perform t.rpc('valerio', $q$select public.add_team_member('Marco Rossi', 'marco@example.com', 'trainer')$q$);
+  assert (select user_id from public.members where email = 'marco@example.com') = (select id from auth.users where email = 'marco@example.com'), 'riaggiunto: si ricollega al suo account';
+  assert (t.rpc('marco', 'select public.snapshot()') -> 'me' ->> 'role') = 'trainer', 'e può entrare';
+  -- chi era già iscritto diventa del team senza perdere nulla, e se viene tolto torna iscritto
+  perform t.rpc('valerio', $q$select public.add_team_member('Anna Rossi', 'anna@example.com', 'trainer')$q$);
+  assert (select role from public.members where id = aa) = 'trainer' and exists (select 1 from public.bookings where member_id = aa), 'una scheda esistente passa al team';
+  r := t.rpc('valerio', format('select public.remove_team_member(%L)', aa));
+  assert (r ->> 'kept') = 'true' and (select role from public.members where id = aa) = 'client', 'con storia torna iscritta';
+  select id into stf from public.members where role = 'staff';
+  r := t.rpc('valerio', format('select public.remove_team_member(%L)', stf));
+  assert (r ->> 'kept') = 'false' and not exists (select 1 from public.members where role = 'staff'), 'tolta la Segreteria';
+  assert (select count(*) from public.payments where by_name = 'Segreteria') = 3 and not exists (select 1 from public.payments where created_by = stf), 'gli incassi restano, col nome di chi li ha registrati';
+  perform t.rpc('valerio', $q$select public.add_team_member('Segreteria', 'segreteria@example.com', 'staff')$q$);
+  assert (t.rpc('segreteria', 'select public.snapshot()') -> 'me' ->> 'role') = 'staff', 'si può rimettere una nuova Segreteria';
+  raise notice 'ok  Segreteria, Trainer e incassi';
+end $$;
+
 -- ------------------------------------------------------------------ collegamento account ↔ iscritto
 do $$
 declare before_n int; gid uuid; uid uuid;

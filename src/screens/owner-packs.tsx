@@ -4,6 +4,8 @@ import { Badge, Btn, Empty, Field, Icon, Sheet, Toggle } from '../ui';
 import { PageHead, PasswordForm, typeNames } from './common';
 import { euro, plural } from '../lib/format';
 import type { Pack, Settings } from '../lib/types';
+import { homePath } from '../lib/access';
+import { TeamSection } from './owner-team';
 
 // ------------------------------------------------------------------ Pacchetti
 export function Packs() {
@@ -17,7 +19,7 @@ export function Packs() {
 
   return (
     <>
-      <PageHead title="Pacchetti" sub="Quello che vendi in studio. Il prezzo è solo un promemoria: i pagamenti si registrano fuori dall’app." right={<Btn size="sm" onClick={() => setEdit('new')}><Icon n="plus" size={16} /> Nuovo pacchetto</Btn>} />
+      <PageHead title="Pacchetti" sub="Quello che vendi in studio. Alla vendita si propone il prezzo di listino, e l’incasso si registra insieme al pacchetto." right={<Btn size="sm" onClick={() => setEdit('new')}><Icon n="plus" size={16} /> Nuovo pacchetto</Btn>} />
       {list.length === 0 ? <Empty icon="ticket" title="Nessun pacchetto" text="Crea il primo pacchetto: poi potrai assegnarlo agli iscritti." /> : (
         <ul className="packs">
           {list.map((p) => (
@@ -117,12 +119,16 @@ export function SettingsScreen() {
       <h2 className="sec">Orario</h2>
       <button className="link-row" onClick={() => s.route.go('/orari/modelli')}><span>Orario settimanale<small className="muted"> · {d.templates.filter((t) => t.active).length} righe attive</small></span><Icon n="right" size={18} /></button>
 
+      <TeamSection />
+
       {s.api.mode === 'demo' && (
         <div className="demo-box">
           <b>Modalità demo</b>
           <p>I dati restano solo su questo dispositivo. Puoi provare tutto senza rischi.</p>
           <div className="row">
-            <Btn kind="ghost" size="sm" onClick={async () => { const r = await s.api.demoLogin!('client'); if (r.ok) { s.setSession(r.me, r.data); s.route.go('/corsi'); } }}>Passa all&#8217;area cliente</Btn>
+            {(['client', 'staff', 'trainer'] as const).map((role) => (
+              <Btn key={role} kind="ghost" size="sm" onClick={async () => { const r = await s.api.demoLogin!(role); if (r.ok) { s.setSession(r.me, r.data); s.route.go(homePath(role)); } }}>Passa all&#8217;area {role === 'client' ? 'cliente' : role === 'staff' ? 'Segreteria' : 'Trainer'}</Btn>
+            ))}
             <Btn kind="quiet" size="sm" onClick={async () => { const ok = await s.ask({ title: 'Ripristinare i dati demo?', text: 'Si perdono le modifiche fatte in prova.', confirm: 'Ripristina' }); if (!ok) return; const r = await s.api.resetDemo!(); if (r.ok) { s.setSession(r.me, r.data); s.toast('Dati demo ripristinati.', 'ok'); } }}>Ripristina i dati</Btn>
           </div>
         </div>

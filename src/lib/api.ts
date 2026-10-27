@@ -1,5 +1,5 @@
 // Contratto tra le schermate e i dati. Due implementazioni: local.ts (demo nel browser) e remote.ts (Supabase).
-import type { Data, Id, LeadStatus, Member, Pack, Result, Role, Session, Settings, Template } from './types';
+import type { Data, Id, LeadStatus, Member, Pack, PayMethod, Result, Role, Session, Settings, Template } from './types';
 
 export interface AuthState { me: Member; data: Data }
 export type R<T extends object = Record<never, never>> = Promise<Result<{ data: Data } & T>>;
@@ -39,7 +39,15 @@ export interface Api {
   deleteTemplate(id: Id): R<{ removed: number }>;
   addMember(i: { name: string; email: string; phone: string }): R<{ member: Member }>;
   saveMember(m: Pick<Member, 'id' | 'name' | 'email' | 'phone' | 'notes'>): R;
-  assignPass(memberId: Id, packId: Id, startsOn: string, note: string): R;
+  /** Vende (o regala) un abbonamento. Con `payment` registra l'incasso; importo 0 = omaggio. La Segreteria deve sempre indicarlo. */
+  assignPass(memberId: Id, packId: Id, startsOn: string, note: string, payment?: { amountCents: number; method: PayMethod }): R;
+  /** Un incasso che non è un abbonamento (quota d'iscrizione, lezione singola, altro). */
+  addPayment(i: { memberId: Id | null; amountCents: number; method: PayMethod; note?: string }): R;
+  /** Solo l'owner: storna un incasso sbagliato (o lo ripristina con voided = false). */
+  voidPayment(id: Id, voided?: boolean): R;
+  /** Solo l'owner: crea la Segreteria (una sola) o un Trainer. Accedono con il codice che arriva a quell'email. */
+  addTeamMember(i: { name: string; email: string; role: 'staff' | 'trainer'; phone?: string }): R<{ member: Member }>;
+  removeTeamMember(id: Id): R<{ kept: boolean }>;
   adjustCredits(passId: Id, delta: number): R;
   savePack(p: Pack): R;
   saveSettings(s: Settings): R;

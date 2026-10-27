@@ -352,3 +352,92 @@ test('richieste dal sito: il modulo scrive senza account, solo l’owner le vede
   assert.equal(ok(await api.deleteLead(mine.id)).data.leads.length, 0);
   await api.signOut();
 });
+
+test('Segreteria, Trainer e incassi: ognuno vede e fa solo quello che gli spetta', async () => {
+  const banco = { name: 'Segreteria', email: 'banco@kuko.test' };
+  const elena = { name: 'Elena Bianchi', email: 'elena@kuko.test' };
+  const today = romeDay(new Date());
+
+  // --- l'owner crea gli account e vende un pacchetto incassando
+  const o = await loginCode(owner.email);
+  assert.deepEqual(o.data.payments, [], 'nessun incasso prima di cominciare');
+  ok(await api.saveMember({ id: martaMemberId, name: marta.name, email: marta.email, phone: marta.phone, notes: 'nota riservata' }));
+  const st = ok(await api.addTeamMember({ name: banco.name, email: banco.email, role: 'staff' }));
+  assert.equal(st.member.role, 'staff');
+  bad(await api.addTeamMember({ name: 'Altra Segreteria', email: 'altra@kuko.test', role: 'staff' }), 'staff_exists');
+  bad(await api.addTeamMember({ name: 'Senza email', email: 'non-una-email', role: 'trainer' }), 'invalid');
+  const tr = ok(await api.addTeamMember({ name: elena.name, email: elena.email, role: 'trainer', phone: '3335550000' }));
+  assert.equal(tr.member.role, 'trainer');
+
+  let d = ok(await api.addSession({ typeId: 'functional', startsAt: inDays(5, '18:00'), capacity: 4, duration: 50, trainer: 'elena', note: 'di Elena' })).data;
+  const hers = d.sessions.find((x) => x.note === 'di Elena')!;
+  d = ok(await api.addSession({ typeId: 'functional', startsAt: inDays(6, '18:00'), capacity: 4, duration: 50, trainer: 'Valerio', note: 'di Valerio' })).data;
+  const his = d.sessions.find((x) => x.note === 'di Valerio')!;
+  ok(await api.ownerBook(martaMemberId, hers.id, false));
+  ok(await api.ownerBook(martaMemberId, his.id, false));
+  const hisBooking = ok(await api.refresh()).data.bookings.find((b) => b.sessionId === his.id && b.memberId === martaMemberId)!;
+
+  d = ok(await api.assignPass(martaMemberId, packId, today, 'banco', { amountCents: 11000, method: 'card' })).data;
+  assert.equal(d.payments.length, 1);
+  assert.deepEqual([d.payments[0].amountCents, d.payments[0].method, d.payments[0].memberId, d.payments[0].byName], [11000, 'card', martaMemberId, owner.name]);
+  d = ok(await api.assignPass(martaMemberId, packId, today, 'già pagato prima')).data;
+  assert.equal(d.payments.length, 1, 'senza importo non si registra nessun incasso');
+  // un incasso di un mese fa, scritto direttamente: la Segreteria non deve vederlo
+  await sql(`insert into public.payments (member_id, amount_cents, method, note, paid_at, by_name) values ('${martaMemberId}', 5000, 'cash', 'vecchio', now() - interval '40 days', 'x');`);
+  assert.equal(ok(await api.refresh()).data.payments.length, 2, 'l’owner vede anche quello vecchio');
+  await api.signOut();
+
+  // --- Segreteria
+  const s = await loginCode(banco.email);
+  assert.equal(s.me.role, 'staff');
+  assert.equal(s.data.leads.length, 0, 'niente richieste dal sito');
+  assert.equal(s.data.templates.length, 0, 'niente modelli di messaggio/orario riservati');
+  assert.ok(s.data.members.some((m) => m.id === martaMemberId), 'vede gli iscritti');
+  assert.ok(s.data.members.filter((m) => m.role === 'client').every((m) => m.notes === ''), 'senza note private');
+  assert.deepEqual(s.data.payments.map((p) => p.note).includes('vecchio'), false, 'della cassa vede solo oggi');
+  assert.equal(s.data.payments.length, 1);
+  bad(await api.savePack({ id: '', name: 'Gratis', kind: 'pack', lessons: 99, validityDays: 999, priceCents: 0, typeIds: [], weeklyLimit: null, active: true }), 'forbidden');
+  bad(await api.cancelSession(hers.id), 'forbidden');
+  bad(await api.adjustCredits(crypto.randomUUID(), 100), 'forbidden');
+  bad(await api.addTeamMember({ name: 'X', email: 'x@kuko.test', role: 'trainer' }), 'forbidden');
+  bad(await api.voidPayment(s.data.payments[0].id), 'forbidden');
+  bad(await api.assignPass(martaMemberId, packId, today, 'senza incasso'), 'invalid'); // la Segreteria registra sempre l’incasso
+  const sold = ok(await api.assignPass(martaMemberId, packId, today, 'dal banco', { amountCents: 9000, method: 'cash' }));
+  assert.equal(sold.data.payments.length, 2);
+  assert.equal(sold.data.payments.find((p) => p.amountCents === 9000)!.byName, banco.name);
+  const free = ok(await api.addPayment({ memberId: null, amountCents: 1550, method: 'transfer', note: 'Quota d’iscrizione' }));
+  assert.equal(free.data.payments.length, 3);
+  bad(await api.addPayment({ memberId: null, amountCents: 0, method: 'cash' }), 'invalid');
+  await api.signOut();
+
+  // --- Trainer
+  const t = await loginCode(elena.email);
+  assert.equal(t.me.role, 'trainer');
+  assert.deepEqual(t.data.sessions.map((x) => x.id), [hers.id], 'vede solo le sue lezioni');
+  assert.equal(t.data.payments.length, 0);
+  assert.equal(t.data.leads.length, 0);
+  assert.ok(t.data.bookings.every((b) => b.sessionId === hers.id), 'solo le prenotazioni delle sue lezioni');
+  assert.ok(t.data.members.every((m) => m.email === '' && m.phone === ''), 'dei partecipanti solo il nome');
+  const bk = t.data.bookings.find((b) => b.memberId === martaMemberId)!;
+  ok(await api.setAttendance(bk.id, 'attended'));
+  assert.equal(ok(await api.refresh()).data.bookings.find((b) => b.id === bk.id)!.status, 'attended', 'segna le presenze delle sue lezioni');
+  bad(await api.setAttendance(hisBooking.id, 'attended'), 'forbidden');
+  bad(await api.book(hers.id), 'no_pass'); // un Trainer non ha abbonamento: non prenota come un cliente
+  bad(await api.addPayment({ memberId: null, amountCents: 100, method: 'cash' }), 'forbidden');
+  bad(await api.cancelSession(hers.id), 'forbidden');
+  await api.signOut();
+
+  // --- l'owner storna un incasso e toglie il Trainer
+  await loginCode(owner.email);
+  const all = ok(await api.refresh()).data;
+  const pay = all.payments.find((p) => p.amountCents === 9000)!;
+  const v = ok(await api.voidPayment(pay.id));
+  assert.ok(v.data.payments.find((p) => p.id === pay.id)!.voidedAt, 'stornato ma ancora in elenco');
+  const r = ok(await api.voidPayment(pay.id, false));
+  assert.equal(r.data.payments.find((p) => p.id === pay.id)!.voidedAt, null);
+  const rm = ok(await api.removeTeamMember(tr.member.id));
+  assert.equal(rm.kept, false, 'senza storia nello studio sparisce');
+  assert.ok(!rm.data.members.some((m) => m.id === tr.member.id));
+  await api.signOut();
+  assert.equal((await api.verifyCode(elena.email, '000000')).ok, false);
+});

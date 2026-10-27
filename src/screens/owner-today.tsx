@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import { useStore } from '../store';
-import { Badge, Btn, Empty, Icon, toneClass } from '../ui';
+import { Badge, Btn, Empty, Icon, Sheet, toneClass } from '../ui';
 import { PageHead } from './common';
 import { Roster, SessionSheet } from './owner-shared';
+import { NewMember, SellPack } from './owner-members';
+import { NewPayment } from './payments';
+import { MemberSearch } from './common';
+import { can } from '../lib/access';
+import { paymentsOn, totals } from '../lib/payments';
 import { expiringPasses, kpiBetween, sessionsOnDay, slotState, typeOf } from '../lib/selectors';
 import { counts } from '../lib/rules';
 import { addDays, mondayOf, romeDay } from '../lib/time';
-import { cap, dayDM, dayLong, plural, timeOf, waLink } from '../lib/format';
+import { cap, dayDM, dayLong, euro, plural, timeOf, waLink } from '../lib/format';
 import { ago, leadLabel, leadsNew } from '../lib/leads';
 import { messagesToSend } from './owner-messages';
 import { useSentLog } from '../sentlog';
@@ -21,6 +26,11 @@ export function Today() {
   const list = sessionsOnDay(d, day);
   const [open, setOpen] = useState<string | null>(() => sessionsOnDay(d, today).find((x) => x.status === 'scheduled' && slotState(d, x, s.now) !== 'past')?.id ?? null);
   const [sheet, setSheet] = useState<string | null>(null);
+  const role = s.me!.role;
+  const owner = role === 'owner';
+  const [quick, setQuick] = useState<'member' | 'sell' | 'pay' | null>(null);
+  const [buyer, setBuyer] = useState<string | null>(null);
+  const cash = totals(paymentsOn(d, today));
 
   const live = list.filter((x) => x.status === 'scheduled');
   const booked = live.reduce((n, x) => n + counts(d, x.id).booked, 0);
@@ -45,6 +55,14 @@ export function Today() {
           <button className="icon-btn" onClick={() => setDay(addDays(day, 1))} aria-label="Giorno successivo"><Icon n="right" size={18} /></button>
         </div>
       } />
+
+      {!owner && (
+        <div className="row quick" role="group" aria-label="Azioni del banco">
+          <Btn size="sm" onClick={() => setQuick('member')}><Icon n="plus" size={16} /> Nuovo iscritto</Btn>
+          <Btn size="sm" onClick={() => { setBuyer(null); setQuick('sell'); }}><Icon n="ticket" size={16} /> Vendi pacchetto</Btn>
+          <Btn size="sm" kind="ghost" onClick={() => setQuick('pay')}><Icon n="cash" size={16} /> Registra incasso</Btn>
+        </div>
+      )}
 
       <dl className="kpis">
         <div><dt>Lezioni</dt><dd>{live.length}</dd></div>
@@ -87,7 +105,7 @@ export function Today() {
                     {isOpen && (
                       <div className="osess-body" id={`r-${x.id}`}>
                         <Roster sessionId={x.id} />
-                        <div className="row"><Btn kind="quiet" size="sm" onClick={() => setSheet(x.id)}><Icon n="edit" size={16} /> Modifica o annulla</Btn></div>
+                        {can(role, 'schedule') && <div className="row"><Btn kind="quiet" size="sm" onClick={() => setSheet(x.id)}><Icon n="edit" size={16} /> Modifica o annulla</Btn></div>}
                       </div>
                     )}
                   </li>
@@ -100,11 +118,17 @@ export function Today() {
         <aside className="follow" aria-label="Da seguire">
           <h2 className="sec first">Da seguire</h2>
           <div className="panel">
+            <h3>{owner ? 'Incassi di oggi' : 'Cassa di oggi'}</h3>
+            <p className="pay-big">{euro(cash.cents)}</p>
+            <p className="muted">{cash.count === 0 ? 'Ancora nessun incasso.' : `${cash.count} ${plural(cash.count, 'incasso', 'incassi')}: ${euro(cash.byMethod.cash)} in contanti, ${euro(cash.byMethod.card)} con carta.`}</p>
+            <div className="row"><Btn kind="ghost" size="sm" onClick={() => s.route.go(owner ? '/incassi' : '/cassa')}>{owner ? 'Apri gli incassi' : 'Apri la cassa'}</Btn></div>
+          </div>
+          {owner && <div className="panel">
             <h3>Messaggi WhatsApp{toSend > 0 && <Badge tone="accent">{toSend}</Badge>}</h3>
             <p className="muted">{toSend === 0 ? 'Nessun messaggio da mandare.' : `${toSend} ${plural(toSend, 'messaggio pronto da mandare', 'messaggi pronti da mandare')}: promemoria, posti liberati, abbonamenti in scadenza.`}</p>
             <div className="row"><Btn kind="ghost" size="sm" onClick={() => s.route.go('/messaggi')}>Apri i messaggi</Btn></div>
-          </div>
-          <div className="panel panel-leads">
+          </div>}
+          {owner && <div className="panel panel-leads">
             <h3>Richieste dal sito{fresh.length > 0 && <Badge tone="accent">{fresh.length} {plural(fresh.length, 'nuova', 'nuove')}</Badge>}</h3>
             {fresh.length === 0 ? <p className="muted">Nessuna richiesta nuova.</p> : (
               <ul>
@@ -117,7 +141,7 @@ export function Today() {
               </ul>
             )}
             <div className="row"><Btn kind="ghost" size="sm" onClick={() => s.route.go('/richieste')}>{fresh.length > 4 ? `Vedi tutte (${fresh.length})` : 'Apri le richieste'}</Btn></div>
-          </div>
+          </div>}
           <div className="panel">
             <h3>Abbonamenti in scadenza</h3>
             {soon.length === 0 ? <p className="muted">Nessuno nei prossimi 7 giorni.</p> : (
@@ -154,6 +178,16 @@ export function Today() {
         </aside>
       </div>
       <SessionSheet key={sheet ?? 'none'} id={sheet} onClose={() => setSheet(null)} />
+      {quick === 'member' && <NewMember onClose={() => setQuick(null)} />}
+      {quick === 'pay' && <NewPayment onClose={() => setQuick(null)} />}
+      {quick === 'sell' && !buyer && (
+        <Sheet open onClose={() => setQuick(null)} title="Vendi pacchetto">
+          <p className="muted">A chi vendi il pacchetto?</p>
+          <MemberSearch value={null} onChange={(m) => setBuyer(m?.id ?? null)} label="Iscritto" />
+          <div className="row"><Btn kind="quiet" size="sm" onClick={() => { setQuick('member'); }}>Non è ancora iscritto</Btn></div>
+        </Sheet>
+      )}
+      {quick === 'sell' && buyer && d.members.find((m) => m.id === buyer) && <SellPack m={d.members.find((m) => m.id === buyer)!} onClose={() => { setQuick(null); setBuyer(null); }} />}
     </>
   );
 }

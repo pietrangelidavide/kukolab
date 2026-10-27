@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import type { Data, Pass } from '../lib/types';
+import type { Data, Id, Member, Pass } from '../lib/types';
 import { dayDM, dayDMY, plural } from '../lib/format';
 import { passState } from '../lib/selectors';
 import { mondayOf, romeDay } from '../lib/time';
-import { Badge, Btn, Field } from '../ui';
+import { Avatar, Badge, Btn, Field, Icon } from '../ui';
 import { useStore } from '../store';
 import { ERR_TEXT } from '../lib/types';
 
@@ -65,5 +65,48 @@ export function PasswordForm() {
       <Field label="Nuova password" hint="Almeno 8 caratteri."><input type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="new-password" minLength={8} required /></Field>
       <div className="row"><Btn type="submit" kind="ghost" size="sm" disabled={busy || pw.length < 8}>Cambia password</Btn></div>
     </form>
+  );
+}
+
+/** Campo "Istruttore" con i suggerimenti: i Trainer del team e i nomi già usati nell'orario. Scrivere lo stesso nome del Trainer lo abbina alle sue lezioni. */
+export function TrainerInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const d = useStore().data!;
+  const names = [...new Set([...d.members.filter((m) => m.role === 'trainer').map((m) => m.name), ...d.templates.map((t) => t.trainer)].map((x) => x.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  return (
+    <>
+      <input value={value} onChange={(e) => onChange(e.target.value)} list="kuko-trainers" autoComplete="off" />
+      <datalist id="kuko-trainers">{names.map((n) => <option key={n} value={n} />)}</datalist>
+    </>
+  );
+}
+
+/** Cerca un iscritto per nome, email o telefono e lo sceglie. `value` è l'id scelto. */
+export function MemberSearch({ value, onChange, label = 'Iscritto', optional }: { value: Id | null; onChange: (m: Member | null) => void; label?: string; optional?: boolean }) {
+  const d = useStore().data!;
+  const [q, setQ] = useState('');
+  const picked = value ? d.members.find((m) => m.id === value) : undefined;
+  const t = q.trim().toLowerCase();
+  const found = t ? d.members.filter((m) => m.role === 'client' && `${m.name} ${m.email} ${m.phone}`.toLowerCase().includes(t)).sort((a, b) => a.name.localeCompare(b.name)).slice(0, 6) : [];
+  if (picked) {
+    return (
+      <div className="field">
+        <span>{label}</span>
+        <div className="picked"><Avatar name={picked.name} size={32} /><b>{picked.name}</b><button type="button" className="icon-btn sm" onClick={() => { onChange(null); setQ(''); }} aria-label={`Cambia ${label.toLowerCase()}`}><Icon n="x" size={16} /></button></div>
+      </div>
+    );
+  }
+  return (
+    <div className="field">
+      <label htmlFor="msearch">{label}{optional ? ' (facoltativo)' : ''}</label>
+      <input id="msearch" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cerca per nome, email o telefono" autoComplete="off" data-autofocus />
+      {t && (
+        <ul className="picker compact">
+          {found.map((m) => (
+            <li key={m.id}><Avatar name={m.name} size={32} /><div className="who"><b>{m.name}</b><small>{m.phone || m.email || '—'}</small></div><Btn size="sm" kind="ghost" onClick={() => { onChange(m); setQ(''); }}>Scegli</Btn></li>
+          ))}
+          {found.length === 0 && <li className="muted">Nessun iscritto trovato.</li>}
+        </ul>
+      )}
+    </div>
   );
 }

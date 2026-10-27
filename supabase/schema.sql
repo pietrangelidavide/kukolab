@@ -39,11 +39,16 @@ create table if not exists public.members (
   name text not null check (length(trim(name)) > 0),
   email text not null default '',
   phone text not null default '',
-  role text not null default 'client' check (role in ('client', 'owner')),
+  role text not null default 'client' check (role in ('client', 'owner', 'staff', 'trainer')),
   notes text not null default '',
   created_at timestamptz not null default now()
 );
 create index if not exists members_email_idx on public.members (lower(email));
+-- Chi ha già il database con i due ruoli di prima: il controllo si rifà con i quattro di adesso (stesso nome, si può rieseguire).
+alter table public.members drop constraint if exists members_role_check;
+alter table public.members add constraint members_role_check check (role in ('client', 'owner', 'staff', 'trainer'));
+-- La Segreteria è un solo account (quello del desk in palestra): il database non ne ammette due.
+create unique index if not exists members_one_staff_idx on public.members ((true)) where role = 'staff';
 
 create table if not exists public.templates (
   id uuid primary key default gen_random_uuid(),
@@ -144,6 +149,23 @@ create table if not exists public.leads (
 );
 create index if not exists leads_created_idx on public.leads (created_at desc);
 
+-- Incassi: ogni pagamento ricevuto dallo studio (vendita di un abbonamento o altro). Uno stornato resta in elenco ma non conta nei totali.
+-- L'importo è in centesimi; 0 vale come omaggio e si registra solo con la vendita di un abbonamento.
+create table if not exists public.payments (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid references public.members (id) on delete set null,
+  pass_id uuid references public.passes (id) on delete set null,
+  amount_cents int not null check (amount_cents >= 0),
+  method text not null check (method in ('cash', 'card', 'transfer', 'other')),
+  note text not null default '' check (length(note) <= 200),
+  paid_at timestamptz not null default clock_timestamp(),
+  created_by uuid references public.members (id) on delete set null,
+  by_name text not null default '',
+  voided_at timestamptz
+);
+create index if not exists payments_paid_idx on public.payments (paid_at desc);
+create index if not exists payments_member_idx on public.payments (member_id);
+
 alter table public.settings enable row level security;
 alter table public.course_types enable row level security;
 alter table public.members enable row level security;
@@ -154,6 +176,7 @@ alter table public.passes enable row level security;
 alter table public.bookings enable row level security;
 alter table public.notices enable row level security;
 alter table public.leads enable row level security;
+alter table public.payments enable row level security;
 revoke all on all tables in schema public from anon, authenticated;
 
 -- =========================================================================================== funzioni interne (schema private)
@@ -177,6 +200,22 @@ begin
   if m.role <> 'owner' then perform private.fail('forbidden'); end if;
   return m;
 end $$;
+
+-- Owner o Segreteria: chi lavora al banco e può prenotare, segnare presenze, iscrivere e vendere abbonamenti.
+create or replace function private.need_desk() returns public.members language plpgsql stable security definer set search_path = public, pg_temp as $$
+declare m public.members;
+begin
+  m := private.need_member();
+  if m.role not in ('owner', 'staff') then perform private.fail('forbidden'); end if;
+  return m;
+end $$;
+
+-- Il Trainer tiene questa lezione? Il nome nel campo Istruttore dell'orario deve essere il suo nome o solo il nome di battesimo
+-- (senza distinguere maiuscole e spazi in più): "Marco Rossi" tiene le lezioni di "Marco Rossi" e di "Marco".
+create or replace function private.teaches(m public.members, s public.sessions) returns boolean language sql immutable as $$
+  select m.role = 'trainer' and btrim(s.trainer) <> ''
+     and lower(btrim(regexp_replace(s.trainer, '\s+', ' ', 'g'))) in (lower(btrim(regexp_replace(m.name, '\s+', ' ', 'g'))), lower(split_part(btrim(m.name), ' ', 1)))
+$$;
 
 create or replace function private.sday(ts timestamptz) returns date language sql stable as $$
   select (ts at time zone 'Europe/Rome')::date
@@ -297,7 +336,7 @@ begin
 end $$;
 
 create or replace function private.do_cancel(bid uuid, actor public.members) returns jsonb language plpgsql as $$
-declare sid uuid; b public.bookings; s public.sessions; st public.settings; was_seat boolean; late boolean; new_status text; refunded boolean; promoted int := 0; as_owner boolean := actor.role = 'owner';
+declare sid uuid; b public.bookings; s public.sessions; st public.settings; was_seat boolean; late boolean; new_status text; refunded boolean; promoted int := 0; as_owner boolean := actor.role in ('owner', 'staff');
 begin
   select session_id into sid from public.bookings where id = bid;
   if not found then perform private.fail('booking_not_found'); end if;
@@ -412,18 +451,30 @@ drop trigger if exists kuko_user_confirmed on auth.users;
 create trigger kuko_user_confirmed after update of email_confirmed_at on auth.users for each row when (old.email_confirmed_at is null and new.email_confirmed_at is not null) execute function private.handle_confirmed();
 
 -- =========================================================================================== funzioni per l'app (schema public)
--- Tutto quello che l'app deve mostrare, in una sola chiamata. Il cliente vede solo le sue cose; l'owner vede tutto.
+-- Tutto quello che l'app deve mostrare, in una sola chiamata. Ognuno vede quello che gli spetta, deciso qui e non dall'app:
+--  * cliente: solo le sue cose;
+--  * Trainer: le lezioni che tiene (vedi private.teaches) e chi è iscritto, solo il nome;
+--  * Segreteria: tutti gli iscritti (senza le loro note) e tutte le lezioni, ma gli incassi solo di oggi e niente richieste dal sito;
+--  * owner: tutto.
 create or replace function public.snapshot() returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
-declare me public.members; st public.settings; own boolean; lo timestamptz; hi timestamptz; res jsonb;
+declare me public.members; st public.settings; own boolean; desk boolean; coach boolean; lo timestamptz; hi timestamptz; res jsonb;
 begin
   me := private.need_member();
   perform private.ensure_sessions();
   select * into st from public.settings where id = 1;
   own := me.role = 'owner';
+  desk := me.role in ('owner', 'staff');
+  coach := me.role = 'trainer';
   if own then perform private.purge_leads(); end if;
   if own then
     lo := now() - interval '95 days';
     hi := now() + make_interval(days => st.booking_horizon_days + 21);
+  elsif desk then
+    lo := now() - interval '2 days';
+    hi := now() + make_interval(days => st.booking_horizon_days + 21);
+  elsif coach then
+    lo := now() - interval '3 days';
+    hi := now() + make_interval(days => st.booking_horizon_days + 3);
   else
     lo := now() - interval '1 day';
     hi := now() + make_interval(days => st.booking_horizon_days + 3);
@@ -431,29 +482,37 @@ begin
 
   with ss as (
     select s.* from public.sessions s
-     where s.starts_at between lo and hi
-        or (not own and exists (select 1 from public.bookings b where b.session_id = s.id and b.member_id = me.id))
+     where (s.starts_at between lo and hi and (not coach or private.teaches(me, s)))
+        or (not desk and not coach and exists (select 1 from public.bookings b where b.session_id = s.id and b.member_id = me.id))
   ), bk as (
     select b.*,
            case when b.status = 'waitlist'
                 then (select count(*) from public.bookings w where w.session_id = b.session_id and w.status = 'waitlist' and (w.created_at, w.id) <= (b.created_at, b.id))
            end as position
       from public.bookings b join ss on ss.id = b.session_id
-     where own or b.member_id = me.id
+     where desk or coach or b.member_id = me.id
   )
   select jsonb_build_object(
     'me', to_jsonb(me) - 'user_id' - case when own then '' else 'notes' end,
     'settings', to_jsonb(st) - 'id' - 'generated_until',
     'types', (select coalesce(jsonb_agg(to_jsonb(t) order by t.name), '[]'::jsonb) from public.course_types t),
-    'members', case when own then (select coalesce(jsonb_agg((to_jsonb(m) - 'user_id') || jsonb_build_object('has_account', m.user_id is not null) order by m.name), '[]'::jsonb) from public.members m) else jsonb_build_array(to_jsonb(me) - 'user_id' - 'notes') end,
+    'members', case
+      when own then (select coalesce(jsonb_agg((to_jsonb(m) - 'user_id') || jsonb_build_object('has_account', m.user_id is not null) order by m.name), '[]'::jsonb) from public.members m)
+      when desk then (select coalesce(jsonb_agg((to_jsonb(m) - 'user_id' - 'notes') || jsonb_build_object('has_account', m.user_id is not null) order by m.name), '[]'::jsonb) from public.members m where m.role = 'client' or m.id = me.id)
+      when coach then (select coalesce(jsonb_agg(jsonb_build_object('id', m.id, 'name', m.name, 'role', m.role, 'created_at', m.created_at) order by m.name), '[]'::jsonb) from public.members m where m.id = me.id or m.id in (select member_id from bk))
+      else jsonb_build_array(to_jsonb(me) - 'user_id' - 'notes') end,
     'templates', case when own then (select coalesce(jsonb_agg(to_jsonb(t) order by t.weekday, t.time), '[]'::jsonb) from public.templates t) else '[]'::jsonb end,
     'sessions', (select coalesce(jsonb_agg(to_jsonb(s) order by s.starts_at, s.id), '[]'::jsonb) from ss s),
     'packs', (select coalesce(jsonb_agg(to_jsonb(p) order by p.price_cents, p.name), '[]'::jsonb) from public.packs p where own or p.active),
-    'passes', (select coalesce(jsonb_agg(to_jsonb(p) order by p.expires_on desc), '[]'::jsonb) from public.passes p where own or p.member_id = me.id),
+    'passes', (select coalesce(jsonb_agg(to_jsonb(p) order by p.expires_on desc), '[]'::jsonb) from public.passes p where desk or p.member_id = me.id),
     'bookings', (select coalesce(jsonb_agg(to_jsonb(b) order by b.created_at, b.id), '[]'::jsonb) from bk b),
     'leads', case when own then (select coalesce(jsonb_agg(to_jsonb(l) order by l.created_at desc), '[]'::jsonb) from (select * from public.leads order by created_at desc limit 300) l) else '[]'::jsonb end,
-    'notices', case when own then '[]'::jsonb else (select coalesce(jsonb_agg(to_jsonb(n) order by n.created_at desc), '[]'::jsonb) from (select * from public.notices where member_id = me.id order by created_at desc limit 50) n) end,
-    'counts', case when own then null else (
+    'notices', case when desk then '[]'::jsonb else (select coalesce(jsonb_agg(to_jsonb(n) order by n.created_at desc), '[]'::jsonb) from (select * from public.notices where member_id = me.id order by created_at desc limit 50) n) end,
+    'payments', case
+      when own then (select coalesce(jsonb_agg(to_jsonb(y) order by y.paid_at desc, y.id), '[]'::jsonb) from (select * from public.payments where paid_at > now() - interval '400 days' order by paid_at desc limit 3000) y)
+      when desk then (select coalesce(jsonb_agg(to_jsonb(y) order by y.paid_at desc, y.id), '[]'::jsonb) from public.payments y where private.sday(y.paid_at) = private.sday(now()))
+      else '[]'::jsonb end,
+    'counts', case when desk then null else (
       select coalesce(jsonb_object_agg(s.id, jsonb_build_object(
                'booked', (select count(*) from public.bookings b where b.session_id = s.id and b.status in ('booked', 'attended', 'no_show')),
                'waitlist', (select count(*) from public.bookings b where b.session_id = s.id and b.status = 'waitlist'))), '{}'::jsonb)
@@ -489,17 +548,22 @@ end $$;
 
 -- ---------- solo owner
 create or replace function public.owner_book(p_member uuid, p_session uuid, p_allow_no_pass boolean) returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
-declare me public.members := private.need_owner();
+declare me public.members := private.need_desk();
 begin
   return jsonb_build_object('status', private.do_book(p_member, p_session, true, coalesce(p_allow_no_pass, false)));
 end $$;
 
 create or replace function public.set_attendance(p_booking uuid, p_status text) returns void language plpgsql security definer set search_path = public, pg_temp as $$
-declare me public.members := private.need_owner(); b public.bookings;
+declare me public.members := private.need_member(); b public.bookings; s public.sessions;
 begin
+  if me.role not in ('owner', 'staff', 'trainer') then perform private.fail('forbidden'); end if;
   if p_status not in ('attended', 'no_show', 'booked') then perform private.fail('invalid'); end if;
   select * into b from public.bookings where id = p_booking;
   if not found then perform private.fail('booking_not_found'); end if;
+  if me.role = 'trainer' then
+    select * into s from public.sessions where id = b.session_id;
+    if not private.teaches(me, s) then perform private.fail('forbidden'); end if;
+  end if;
   if b.status not in ('booked', 'attended', 'no_show') then perform private.fail('not_cancellable'); end if;
   update public.bookings set status = p_status where id = p_booking;
 end $$;
@@ -603,7 +667,7 @@ begin
 end $$;
 
 create or replace function public.add_member(p_name text, p_email text, p_phone text) returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
-declare me public.members := private.need_owner(); mid uuid;
+declare me public.members := private.need_desk(); mid uuid;
 begin
   if length(trim(coalesce(p_name, ''))) = 0 then perform private.fail('invalid'); end if;
   insert into public.members (name, email, phone) values (trim(p_name), lower(trim(coalesce(p_email, ''))), trim(coalesce(p_phone, ''))) returning id into mid;
@@ -611,23 +675,94 @@ begin
 end $$;
 
 create or replace function public.save_member(p_member uuid, p_name text, p_email text, p_phone text, p_notes text) returns void language plpgsql security definer set search_path = public, pg_temp as $$
-declare me public.members := private.need_owner();
+declare me public.members := private.need_desk(); t public.members;
 begin
   if length(trim(coalesce(p_name, ''))) = 0 then perform private.fail('invalid'); end if;
-  update public.members set name = trim(p_name), email = lower(trim(coalesce(p_email, ''))), phone = trim(coalesce(p_phone, '')), notes = coalesce(p_notes, '') where id = p_member;
+  select * into t from public.members where id = p_member;
   if not found then perform private.fail('member_not_found'); end if;
+  -- la Segreteria cambia solo i dati di un iscritto: non quelli del team e non le note, che sono dell'owner
+  if me.role <> 'owner' and t.role <> 'client' then perform private.fail('forbidden'); end if;
+  update public.members set name = trim(p_name), email = lower(trim(coalesce(p_email, ''))), phone = trim(coalesce(p_phone, '')),
+         notes = case when me.role = 'owner' then coalesce(p_notes, '') else notes end
+   where id = p_member;
 end $$;
 
-create or replace function public.assign_pass(p_member uuid, p_pack uuid, p_starts date, p_note text default '') returns void language plpgsql security definer set search_path = public, pg_temp as $$
-declare me public.members := private.need_owner(); k public.packs;
+-- Vende (o regala) un abbonamento. Con p_amount_cents si registra anche l'incasso: 0 è un omaggio, il metodo è cash, card, transfer o other.
+-- Senza importo l'abbonamento si assegna e basta (per inserire chi aveva già pagato prima di usare l'app).
+drop function if exists public.assign_pass(uuid, uuid, date, text);
+create or replace function public.assign_pass(p_member uuid, p_pack uuid, p_starts date, p_note text default '', p_amount_cents int default null, p_method text default null) returns void language plpgsql security definer set search_path = public, pg_temp as $$
+declare me public.members := private.need_desk(); k public.packs; pid uuid;
 begin
-  if not exists (select 1 from public.members where id = p_member) then perform private.fail('member_not_found'); end if;
+  if not exists (select 1 from public.members where id = p_member and (role = 'client' or me.role = 'owner')) then perform private.fail('member_not_found'); end if;
   select * into k from public.packs where id = p_pack;
   if not found then perform private.fail('pack_not_found'); end if;
   if p_starts is null then perform private.fail('invalid'); end if;
+  if p_amount_cents is not null and (p_amount_cents < 0 or p_amount_cents > 1000000 or coalesce(p_method, '') not in ('cash', 'card', 'transfer', 'other')) then perform private.fail('invalid'); end if;
+  -- la Segreteria vende solo pacchetti attivi e deve sempre registrare l'incasso
+  if me.role <> 'owner' and (not k.active or p_amount_cents is null) then perform private.fail('invalid'); end if;
   insert into public.passes (member_id, pack_id, name, kind, credits_total, credits_left, starts_on, expires_on, type_ids, weekly_limit, note)
   values (p_member, k.id, k.name, k.kind, case when k.kind = 'pack' then coalesce(k.lessons, 0) end, case when k.kind = 'pack' then coalesce(k.lessons, 0) end,
-          p_starts, p_starts + (greatest(1, k.validity_days) - 1), k.type_ids, k.weekly_limit, coalesce(p_note, ''));
+          p_starts, p_starts + (greatest(1, k.validity_days) - 1), k.type_ids, k.weekly_limit, left(coalesce(p_note, ''), 500))
+  returning id into pid;
+  if p_amount_cents is not null then
+    insert into public.payments (member_id, pass_id, amount_cents, method, note, created_by, by_name)
+    values (p_member, pid, p_amount_cents, p_method, left('Vendita: ' || k.name, 200), me.id, me.name);
+  end if;
+end $$;
+
+-- Un incasso che non è un abbonamento (quota d'iscrizione, lezione singola, assicurazione, altro). Serve un importo maggiore di zero.
+create or replace function public.add_payment(p_member uuid, p_amount_cents int, p_method text, p_note text default '') returns void language plpgsql security definer set search_path = public, pg_temp as $$
+declare me public.members := private.need_desk();
+begin
+  if p_member is not null and not exists (select 1 from public.members where id = p_member and (role = 'client' or me.role = 'owner')) then perform private.fail('member_not_found'); end if;
+  if p_amount_cents is null or p_amount_cents < 1 or p_amount_cents > 1000000 or coalesce(p_method, '') not in ('cash', 'card', 'transfer', 'other') then perform private.fail('invalid'); end if;
+  insert into public.payments (member_id, amount_cents, method, note, created_by, by_name)
+  values (p_member, p_amount_cents, p_method, left(trim(coalesce(p_note, '')), 200), me.id, me.name);
+end $$;
+
+-- Stornare un incasso sbagliato lo può fare solo l'owner. Resta in elenco, segnato come stornato, e non conta nei totali.
+create or replace function public.void_payment(p_payment uuid, p_void boolean default true) returns void language plpgsql security definer set search_path = public, pg_temp as $$
+declare me public.members := private.need_owner();
+begin
+  update public.payments set voided_at = case when coalesce(p_void, true) then coalesce(voided_at, clock_timestamp()) end where id = p_payment;
+  if not found then perform private.fail('payment_not_found'); end if;
+end $$;
+
+-- ---------- team: Segreteria (un solo account) e Trainer. Solo l'owner li gestisce.
+-- Il team accede come tutti, con il codice ricevuto via email: l'email deve quindi essere vera e leggibile da chi userà l'account
+-- (per la Segreteria meglio una casella dello studio, che resta anche se cambia la persona al banco).
+create or replace function public.add_team_member(p_name text, p_email text, p_role text, p_phone text default '') returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
+declare me public.members := private.need_owner(); em text := lower(trim(coalesce(p_email, ''))); ex public.members; mid uuid; uid uuid;
+begin
+  if p_role not in ('staff', 'trainer') then perform private.fail('invalid'); end if;
+  if length(trim(coalesce(p_name, ''))) = 0 or em !~ '^[^\s@]+@[^\s@]+\.[^\s@]{2,}$' or length(em) > 120 then perform private.fail('invalid'); end if;
+  if p_role = 'staff' and exists (select 1 from public.members where role = 'staff') then perform private.fail('staff_exists'); end if;
+  select * into ex from public.members where lower(email) = em order by created_at limit 1;
+  if found then
+    -- già in archivio come iscritto: diventa del team senza perdere abbonamenti e prenotazioni. Un account del team non si riassegna.
+    if ex.role <> 'client' then perform private.fail('email_in_use'); end if;
+    update public.members set role = p_role, name = trim(p_name), phone = case when trim(coalesce(p_phone, '')) <> '' then trim(p_phone) else phone end where id = ex.id;
+    return jsonb_build_object('memberId', ex.id);
+  end if;
+  -- se quella persona ha già un account (era stata tolta e viene riaggiunta), lo si ricollega: senza, il suo codice non la farebbe entrare
+  select id into uid from auth.users u where lower(u.email) = em and not exists (select 1 from public.members m where m.user_id = u.id) limit 1;
+  insert into public.members (user_id, name, email, phone, role) values (uid, trim(p_name), em, trim(coalesce(p_phone, '')), p_role) returning id into mid;
+  return jsonb_build_object('memberId', mid);
+end $$;
+
+-- Toglie una persona dal team. Se ha già abbonamenti, prenotazioni o incassi a suo nome resta tra gli iscritti; altrimenti la scheda sparisce.
+create or replace function public.remove_team_member(p_member uuid) returns jsonb language plpgsql security definer set search_path = public, pg_temp as $$
+declare me public.members := private.need_owner(); t public.members; kept boolean;
+begin
+  select * into t from public.members where id = p_member;
+  if not found or t.role not in ('staff', 'trainer') then perform private.fail('member_not_found'); end if;
+  kept := exists (select 1 from public.bookings where member_id = t.id) or exists (select 1 from public.passes where member_id = t.id) or exists (select 1 from public.payments where member_id = t.id);
+  if kept then
+    update public.members set role = 'client' where id = t.id;
+  else
+    delete from public.members where id = t.id;
+  end if;
+  return jsonb_build_object('kept', kept);
 end $$;
 
 create or replace function public.adjust_credits(p_pass uuid, p_delta int) returns void language plpgsql security definer set search_path = public, pg_temp as $$

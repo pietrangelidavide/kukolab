@@ -1,9 +1,13 @@
 // Modalità demo: tutto nel browser (localStorage), con le stesse regole di rules.ts.
 import type { Api, AuthState, R } from './api';
-import type { Data, Id, LeadStatus, Member, Pack, Result, Role, Settings, Template } from './types';
-import { demoData, DEMO_CLIENT_ID, DEMO_OWNER_ID } from './seed';
+import type { Data, Id, LeadStatus, Member, Pack, PayMethod, Result, Role, Settings, Template } from './types';
+import { demoData, DEMO_CLIENT_ID, DEMO_OWNER_ID, DEMO_STAFF_ID, DEMO_TRAINER_ID, demoTeam } from './seed';
 import * as rules from './rules';
 import * as leads from './leads';
+import * as payments from './payments';
+import * as team from './team';
+import { can, teaches } from './access';
+import type { Cap } from './access';
 import type { LeadInput } from './leads';
 import { addDays, romeDay } from './time';
 import { newId } from './ids';
@@ -41,7 +45,7 @@ export class LocalApi implements Api {
       const raw = store.get(KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Data;
-        if (parsed && Array.isArray(parsed.sessions) && Array.isArray(parsed.members) && parsed.settings) { parsed.leads ??= []; this.d = parsed; }
+        if (parsed && Array.isArray(parsed.sessions) && Array.isArray(parsed.members) && parsed.settings) { parsed.leads ??= []; parsed.payments ??= []; this.d = parsed; }
       }
     } catch { /* dati rovinati: si riparte dalla demo */ }
     this.meId = store.get(ME);
@@ -67,7 +71,9 @@ export class LocalApi implements Api {
   }
 
   async demoLogin(role: Role): Promise<Result<AuthState>> {
-    this.meId = role === 'owner' ? DEMO_OWNER_ID : DEMO_CLIENT_ID;
+    // i dati demo salvati prima dell'arrivo di Segreteria e Trainer non li hanno: si aggiungono qui
+    if (role === 'staff' || role === 'trainer') this.d = demoTeam(this.d, this.now());
+    this.meId = role === 'owner' ? DEMO_OWNER_ID : role === 'staff' ? DEMO_STAFF_ID : role === 'trainer' ? DEMO_TRAINER_ID : DEMO_CLIENT_ID;
     this.persist();
     const s = this.state();
     return s ? { ok: true, ...s } : { ok: false, error: 'auth' };
@@ -135,87 +141,122 @@ export class LocalApi implements Api {
     return this.commit({ ok: true, data: d });
   }
 
-  private ownerOnly(): boolean { return this.me()?.role === 'owner'; }
+  /** In demo i permessi li applica questo file; con l'archivio online li applica il database (stessa tabella, vedi access.ts). */
+  private allowed(cap: Cap): boolean { const m = this.me(); return !!m && can(m.role, cap); }
 
   async ownerBook(memberId: Id, sessionId: Id, allowNoPass: boolean): R<{ status: 'booked' | 'waitlist' }> {
-    const a = this.actor(); if (!a || !this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    const a = this.actor(); if (!a || !this.allowed('book')) return { ok: false, error: 'forbidden' };
     const r = rules.book(this.d, { memberId, sessionId, now: this.now(), actor: a, allowNoPass });
     if (!r.ok) return r;
     return this.commit({ ok: true, data: r.data, status: r.booking.status as 'booked' | 'waitlist' });
   }
 
   async ownerCancel(bookingId: Id): R<{ status: 'cancelled' | 'late_cancelled'; refunded: boolean; promoted: number }> {
-    const a = this.actor(); if (!a || !this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    const a = this.actor(); if (!a || !this.allowed('book')) return { ok: false, error: 'forbidden' };
     const r = rules.cancelBooking(this.d, { bookingId, now: this.now(), actor: a });
     return r.ok ? this.commit(r) : r;
   }
 
   async setAttendance(bookingId: Id, status: 'attended' | 'no_show' | 'booked'): R {
-    if (!this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    const me = this.me();
+    if (!me || !this.allowed('attendance')) return { ok: false, error: 'forbidden' };
+    if (me.role === 'trainer') {
+      // il Trainer segna le presenze solo alle lezioni che tiene
+      const s = this.d.sessions.find((x) => x.id === this.d.bookings.find((b) => b.id === bookingId)?.sessionId);
+      if (s && !teaches(me, s)) return { ok: false, error: 'forbidden' };
+    }
     const r = rules.markAttendance(this.d, { bookingId, status });
     return r.ok ? this.commit(r) : r;
   }
 
   async cancelSession(sessionId: Id): R<{ affected: number }> {
-    if (!this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    if (!this.allowed('schedule')) return { ok: false, error: 'forbidden' };
     const r = rules.cancelSession(this.d, { sessionId, now: this.now() });
     return r.ok ? this.commit(r) : r;
   }
 
   async editSession(sessionId: Id, patch: Parameters<Api['editSession']>[1]): R<{ promoted: number }> {
-    if (!this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    if (!this.allowed('schedule')) return { ok: false, error: 'forbidden' };
     const r = rules.editSession(this.d, { sessionId, now: this.now(), patch });
     return r.ok ? this.commit(r) : r;
   }
 
   async addSession(i: Parameters<Api['addSession']>[0]): R {
-    if (!this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    if (!this.allowed('schedule')) return { ok: false, error: 'forbidden' };
     const r = rules.addSession(this.d, i);
     return r.ok ? this.commit(r) : r;
   }
 
   async saveTemplate(t: Template): R<{ created: number; removed: number }> {
-    if (!this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    if (!this.allowed('schedule')) return { ok: false, error: 'forbidden' };
     const r = rules.upsertTemplate(this.d, { template: t.id ? t : { ...t, id: newId('t') }, now: this.now(), until: this.until() });
     return r.ok ? this.commit(r) : r;
   }
 
   async deleteTemplate(id: Id): R<{ removed: number }> {
-    if (!this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    if (!this.allowed('schedule')) return { ok: false, error: 'forbidden' };
     const r = rules.removeTemplate(this.d, { templateId: id, now: this.now() });
     return r.ok ? this.commit(r) : r;
   }
 
   async addMember(i: { name: string; email: string; phone: string }): R<{ member: Member }> {
-    if (!this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    if (!this.allowed('members')) return { ok: false, error: 'forbidden' };
     const r = rules.newMember(this.d, { ...i, now: this.now() });
     return r.ok ? this.commit(r) : r;
   }
 
   async saveMember(m: Pick<Member, 'id' | 'name' | 'email' | 'phone' | 'notes'>): R {
-    if (!this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    if (!this.allowed('members')) return { ok: false, error: 'forbidden' };
     if (!m.name.trim()) return { ok: false, error: 'invalid' };
     const d = structuredClone(this.d);
     const x = d.members.find((y) => y.id === m.id);
     if (!x) return { ok: false, error: 'member_not_found' };
-    Object.assign(x, { name: m.name.trim(), email: m.email.trim().toLowerCase(), phone: m.phone.trim(), notes: m.notes });
+    const isOwner = this.allowed('notes');
+    if (!isOwner && x.role !== 'client') return { ok: false, error: 'forbidden' }; // la Segreteria non tocca il team
+    Object.assign(x, { name: m.name.trim(), email: m.email.trim().toLowerCase(), phone: m.phone.trim(), ...(isOwner ? { notes: m.notes } : {}) });
     return this.commit({ ok: true, data: d });
   }
 
-  async assignPass(memberId: Id, packId: Id, startsOn: string, note: string): R {
-    if (!this.ownerOnly()) return { ok: false, error: 'forbidden' };
-    const r = rules.assignPass(this.d, { memberId, packId, startsOn, note, now: this.now() });
+  async assignPass(memberId: Id, packId: Id, startsOn: string, note: string, payment?: { amountCents: number; method: PayMethod }): R {
+    const me = this.me(); const a = this.actor();
+    if (!me || !a || !this.allowed('sell')) return { ok: false, error: 'forbidden' };
+    const r = rules.assignPass(this.d, { memberId, packId, startsOn, note, now: this.now(), actor: a, ...(payment ? { payment: { ...payment, by: me } } : {}) });
+    return r.ok ? this.commit(r) : r;
+  }
+
+  async addPayment(i: { memberId: Id | null; amountCents: number; method: PayMethod; note?: string }): R {
+    const me = this.me();
+    if (!me || !this.allowed('sell')) return { ok: false, error: 'forbidden' };
+    const r = payments.addPayment(this.d, { ...i, now: this.now(), by: me });
+    return r.ok ? this.commit(r) : r;
+  }
+
+  async voidPayment(id: Id, voided = true): R {
+    if (!this.allowed('void')) return { ok: false, error: 'forbidden' };
+    const r = payments.voidPayment(this.d, { paymentId: id, now: this.now(), void: voided });
+    return r.ok ? this.commit(r) : r;
+  }
+
+  async addTeamMember(i: { name: string; email: string; role: 'staff' | 'trainer'; phone?: string }): R<{ member: Member }> {
+    if (!this.allowed('team')) return { ok: false, error: 'forbidden' };
+    const r = team.addTeamMember(this.d, { ...i, now: this.now() });
+    return r.ok ? this.commit(r) : r;
+  }
+
+  async removeTeamMember(id: Id): R<{ kept: boolean }> {
+    if (!this.allowed('team')) return { ok: false, error: 'forbidden' };
+    const r = team.removeTeamMember(this.d, { memberId: id });
     return r.ok ? this.commit(r) : r;
   }
 
   async adjustCredits(passId: Id, delta: number): R {
-    if (!this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    if (!this.allowed('credits')) return { ok: false, error: 'forbidden' };
     const r = rules.adjustCredits(this.d, { passId, delta });
     return r.ok ? this.commit(r) : r;
   }
 
   async savePack(p: Pack): R {
-    if (!this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    if (!this.allowed('packs')) return { ok: false, error: 'forbidden' };
     if (!p.name.trim() || p.validityDays < 1 || (p.kind === 'pack' && !(p.lessons && p.lessons > 0))) return { ok: false, error: 'invalid' };
     const d = structuredClone(this.d);
     const pk = { ...p, name: p.name.trim(), id: p.id || newId('pk') };
@@ -225,7 +266,7 @@ export class LocalApi implements Api {
   }
 
   async saveSettings(s: Settings): R {
-    if (!this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    if (!this.allowed('settings')) return { ok: false, error: 'forbidden' };
     if (s.cancelWindowHours < 0 || s.bookingHorizonDays < 1 || s.bookingCloseMinutes < 0) return { ok: false, error: 'invalid' };
     const d = structuredClone(this.d);
     d.settings = { ...s };
@@ -233,13 +274,13 @@ export class LocalApi implements Api {
   }
 
   async saveLead(i: { id: Id; status?: LeadStatus; ownerNote?: string }): R {
-    if (!this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    if (!this.allowed('leads')) return { ok: false, error: 'forbidden' };
     const r = leads.updateLead(this.d, { ...i, now: this.now() });
     return r.ok ? this.commit(r) : r;
   }
 
   async deleteLead(id: Id): R {
-    if (!this.ownerOnly()) return { ok: false, error: 'forbidden' };
+    if (!this.allowed('leads')) return { ok: false, error: 'forbidden' };
     const r = leads.removeLead(this.d, { id });
     return r.ok ? this.commit(r) : r;
   }

@@ -1,6 +1,7 @@
 // Modello dati di KUKO LAB. Gli orari sono sempre ISO UTC; "giorno" è una data locale di Roma (YYYY-MM-DD).
 export type Id = string;
-export type Role = 'client' | 'owner';
+/** client = iscritto; owner = titolare; staff = Segreteria (un solo account, quello del banco); trainer = maestro di un corso. */
+export type Role = 'client' | 'owner' | 'staff' | 'trainer';
 export type Tone = 'orange' | 'rust' | 'white';
 
 export interface CourseType {
@@ -130,6 +131,22 @@ export interface Lead {
   updatedAt: string | null;
 }
 
+export type PayMethod = 'cash' | 'card' | 'transfer' | 'other';
+
+/** Un incasso. Importo in centesimi; 0 = omaggio. Uno stornato resta in elenco ma non conta nei totali. */
+export interface Payment {
+  id: Id;
+  memberId: Id | null;
+  passId: Id | null;
+  amountCents: number;
+  method: PayMethod;
+  note: string;
+  paidAt: string;
+  /** Nome di chi l'ha registrato (resta anche se quella persona esce dal team). */
+  byName: string;
+  voidedAt: string | null;
+}
+
 export interface Data {
   settings: Settings;
   types: CourseType[];
@@ -142,6 +159,8 @@ export interface Data {
   notices: Notice[];
   /** Richieste di prova gratuita e consulenza (le vede solo l'owner). */
   leads: Lead[];
+  /** Incassi: l'owner li vede tutti, la Segreteria solo quelli di oggi, gli altri nessuno. */
+  payments: Payment[];
   /** Conteggi per lezione quando il cliente non vede le prenotazioni degli altri (modalità remota). */
   counts?: Record<Id, { booked: number; waitlist: number }>;
 }
@@ -153,6 +172,9 @@ export type Err =
   | 'pass_not_found'
   | 'pack_not_found'
   | 'lead_not_found'
+  | 'payment_not_found'
+  | 'staff_exists'
+  | 'email_in_use'
   | 'busy'
   | 'forbidden'
   | 'session_cancelled'
@@ -178,6 +200,9 @@ export const ERR_TEXT: Record<Err, string> = {
   pass_not_found: 'Abbonamento non trovato.',
   pack_not_found: 'Pacchetto non trovato.',
   lead_not_found: 'Richiesta non trovata.',
+  payment_not_found: 'Incasso non trovato.',
+  staff_exists: 'La Segreteria c’è già: toglila prima di aggiungerne un’altra.',
+  email_in_use: 'Questa email è già usata da un altro account del team.',
   busy: 'Troppe richieste in poco tempo: riprova tra qualche minuto.',
   forbidden: 'Non puoi farlo.',
   session_cancelled: 'Questa lezione è stata annullata.',

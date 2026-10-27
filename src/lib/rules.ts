@@ -1,10 +1,12 @@
 // Regole di prenotazione di KUKO LAB. Funzioni pure: prendono i dati, restituiscono i dati nuovi (o un errore).
 // La stessa logica è nelle funzioni SQL di supabase/schema.sql: se cambia una, cambia anche l'altra.
-import type { Booking, Data, Err, Id, Member, Pack, Pass, Result, Session, Template } from './types';
+import type { Booking, Data, Err, Id, Member, Pack, PayMethod, Pass, Payment, Result, Role, Session, Template } from './types';
+import { isDesk } from './access';
+import { MAX_CENTS, isMethod } from './payments';
 import { newId } from './ids';
 import { HOUR, MIN, addDays, eachDay, endOf, mondayOf, romeDay, romeWall, startOf, whenIt } from './time';
 
-export interface Actor { role: 'client' | 'owner'; memberId: Id }
+export interface Actor { role: Role; memberId: Id }
 
 const SEAT = new Set(['booked', 'attended', 'no_show']);
 const WEEK_CHARGED = new Set(['booked', 'attended', 'no_show', 'late_cancelled']);
@@ -102,12 +104,12 @@ export function book(
   o: { memberId: Id; sessionId: Id; now: Date; actor: Actor; allowNoPass?: boolean },
 ): Result<{ data: Data; booking: Booking }> {
   const { memberId, sessionId, now, actor } = o;
-  if (actor.role === 'client' && actor.memberId !== memberId) return fail('forbidden');
+  if (!isDesk(actor.role) && actor.memberId !== memberId) return fail('forbidden');
   if (!d0.members.some((m) => m.id === memberId)) return fail('member_not_found');
   const s0 = d0.sessions.find((x) => x.id === sessionId);
   if (!s0) return fail('session_not_found');
   if (s0.status === 'cancelled') return fail('session_cancelled');
-  const owner = actor.role === 'owner';
+  const owner = isDesk(actor.role); // owner e Segreteria prenotano anche a prenotazioni chiuse
   const start = startOf(s0.startsAt);
   if (!owner) {
     if (now.getTime() >= start - d0.settings.bookingCloseMinutes * MIN) return fail('booking_closed');
@@ -165,11 +167,11 @@ export function cancelBooking(
   const { bookingId, now, actor } = o;
   const b0 = d0.bookings.find((x) => x.id === bookingId);
   if (!b0) return fail('booking_not_found');
-  if (actor.role === 'client' && b0.memberId !== actor.memberId) return fail('forbidden');
+  if (!isDesk(actor.role) && b0.memberId !== actor.memberId) return fail('forbidden');
   if (b0.status !== 'booked' && b0.status !== 'waitlist') return fail('not_cancellable');
   const s0 = d0.sessions.find((x) => x.id === b0.sessionId);
   if (!s0) return fail('session_not_found');
-  const owner = actor.role === 'owner';
+  const owner = isDesk(actor.role);
   if (!owner && now.getTime() >= startOf(s0.startsAt)) return fail('session_started');
 
   const d = structuredClone(d0);
@@ -251,23 +253,35 @@ export function addSession(
   return { ok: true, data: d, session: s };
 }
 
-/** Vende un pacchetto a un iscritto. */
+/**
+ * Vende un pacchetto a un iscritto. Con `payment` registra anche l'incasso (importo 0 = omaggio).
+ * La Segreteria vende solo pacchetti attivi e registra sempre l'incasso; l'owner può anche assegnare senza incasso (chi aveva già pagato).
+ */
 export function assignPass(
   d0: Data,
-  o: { memberId: Id; packId: Id; startsOn: string; now: Date; note?: string },
-): Result<{ data: Data; pass: Pass }> {
-  if (!d0.members.some((m) => m.id === o.memberId)) return fail('member_not_found');
+  o: { memberId: Id; packId: Id; startsOn: string; now: Date; note?: string; actor?: Actor; payment?: { amountCents: number; method: PayMethod; by: { name: string } } },
+): Result<{ data: Data; pass: Pass; payment?: Payment }> {
+  const buyer = d0.members.find((m) => m.id === o.memberId);
+  if (!buyer || (buyer.role !== 'client' && o.actor?.role !== 'owner')) return fail('member_not_found');
   const pack: Pack | undefined = d0.packs.find((p) => p.id === o.packId);
   if (!pack) return fail('pack_not_found');
+  const pay = o.payment;
+  if (pay && (!Number.isInteger(pay.amountCents) || pay.amountCents < 0 || pay.amountCents > MAX_CENTS || !isMethod(pay.method))) return fail('invalid');
+  if (o.actor && o.actor.role !== 'owner' && (!pack.active || !pay)) return fail('invalid');
   const d = structuredClone(d0);
   const pass: Pass = {
     id: newId('p'), memberId: o.memberId, packId: pack.id, name: pack.name, kind: pack.kind,
     creditsTotal: pack.kind === 'pack' ? pack.lessons ?? 0 : null, creditsLeft: pack.kind === 'pack' ? pack.lessons ?? 0 : null,
     startsOn: o.startsOn, expiresOn: addDays(o.startsOn, Math.max(1, pack.validityDays) - 1),
-    typeIds: [...pack.typeIds], weeklyLimit: pack.weeklyLimit, note: o.note ?? '', createdAt: o.now.toISOString(),
+    typeIds: [...pack.typeIds], weeklyLimit: pack.weeklyLimit, note: (o.note ?? '').slice(0, 500), createdAt: o.now.toISOString(),
   };
   d.passes.push(pass);
-  return { ok: true, data: d, pass };
+  let payment: Payment | undefined;
+  if (pay) {
+    payment = { id: newId('y'), memberId: o.memberId, passId: pass.id, amountCents: pay.amountCents, method: pay.method, note: `Vendita: ${pack.name}`.slice(0, 200), paidAt: o.now.toISOString(), byName: pay.by.name, voidedAt: null };
+    d.payments.push(payment);
+  }
+  return { ok: true, data: d, pass, ...(payment ? { payment } : {}) };
 }
 
 /** Correzione manuale dei crediti di un pacchetto lezioni. */

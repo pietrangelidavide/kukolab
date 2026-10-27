@@ -2,13 +2,15 @@
 // Nomi e contatti sono inventati. Gli orari vengono da src/data/schedule.json.
 import schedule from '../data/schedule.json';
 import packsFile from '../data/packs.json';
-import type { Booking, Data, Lead, Member, Pack, Pass, Template, Tone } from './types';
+import type { Booking, Data, Lead, Member, Pack, PayMethod, Payment, Pass, Template, Tone } from './types';
 import { book, cancelBooking, generateSessions, pickPass } from './rules';
 import { newId } from './ids';
 import { HOUR, addDays, romeDay } from './time';
 
 export const DEMO_OWNER_ID = 'm_owner';
 export const DEMO_CLIENT_ID = 'm_martina';
+export const DEMO_STAFF_ID = 'm_segreteria';
+export const DEMO_TRAINER_ID = 'm_sofia';
 
 function rng(seed: number) {
   let a = seed >>> 0;
@@ -42,7 +44,7 @@ export function defaultPacks(): Pack[] {
 }
 
 export function emptyData(): Data {
-  return { settings: defaultSettings(), types: defaultTypes(), members: [], templates: defaultTemplates(), sessions: [], packs: defaultPacks(), passes: [], bookings: [], notices: [], leads: [] };
+  return { settings: defaultSettings(), types: defaultTypes(), members: [], templates: defaultTemplates(), sessions: [], packs: defaultPacks(), passes: [], bookings: [], notices: [], leads: [], payments: [] };
 }
 
 const PEOPLE: [string, string, string][] = [
@@ -196,7 +198,47 @@ export function demoData(now: Date): Data {
   ];
 
   d.notices.push({ id: newId('n'), memberId: DEMO_CLIENT_ID, kind: 'info', text: 'Benvenuta in KUKO LAB! Qui trovi i corsi, i posti liberi e il tuo abbonamento.', createdAt: iso(1), read: true });
+  return demoTeam(d, now);
+}
+
+/**
+ * Aggiunge ai dati demo la Segreteria, un Trainer (Sofia, che tiene il Pilates) e gli incassi degli abbonamenti già venduti.
+ * Si può chiamare più volte: non duplica nulla. Serve anche ai dati demo salvati prima che esistessero questi ruoli.
+ */
+export function demoTeam(d0: Data, now: Date): Data {
+  const d = structuredClone(d0);
+  d.payments ??= [];
+  const at = new Date(now.getTime() - 100 * 24 * HOUR).toISOString();
+  if (!d.members.some((m) => m.id === DEMO_STAFF_ID)) d.members.push({ id: DEMO_STAFF_ID, name: 'Segreteria', email: 'segreteria@kukolab.demo', phone: '', role: 'staff', notes: '', createdAt: at });
+  if (!d.members.some((m) => m.id === DEMO_TRAINER_ID)) d.members.push({ id: DEMO_TRAINER_ID, name: 'Sofia Greco', email: 'sofia@kukolab.demo', phone: '', role: 'trainer', notes: '', createdAt: at });
+  // Sofia tiene le lezioni di Pilates che prima erano di "Team KUKO"
+  for (const t of d.templates) if (t.typeId === 'pilates' && t.trainer === 'Team KUKO') t.trainer = 'Sofia';
+  for (const s of d.sessions) if (s.typeId === 'pilates' && s.trainer === 'Team KUKO') s.trainer = 'Sofia';
+  if (d.payments.length === 0) d.payments = demoPayments(d, now);
   return d;
+}
+
+function demoPayments(d: Data, now: Date): Payment[] {
+  const rand = rng(77123);
+  const out: Payment[] = [];
+  const price = new Map(d.packs.map((p) => [p.id, p.priceCents]));
+  for (const p of d.passes) {
+    if (d.members.find((m) => m.id === p.memberId)?.role !== 'client') continue;
+    const r = rand();
+    const method: PayMethod = r < 0.35 ? 'cash' : r < 0.8 ? 'card' : 'transfer';
+    const free = p.memberId === 'm_chiara' && p.packId === 'pk_pt5'; // un omaggio
+    out.push({
+      id: newId('y'), memberId: p.memberId, passId: p.id, amountCents: free ? 0 : p.packId ? price.get(p.packId) ?? 0 : 12900, method: free ? 'other' : method,
+      note: `Vendita: ${p.name}`, paidAt: p.createdAt, byName: rand() < 0.8 ? 'Segreteria' : 'Valerio Cuscianna', voidedAt: null,
+    });
+  }
+  const mins = (n: number) => new Date(now.getTime() - n * 60000).toISOString();
+  out.push(
+    { id: newId('y'), memberId: 'm_stefano', passId: null, amountCents: 1500, method: 'cash', note: 'Lezione singola', paidAt: mins(35), byName: 'Segreteria', voidedAt: null },
+    { id: newId('y'), memberId: 'm_noemi', passId: null, amountCents: 2500, method: 'card', note: 'Quota iscrizione', paidAt: mins(12), byName: 'Segreteria', voidedAt: null },
+    { id: newId('y'), memberId: 'm_pietro', passId: null, amountCents: 1500, method: 'cash', note: 'Registrato due volte', paidAt: new Date(now.getTime() - 3 * 24 * HOUR).toISOString(), byName: 'Segreteria', voidedAt: new Date(now.getTime() - 3 * 24 * HOUR + 600000).toISOString() },
+  );
+  return out;
 }
 
 export type { Booking };

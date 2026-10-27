@@ -4,6 +4,8 @@ import { useStore } from '../store';
 import { Btn, Field } from '../ui';
 import { logoSrc } from '../App';
 import { ERR_TEXT } from '../lib/types';
+import type { Role } from '../lib/types';
+import { homePath } from '../lib/access';
 import { siteHref } from '../config';
 
 /** Accesso. Con l'archivio online si entra solo con un codice mandato per email, e solo se lo studio ha già iscritto quell'email.
@@ -55,7 +57,7 @@ function CodeAccess() {
     setBusy(true); setErr(null);
     try {
       const r = await s.api.verifyCode!(email, code);
-      if (r.ok) { s.setSession(r.me, r.data); s.route.go(r.me.role === 'owner' ? '/oggi' : '/corsi'); } else setErr(r.message ?? ERR_TEXT[r.error]);
+      if (r.ok) { s.setSession(r.me, r.data); s.route.go(homePath(r.me.role)); } else setErr(r.message ?? ERR_TEXT[r.error]);
     } catch { setErr(ERR_TEXT.network); }
     setBusy(false);
   };
@@ -109,9 +111,9 @@ function DemoAccess() {
     setBusy(false);
   };
 
-  const quick = async (role: 'client' | 'owner') => {
+  const quick = async (role: Role) => {
     const r = await s.api.demoLogin!(role);
-    if (r.ok) { s.setSession(r.me, r.data); s.route.go(role === 'owner' ? '/oggi' : '/corsi'); }
+    if (r.ok) { s.setSession(r.me, r.data); s.route.go(homePath(role)); }
   };
 
   return (
@@ -122,6 +124,8 @@ function DemoAccess() {
         <div className="row">
           <Btn size="sm" onClick={() => quick('client')}>Entra come cliente</Btn>
           <Btn size="sm" kind="ghost" onClick={() => quick('owner')}>Entra come owner</Btn>
+          <Btn size="sm" kind="ghost" onClick={() => quick('staff')}>Entra come Segreteria</Btn>
+          <Btn size="sm" kind="ghost" onClick={() => quick('trainer')}>Entra come Trainer</Btn>
         </div>
       </div>
       <p className="or"><span>oppure crea un profilo di prova</span></p>

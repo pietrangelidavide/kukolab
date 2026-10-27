@@ -3,6 +3,8 @@ import { useStore } from '../store';
 import { Btn, Empty, Field, Icon, Sheet, Toggle, toneClass } from '../ui';
 import { PageHead } from './common';
 import { SessionSheet } from './owner-shared';
+import { TrainerInput } from './common';
+import { can } from '../lib/access';
 import { sessionsOnDay, typeOf } from '../lib/selectors';
 import { counts } from '../lib/rules';
 import { addDays, eachDay, mondayOf, romeDay, romeWall } from '../lib/time';
@@ -23,22 +25,23 @@ export function Calendar() {
   const days = [...eachDay(monday, addDays(monday, 6))];
   const label = `${dayNum(monday)} ${monthName(monday) === monthName(addDays(monday, 6)) ? '' : monthName(monday) + ' '}– ${dayNum(addDays(monday, 6))} ${monthName(addDays(monday, 6))}`;
   const any = days.some((x) => sessionsOnDay(d, x).length > 0);
+  const edit = can(s.me!.role, 'schedule');
 
   return (
     <>
-      <PageHead title="Orari" sub="Le lezioni della settimana. Tocca una lezione per vedere chi viene." right={
+      <PageHead title="Orari" sub="Le lezioni della settimana. Tocca una lezione per vedere chi viene." right={edit ? (
         <div className="row">
           <Btn kind="ghost" size="sm" onClick={() => s.route.go('/orari/modelli')}><Icon n="repeat" size={16} /> Orario settimanale</Btn>
           <Btn size="sm" onClick={() => setAdding(true)}><Icon n="plus" size={16} /> Nuova lezione</Btn>
         </div>
-      } />
+      ) : undefined} />
       <div className="weeknav" role="group" aria-label="Cambia settimana">
         <button className="icon-btn" onClick={() => setMonday(addDays(monday, -7))} aria-label="Settimana precedente"><Icon n="left" size={18} /></button>
         <b aria-live="polite">{label}</b>
         <button className="icon-btn" onClick={() => setMonday(addDays(monday, 7))} aria-label="Settimana successiva"><Icon n="right" size={18} /></button>
         <Btn kind="quiet" size="sm" disabled={monday === mondayOf(today)} onClick={() => setMonday(mondayOf(today))}>Questa settimana</Btn>
       </div>
-      {!any && <Empty title="Settimana senza lezioni" text="Aggiungi una lezione singola oppure imposta l’orario settimanale: le lezioni si creano da sole." action={<Btn size="sm" onClick={() => s.route.go('/orari/modelli')}>Orario settimanale</Btn>} />}
+      {!any && <Empty title="Settimana senza lezioni" text={edit ? 'Aggiungi una lezione singola oppure imposta l’orario settimanale: le lezioni si creano da sole.' : 'In questa settimana non ci sono lezioni.'} action={edit ? <Btn size="sm" onClick={() => s.route.go('/orari/modelli')}>Orario settimanale</Btn> : undefined} />}
       {any && (
         <div className="week">
           {days.map((x) => {
@@ -70,7 +73,7 @@ export function Calendar() {
         </div>
       )}
       <SessionSheet key={sheet ?? 'none'} id={sheet} onClose={() => setSheet(null)} />
-      {adding && <NewSession onClose={() => setAdding(false)} day={monday <= today && today <= addDays(monday, 6) ? today : monday} />}
+      {adding && edit && <NewSession onClose={() => setAdding(false)} day={monday <= today && today <= addDays(monday, 6) ? today : monday} />}
     </>
   );
 }
@@ -101,7 +104,7 @@ function NewSession({ onClose, day: day0 }: { onClose: () => void; day: string }
         <Field label="Posti"><input type="number" min={1} max={60} value={capacity} onChange={(e) => setCapacity(e.target.value)} /></Field>
         <Field label="Durata (minuti)"><input type="number" min={10} max={240} step={5} value={duration} onChange={(e) => setDuration(e.target.value)} /></Field>
       </div>
-      <Field label="Istruttore"><input value={trainer} onChange={(e) => setTrainer(e.target.value)} /></Field>
+      <Field label="Istruttore"><TrainerInput value={trainer} onChange={setTrainer} /></Field>
       <Field label="Nota per i clienti" hint="Facoltativa."><input value={note} onChange={(e) => setNote(e.target.value)} /></Field>
     </Sheet>
   );
@@ -204,7 +207,7 @@ function TemplateSheet({ tpl, onClose }: { tpl: Template | null; onClose: () => 
         <Field label="Ora"><input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></Field>
         <Field label="Posti"><input type="number" min={1} max={60} value={capacity} onChange={(e) => setCapacity(e.target.value)} /></Field>
         <Field label="Durata (minuti)"><input type="number" min={10} max={240} step={5} value={duration} onChange={(e) => setDuration(e.target.value)} /></Field>
-        <Field label="Istruttore"><input value={trainer} onChange={(e) => setTrainer(e.target.value)} /></Field>
+        <Field label="Istruttore" hint="Se è il nome di un Trainer del team (anche solo il nome di battesimo), le lezioni compaiono nella sua area."><TrainerInput value={trainer} onChange={setTrainer} /></Field>
       </div>
       <div className="row between"><span id="act-l"><b>Attiva</b><br /><small className="muted">Se è spenta non crea lezioni.</small></span><Toggle on={active} onChange={setActive} label="Attiva" /></div>
     </Sheet>

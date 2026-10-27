@@ -2,7 +2,7 @@
 // Le registrazioni sono chiuse: un account nasce solo per chi l'owner ha già iscritto (lo decide il database, vedi supabase/schema.sql).
 // Il database è descritto in supabase/schema.sql: qui si chiamano solo le sue funzioni (rpc).
 import type { Api, AuthState, R } from './api';
-import type { Booking, Data, Err, Id, Lead, LeadStatus, Member, Notice, Pack, Pass, Result, Session, Settings, Template } from './types';
+import type { Booking, Data, Err, Id, Lead, LeadStatus, Member, Notice, Pack, PayMethod, Pass, Payment, Result, Session, Settings, Template } from './types';
 import { ERR_TEXT } from './types';
 
 const AUTH_KEY = 'kuko-auth';
@@ -44,6 +44,11 @@ export function mapSnapshot(j: any): AuthState {
       ...(b.position != null ? { position: Number(b.position) } : {}),
     })),
     notices: j.notices.map((n: any): Notice => ({ id: n.id, memberId: n.member_id, kind: n.kind, text: n.text, createdAt: iso(n.created_at), read: n.read })),
+    // incassi: l'owner li vede tutti, la Segreteria solo quelli di oggi, gli altri nessuno (lo decide il database)
+    payments: (j.payments ?? []).map((y: any): Payment => ({
+      id: y.id, memberId: y.member_id ?? null, passId: y.pass_id ?? null, amountCents: Number(y.amount_cents), method: y.method, note: y.note ?? '',
+      paidAt: iso(y.paid_at), byName: y.by_name ?? '', voidedAt: isoOrNull(y.voided_at),
+    })),
     // le richieste dal sito le vede solo l'owner: per gli altri il database non manda nulla
     leads: (j.leads ?? []).map((l: any): Lead => ({
       id: l.id, kind: l.kind, topic: l.topic, name: l.name, phone: l.phone, email: l.email ?? '', slots: l.slots ?? [], note: l.note ?? '',
@@ -297,7 +302,15 @@ export class RemoteApi implements Api {
     return this.mutate('add_member', { p_name: i.name, p_email: i.email, p_phone: i.phone }, (v, s) => ({ member: s.data.members.find((m) => m.id === v.memberId)! }));
   }
   saveMember(m: Pick<Member, 'id' | 'name' | 'email' | 'phone' | 'notes'>) { return this.mutate('save_member', { p_member: m.id, p_name: m.name, p_email: m.email, p_phone: m.phone, p_notes: m.notes }); }
-  assignPass(memberId: Id, packId: Id, startsOn: string, note: string) { return this.mutate('assign_pass', { p_member: memberId, p_pack: packId, p_starts: startsOn, p_note: note }); }
+  assignPass(memberId: Id, packId: Id, startsOn: string, note: string, payment?: { amountCents: number; method: PayMethod }) {
+    return this.mutate('assign_pass', { p_member: memberId, p_pack: packId, p_starts: startsOn, p_note: note, p_amount_cents: payment?.amountCents ?? null, p_method: payment?.method ?? null });
+  }
+  addPayment(i: { memberId: Id | null; amountCents: number; method: PayMethod; note?: string }) { return this.mutate('add_payment', { p_member: i.memberId, p_amount_cents: i.amountCents, p_method: i.method, p_note: i.note ?? '' }); }
+  voidPayment(id: Id, voided = true) { return this.mutate('void_payment', { p_payment: id, p_void: voided }); }
+  addTeamMember(i: { name: string; email: string; role: 'staff' | 'trainer'; phone?: string }) {
+    return this.mutate('add_team_member', { p_name: i.name, p_email: i.email, p_role: i.role, p_phone: i.phone ?? '' }, (v, s) => ({ member: s.data.members.find((m) => m.id === v.memberId)! }));
+  }
+  removeTeamMember(id: Id) { return this.mutate('remove_team_member', { p_member: id }, (v) => ({ kept: !!v.kept })); }
   adjustCredits(passId: Id, delta: number) { return this.mutate('adjust_credits', { p_pass: passId, p_delta: delta }); }
   savePack(p: Pack) { return this.mutate('save_pack', { p }); }
   saveSettings(s: Settings) { return this.mutate('save_settings', { p: s }); }

@@ -201,7 +201,7 @@ a { color: inherit; }
 /* ---------- moduli ---------- */
 .form { display: grid; gap: 1rem; margin: 1rem 0 1.5rem; }
 .field { display: grid; gap: .35rem; }
-.field > span { font-weight: 700; font-size: .85rem; color: var(--mute); }
+.field > span, .field > label { font-weight: 700; font-size: .85rem; color: var(--mute); }
 .field small { color: var(--dim); font-size: .8rem; }
 input, select, textarea { width: 100%; padding: .8rem .9rem; border-radius: 10px; border: 1px solid var(--line-2); background: var(--field); min-height: 2.9rem; }
 input::placeholder, textarea::placeholder { color: var(--dim); }
@@ -659,3 +659,47 @@ tbody tr:last-child > * { border-bottom: 0; }
   .msg-top { grid-template-columns: auto minmax(0, 1fr); }
   .msg-act { grid-column: 1 / -1; justify-content: flex-end; }
 }
+
+/* Segreteria, Trainer, incassi */
+.role-trainer .page { max-width: 46rem; }
+.one-tab .page { padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px)); }
+.one-tab .toasts { bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
+
+.quick { margin-bottom: 1.1rem; }
+.quick .btn { flex: 1 1 9rem; justify-content: center; }
+
+.pay-big { font-size: 2.2rem; font-weight: 900; font-style: italic; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.pay-kpis dd { font-size: 1.4rem; }
+@media (min-width: 720px) { .pay-kpis { grid-template-columns: repeat(4, 1fr); } }
+
+.pays { display: grid; margin: 0 0 1rem; padding: 0; list-style: none; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); overflow: hidden; }
+.pay { display: grid; grid-template-columns: 3rem minmax(0, 1fr) auto auto; align-items: center; gap: .3rem .8rem; padding: .75rem 1rem; border-top: 1px solid var(--line); }
+.pay:first-child { border-top: 0; }
+.pay-time { color: var(--dim); font-size: .85rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pay-meta { display: flex; flex-wrap: wrap; gap: .3rem; justify-content: flex-end; }
+.pay-amt { min-width: 4.8rem; text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+.pay > .btn { grid-column: 2 / -1; justify-self: end; }
+.pay.void .who, .pay.void .pay-amt { opacity: .55; }
+.pay.void .pay-amt { text-decoration: line-through; }
+.pay-day { font-variant-numeric: tabular-nums; font-weight: 800; }
+@media (max-width: 560px) {
+  .pay { grid-template-columns: 2.7rem minmax(0, 1fr) auto; }
+  .pay-meta { grid-column: 2; grid-row: 2; justify-content: flex-start; }
+  .pay-amt { grid-column: 3; grid-row: 1 / span 2; align-self: start; }
+  .pay > .btn { grid-column: 2 / -1; grid-row: 3; justify-self: start; }
+}
+.chart.money .plot { grid-template-columns: 3.6rem 1fr; }
+.chart.money .yaxis { font-size: .68rem; }
+.chart.money .muted { margin-top: .6rem; }
+
+.picked { display: flex; align-items: center; gap: .7rem; padding: .5rem .7rem; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
+.picked b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.picker.compact { max-height: 14rem; }
+
+.panel.team { display: grid; gap: .6rem; margin-block: .8rem; padding: 1rem 1.1rem; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); }
+.panel.team h3 { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; font-size: 1rem; font-weight: 800; }
+.tlist { display: grid; margin: 0; padding: 0; list-style: none; }
+.tlist li { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; padding: .6rem 0; border-top: 1px solid var(--line); }
+.tlist li:first-child { border-top: 0; }
+.tlist .who { flex: 1 1 12rem; }
+.tlist .who small { white-space: normal; overflow-wrap: anywhere; }

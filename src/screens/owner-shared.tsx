@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '../store';
 import { Avatar, Badge, Btn, Field, Icon, Sheet, toneClass } from '../ui';
+import { TrainerInput } from './common';
+import { can } from '../lib/access';
 import { memberStatus, rosterOf, slotState, typeOf } from '../lib/selectors';
 import { counts } from '../lib/rules';
 import { cap, dayLong, timeOf } from '../lib/format';
-import { romeDay, romeHM, romeWall } from '../lib/time';
+import { MIN, romeDay, romeHM, romeWall } from '../lib/time';
 import type { Id, Member, Session } from '../lib/types';
 
 export const sessionTitle = (type: string, s: Session) => `${type} · ${cap(dayLong(romeDay(new Date(s.startsAt))))} ${timeOf(s.startsAt)}`;
@@ -16,6 +18,13 @@ export function Roster({ sessionId }: { sessionId: Id }) {
   const sess = d.sessions.find((x) => x.id === sessionId);
   const [picker, setPicker] = useState(false);
   if (!sess) return null;
+  // chi può fare cosa lo decide il database; qui si mostrano solo i pulsanti giusti. Il Trainer segna le presenze dall'inizio della lezione.
+  const role = s.me!.role;
+  const canBook = can(role, 'book');
+  const canLink = can(role, 'members');
+  const started = new Date(sess.startsAt).getTime() - 30 * MIN <= s.now.getTime();
+  const canMark = can(role, 'attendance') && (role !== 'trainer' || started);
+  const nameOf = (m: Member) => (canLink ? <a href={`#/iscritti/${m.id}`} onClick={(e) => { e.preventDefault(); s.route.go(`/iscritti/${m.id}`); }}>{m.name}</a> : <b>{m.name}</b>);
   const rows = rosterOf(d, sessionId);
   const seated = rows.filter((r) => r.booking.status !== 'waitlist');
   const wait = rows.filter((r) => r.booking.status === 'waitlist');
@@ -30,20 +39,23 @@ export function Roster({ sessionId }: { sessionId: Id }) {
   return (
     <div className="roster">
       {seated.length === 0 && wait.length === 0 && <p className="muted">Nessuna prenotazione.</p>}
+      {!canMark && role === 'trainer' && seated.length > 0 && !cancelled && <p className="muted small">Le presenze si segnano da poco prima dell&#8217;inizio della lezione.</p>}
       {seated.length > 0 && (
         <ul>
           {seated.map(({ booking: b, member: m }) => (
             <li key={b.id}>
               <Avatar name={m.name} size={36} />
               <div className="who">
-                <a href={`#/iscritti/${m.id}`} onClick={(e) => { e.preventDefault(); s.route.go(`/iscritti/${m.id}`); }}>{m.name}</a>
-                <small>{b.passId ? d.passes.find((p) => p.id === b.passId)?.name ?? '' : 'Senza abbonamento'}</small>
+                {nameOf(m)}
+                {canLink && <small>{b.passId ? d.passes.find((p) => p.id === b.passId)?.name ?? '' : 'Senza abbonamento'}</small>}
               </div>
-              <div className="att" role="group" aria-label={`Presenza di ${m.name}`}>
-                <button className={b.status === 'attended' ? 'on ok' : ''} aria-pressed={b.status === 'attended'} onClick={() => mark(b.id, b.status, 'attended')} aria-label="Presente"><Icon n="check" size={17} /><span>Presente</span></button>
-                <button className={b.status === 'no_show' ? 'on bad' : ''} aria-pressed={b.status === 'no_show'} onClick={() => mark(b.id, b.status, 'no_show')} aria-label="Assente"><Icon n="x" size={17} /><span>Assente</span></button>
-              </div>
-              <button className="icon-btn sm" onClick={() => remove(b.id, m.name, false)} aria-label={`Togli ${m.name}`}><Icon n="trash" size={16} /></button>
+              {canMark ? (
+                <div className="att" role="group" aria-label={`Presenza di ${m.name}`}>
+                  <button className={b.status === 'attended' ? 'on ok' : ''} aria-pressed={b.status === 'attended'} onClick={() => mark(b.id, b.status, 'attended')} aria-label="Presente"><Icon n="check" size={17} /><span>Presente</span></button>
+                  <button className={b.status === 'no_show' ? 'on bad' : ''} aria-pressed={b.status === 'no_show'} onClick={() => mark(b.id, b.status, 'no_show')} aria-label="Assente"><Icon n="x" size={17} /><span>Assente</span></button>
+                </div>
+              ) : b.status === 'attended' ? <Badge tone="ok">Presente</Badge> : b.status === 'no_show' ? <Badge tone="bad">Assente</Badge> : <span />}
+              {canBook && <button className="icon-btn sm" onClick={() => remove(b.id, m.name, false)} aria-label={`Togli ${m.name}`}><Icon n="trash" size={16} /></button>}
             </li>
           ))}
         </ul>
@@ -55,16 +67,16 @@ export function Roster({ sessionId }: { sessionId: Id }) {
             {wait.map(({ booking: b, member: m }, i) => (
               <li key={b.id}>
                 <Avatar name={m.name} size={36} />
-                <div className="who"><a href={`#/iscritti/${m.id}`} onClick={(e) => { e.preventDefault(); s.route.go(`/iscritti/${m.id}`); }}>{m.name}</a><small>{i + 1}° in lista</small></div>
+                <div className="who">{nameOf(m)}<small>{i + 1}° in lista</small></div>
                 <Badge tone="warn">In attesa</Badge>
-                <button className="icon-btn sm" onClick={() => remove(b.id, m.name, true)} aria-label={`Togli ${m.name}`}><Icon n="trash" size={16} /></button>
+                {canBook && <button className="icon-btn sm" onClick={() => remove(b.id, m.name, true)} aria-label={`Togli ${m.name}`}><Icon n="trash" size={16} /></button>}
               </li>
             ))}
           </ul>
         </>
       )}
-      {!cancelled && <div className="row"><Btn kind="ghost" size="sm" onClick={() => setPicker(true)}><Icon n="plus" size={16} /> Aggiungi iscritto</Btn></div>}
-      <MemberPicker open={picker} onClose={() => setPicker(false)} sessionId={sessionId} />
+      {!cancelled && canBook && <div className="row"><Btn kind="ghost" size="sm" onClick={() => setPicker(true)}><Icon n="plus" size={16} /> Aggiungi iscritto</Btn></div>}
+      {canBook && <MemberPicker open={picker} onClose={() => setPicker(false)} sessionId={sessionId} />}
     </div>
   );
 }
@@ -115,6 +127,7 @@ export function SessionSheet({ id, onClose }: { id: Id | null; onClose: () => vo
   const d = s.data!;
   const sess = id ? d.sessions.find((x) => x.id === id) : undefined;
   const [edit, setEdit] = useState(false);
+  const canEdit = can(s.me!.role, 'schedule');
   if (!sess) return <Sheet open={false} onClose={onClose} title="" children={null} />;
   const type = typeOf(d, sess.typeId);
   const c = counts(d, sess.id);
@@ -138,13 +151,13 @@ export function SessionSheet({ id, onClose }: { id: Id | null; onClose: () => vo
         {sess.note && <span className="muted">{sess.note}</span>}
       </div>
       <Roster sessionId={sess.id} />
-      {sess.status === 'scheduled' && (
+      {sess.status === 'scheduled' && canEdit && (
         <div className="row split">
           <Btn kind="quiet" size="sm" onClick={() => setEdit(!edit)} aria-expanded={edit}><Icon n="edit" size={16} /> Modifica lezione</Btn>
           <Btn kind="quiet" size="sm" onClick={cancel}><Icon n="trash" size={16} /> Annulla lezione</Btn>
         </div>
       )}
-      {edit && sess.status === 'scheduled' && <EditSession sess={sess} onDone={() => setEdit(false)} />}
+      {edit && canEdit && sess.status === 'scheduled' && <EditSession sess={sess} onDone={() => setEdit(false)} />}
     </Sheet>
   );
 }
@@ -171,7 +184,7 @@ function EditSession({ sess, onDone }: { sess: Session; onDone: () => void }) {
         <Field label="Posti" hint={booked ? `Almeno ${booked}: ci sono già ${booked} prenotati.` : undefined}><input type="number" min={Math.max(1, booked)} max={60} value={capacity} onChange={(e) => setCapacity(e.target.value)} required /></Field>
         <Field label="Durata (minuti)"><input type="number" min={10} max={240} step={5} value={duration} onChange={(e) => setDuration(e.target.value)} required /></Field>
       </div>
-      <Field label="Istruttore"><input value={trainer} onChange={(e) => setTrainer(e.target.value)} /></Field>
+      <Field label="Istruttore" hint="Se è il nome di un Trainer del team, la lezione compare nella sua area."><TrainerInput value={trainer} onChange={setTrainer} /></Field>
       <Field label="Nota per i clienti" hint="Si vede accanto alla lezione, ad esempio “Porta il tuo asciugamano”."><input value={note} onChange={(e) => setNote(e.target.value)} /></Field>
       <div className="row"><Btn type="submit">Salva</Btn><Btn kind="quiet" onClick={onDone}>Chiudi</Btn></div>
     </form>
