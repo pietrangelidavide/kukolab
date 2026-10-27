@@ -5,6 +5,7 @@ import { MemberSearch, PageHead } from './common';
 import { can } from '../lib/access';
 import { METHODS, between, byMonth, methodLabel, paymentsCsv, parseEuro, totals } from '../lib/payments';
 import { addDays, romeDay } from '../lib/time';
+import { niceTop } from '../lib/revenue';
 import { cap, dayDMY, dayLong, euro, monthName, plural, timeOf } from '../lib/format';
 import type { Id, PayMethod, Payment } from '../lib/types';
 
@@ -97,12 +98,6 @@ function PayRow({ p, canVoid }: { p: Payment; canVoid: boolean }) {
   );
 }
 
-const niceTop = (cents: number): number => {
-  const e = Math.max(cents / 100, 1);
-  const steps = [100, 200, 250, 500, 1000, 2000, 2500, 5000, 10000, 20000, 25000, 50000, 100000];
-  return (steps.find((x) => x >= e) ?? Math.ceil(e / 100000) * 100000) * 100;
-};
-
 function download(name: string, text: string) {
   try {
     const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
@@ -188,7 +183,7 @@ export function Payments() {
                   const cur = i === months.length - 1;
                   return (
                     <button key={m.month} role="listitem" className={`bar-col${cur ? ' cur' : ''}`} aria-label={`${monthTitle(m.month)} ${m.month.slice(0, 4)}: ${euro(m.cents)}${cur ? ', in corso' : ''}`}>
-                      <span className="stack" style={{ height: `${(m.cents / top) * 100}%` }}><i style={{ flexGrow: 1, background: 'var(--orange)' }} /></span>
+                      <span className="stack" style={{ height: `${(m.cents / top) * 100}%` }}>{m.cents > 0 && <i style={{ flexGrow: 1, background: 'var(--orange)' }} />}</span>
                       <span className="tip" role="tooltip"><b>{monthTitle(m.month)} {m.month.slice(0, 4)}{cur ? ' (in corso)' : ''}</b><span className="tot">Incassato<em>{euro(m.cents)}</em></span><span>Incassi<em>{m.count}</em></span></span>
                       <span className="xl">{monthTitle(m.month).slice(0, 3)}</span>
                     </button>

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useStore } from '../store';
 import { Avatar, Empty, Seg } from '../ui';
 import { PageHead } from './common';
+import { Money } from './report-money';
 import { counts } from '../lib/rules';
 import { typeOf, weeklyBookings } from '../lib/selectors';
 import { addDays, endOf, mondayOf, romeDay, weekdayOf } from '../lib/time';
@@ -65,7 +66,7 @@ export function Report() {
 
   return (
     <>
-      <PageHead title="Report" sub={`Dal ${dayDM(from)} a oggi, solo lezioni già svolte.`} right={
+      <PageHead title="Report" sub={`Dal ${dayDM(from)} a oggi. Lezioni già svolte e incassi registrati.`} right={
         <Seg label="Periodo" value={String(weeks) as '4' | '8' | '12'} onChange={(v) => setWeeks(Number(v) as 4 | 8 | 12)} options={[{ v: '4', t: '4 sett.' }, { v: '8', t: '8 sett.' }, { v: '12', t: '12 sett.' }]} />
       } />
 
@@ -75,6 +76,8 @@ export function Report() {
         <div><dt>Presenze registrate</dt><dd>{r.attended}</dd></div>
         <div><dt>Assenze · annulli tardivi</dt><dd>{r.noShow}<small> · {r.late}</small></dd></div>
       </dl>
+
+      <Money weeks={weeks} />
 
       <div className="sec-row">
         <h2 className="sec">Prenotazioni per settimana</h2>
@@ -88,7 +91,7 @@ export function Report() {
             </figcaption>
             <div className="plot">
               <div className="yaxis" aria-hidden="true">{[...ticks].reverse().map((t) => <span key={t}>{t}</span>)}</div>
-              <div className="bars" role="list">
+              <div className={`bars${wk.length > 8 ? ' dense' : ''}`} role="list">
                 {wk.map((w, i) => {
                   const cur = i === wk.length - 1;
                   return (

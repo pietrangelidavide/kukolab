@@ -121,7 +121,7 @@ export function demoData(now: Date): Data {
   // storico: un vecchio abbonamento a tempo che copre il periodo prima di quello attuale (serve ai grafici delle settimane passate)
   const history: Pass[] = clients0.filter((id) => id !== 'm_stefano').map((id) => {
     const firstStart = current.filter((p) => p.memberId === id).reduce((m, p) => (p.startsOn < m ? p.startsOn : m), addDays(today, 1));
-    return mk(id, 'pk_open', -70, { name: 'Mensile Open (precedente)', packId: null, weeklyLimit: 3, expiresOn: addDays(firstStart, -1) });
+    return mk(id, 'pk_open', -70, { name: 'Mensile Open (precedente)', packId: 'pk_open', weeklyLimit: 3, expiresOn: addDays(firstStart, -1) });
   }).filter((p) => p.expiresOn >= p.startsOn);
   d.passes = [...history, ...current];
 
