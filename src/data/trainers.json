@@ -1,5 +1,5 @@
 {
-  "note": "Trainer mostrati nella vetrina (sezione \"I trainer\", generata da npm run site). Per aggiungere la foto della maestra di Pilates: salvarla come public/img/trainer-pilates.jpg (verticale, 4:5, almeno 600 px di larghezza), scrivere il suo nome in \"name\" e rilanciare npm run site. Finché il file non esiste compare un riquadro \"Foto in arrivo\".",
+  "note": "Trainer mostrati nella vetrina (sezione \"I trainer\", generata da npm run site). Per aggiungere la foto della maestra di Pilates: salvarla come public/img/trainer-pilates.jpg (verticale, 4:5, almeno 600 px di larghezza), scrivere il suo nome in \"name\" e rilanciare npm run site. Finché il file non esiste la scheda non compare nella vetrina.",
   "trainers": [
     {
       "id": "valerio",

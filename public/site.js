@@ -5,7 +5,7 @@
   if (b && d) {
     var set = function (open) { d.classList.toggle('open', open); b.setAttribute('aria-expanded', open); b.setAttribute('aria-label', open ? 'Chiudi il menu' : 'Apri il menu'); };
     b.addEventListener('click', function () { set(!d.classList.contains('open')); });
-    d.addEventListener('click', function (e) { if (e.target.tagName === 'A') set(false); });
+    d.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('a')) set(false); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && d.classList.contains('open')) { set(false); b.focus(); } });
     var wide = window.matchMedia && window.matchMedia('(min-width: 1221px)');
     if (wide && wide.addEventListener) wide.addEventListener('change', function (m) { if (m.matches) set(false); });

@@ -117,14 +117,12 @@ ${benefits}
           <a href="https://www.instagram.com/${esc(nutri.instagram)}/" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-ig"/></svg>@${esc(nutri.instagram)}</a>
         </p>`;
 
-// ------------------------------------------------------------------ trainer: una scheda a persona; se la foto non c'è ancora, un riquadro segnaposto
-const trainers = JSON.parse(readFileSync(join(root, 'src', 'data', 'trainers.json'), 'utf8')).trainers;
+// ------------------------------------------------------------------ trainer: una scheda a persona; senza la foto la scheda non compare (un riquadro "Foto in arrivo" a metà pagina fa sembrare il sito incompiuto)
+const trainers = JSON.parse(readFileSync(join(root, 'src', 'data', 'trainers.json'), 'utf8')).trainers
+  .filter((t) => t.photo && existsSync(join(root, 'public', t.photo)));
 const trainersHtml = trainers.map((t) => {
-  const hasPhoto = t.photo && existsSync(join(root, 'public', t.photo));
   const label = t.name || t.role;
-  const photo = hasPhoto
-    ? `<img src="${esc(t.photo)}" loading="lazy" alt="${esc(t.alt || label)}">`
-    : `<span class="t-ph" role="img" aria-label="Foto in arrivo"><svg class="ic" aria-hidden="true"><use href="#${ICON[t.courses[0]]}"/></svg><small>Foto in arrivo</small></span>`;
+  const photo = `<img src="${esc(t.photo)}" loading="lazy" alt="${esc(t.alt || label)}">`;
   const courses = t.courses.map((c) => `<li><svg class="ic" aria-hidden="true"><use href="#${ICON[c]}"/></svg>${esc(types[c].name)}</li>`).join('');
   const creds = t.creds.length ? `\n            <ul class="creds">${t.creds.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : '';
   return `        <li class="trainer" id="t-${esc(t.id)}">
