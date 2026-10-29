@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Metti l’app sulla Home | KUKO LAB</title>
+<meta name="description" content="Come mettere l’app di KUKO LAB sulla schermata Home del telefono, su iPhone e su Android.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0a0b">
+<link rel="icon" href="/img/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="preload" href="/fonts/bigshoulders-bold.woff" as="font" type="font/woff" crossorigin>
+<style>
+@font-face{font-family:'Big Shoulders';font-weight:700;font-display:swap;src:url('/fonts/bigshoulders-bold.woff') format('woff')}
+@font-face{font-family:'Instrument Sans';font-weight:400;font-display:swap;src:url('/fonts/instrumentsans-regular.woff') format('woff')}
+@font-face{font-family:'Instrument Sans';font-weight:700;font-display:swap;src:url('/fonts/instrumentsans-bold.woff') format('woff')}
+:root{--ink:#0a0a0b;--coal:#141416;--coal-2:#1d1d20;--on-dark:#f4f4f2;--mute:#a9aab0;--orange:#e86028;--line:rgba(255,255,255,.15);
+  --display:'Big Shoulders','Arial Narrow','Helvetica Neue',Arial,sans-serif;--text:'Instrument Sans','Helvetica Neue',Arial,sans-serif;color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--ink);color:var(--on-dark);font:400 1.0625rem/1.55 var(--text);-webkit-font-smoothing:antialiased;
+  padding:max(1.25rem,env(safe-area-inset-top)) max(1.25rem,env(safe-area-inset-right)) max(2.5rem,env(safe-area-inset-bottom)) max(1.25rem,env(safe-area-inset-left))}
+main{max-width:34rem;margin-inline:auto;display:grid;gap:1.5rem}
+.logo{display:block;width:4.5rem;height:auto}
+h1{margin:0;font:700 clamp(2.6rem,11vw,3.6rem)/.95 var(--display);letter-spacing:.01em;text-transform:uppercase;text-wrap:balance}
+h1 span{color:var(--orange)}
+.lead{margin:0;color:var(--mute);max-width:30rem}
+.btn{display:flex;align-items:center;justify-content:center;min-height:3.5rem;padding:.8rem 1.6rem;background:var(--orange);color:var(--ink);text-decoration:none;font:700 1.4rem/1 var(--display);letter-spacing:.06em;text-transform:uppercase}
+.btn:focus-visible,.tab:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.tabs{display:none;gap:.5rem}
+.js .tabs{display:grid;grid-template-columns:1fr 1fr}
+.tab{min-height:3rem;padding:.5rem 1rem;border:1px solid var(--line);background:transparent;color:var(--on-dark);font:700 1.15rem/1 var(--display);letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--on-dark);color:var(--ink);border-color:var(--on-dark)}
+.js .panel[hidden]{display:none}
+.panel{display:grid;gap:1rem}
+.panel h2{margin:0;font:700 1.5rem/1 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--orange)}
+.js .panel h2{display:none}
+ol{margin:0;padding:0;list-style:none;display:grid;gap:.75rem;counter-reset:s}
+li{counter-increment:s;display:grid;grid-template-columns:2.4rem 1fr;gap:.9rem;align-items:start;padding:1rem;background:var(--coal);border:1px solid var(--line)}
+li::before{content:counter(s);display:grid;place-items:center;width:2.4rem;height:2.4rem;background:var(--orange);color:var(--ink);font:700 1.35rem/1 var(--display)}
+li b{color:#fff}
+li .ic{display:inline-block;vertical-align:-.3em;width:1.35em;height:1.35em;margin-inline:.1em;color:var(--orange)}
+.note{margin:0;padding:1rem;border-left:3px solid var(--orange);background:var(--coal-2);color:var(--on-dark);font-size:.98rem}
+.small{margin:0;color:var(--mute);font-size:.95rem}
+.done{display:none;padding:1rem;background:var(--coal-2);border:1px solid var(--orange)}
+.standalone .done{display:block}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <img class="logo" src="/img/logo-cerchio.png" alt="KUKO LAB" width="144" height="144">
+  <h1>Metti l’app<br><span>sulla Home</span></h1>
+  <p class="lead">Così la apri con un tocco, come tutte le altre app, e prenoti i corsi in due secondi.</p>
+
+  <p class="done" role="status"><b>L’app è già sulla tua Home.</b> Puoi chiudere questa pagina.</p>
+
+  <a class="btn" id="apri" href="/app/">Apri l’app</a>
+  <p class="small">Tocca prima «Apri l’app». I passaggi qui sotto si fanno dall’app, non da questa pagina.</p>
+
+  <div class="tabs" role="tablist" aria-label="Il tuo telefono">
+    <button class="tab" role="tab" id="t-ios" aria-controls="p-ios" aria-selected="true" type="button">iPhone</button>
+    <button class="tab" role="tab" id="t-and" aria-controls="p-and" aria-selected="false" type="button">Android</button>
+  </div>
+
+  <section class="panel" id="p-ios" role="tabpanel" aria-labelledby="t-ios">
+    <h2>iPhone</h2>
+    <ol>
+      <li><span>Tocca <b>Condividi</b>, il quadrato con la freccia in su
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="m8 7 4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>
+        (in basso su Safari).</span></li>
+      <li><span>Scorri il menu e tocca <b>Aggiungi alla schermata Home</b>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg>.</span></li>
+      <li><span>Tocca <b>Aggiungi</b> in alto a destra. L’icona <b>KUKO LAB</b> compare sulla Home.</span></li>
+    </ol>
+    <p class="note">La prima volta che apri l’app dall’icona, su iPhone può chiederti di nuovo l’email e un codice. È normale: ti arriva un codice nuovo e ci metti pochi secondi.</p>
+    <p class="small">Usi Chrome sull’iPhone? Tocca Condividi in alto a destra, vicino all’indirizzo, e poi <b>Aggiungi alla schermata Home</b>.</p>
+  </section>
+
+  <section class="panel" id="p-and" role="tabpanel" aria-labelledby="t-and">
+    <h2>Android</h2>
+    <ol>
+      <li><span>Tocca i <b>tre puntini</b>
+        <svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+        in alto a destra su Chrome.</span></li>
+      <li><span>Tocca <b>Installa app</b> (su alcuni telefoni si chiama <b>Aggiungi a schermata Home</b>).</span></li>
+      <li><span>Conferma con <b>Installa</b>. L’icona <b>KUKO LAB</b> compare sulla Home e tra le tue app.</span></li>
+    </ol>
+    <p class="small">Usi Samsung Internet? Tocca il menu in basso a destra, poi <b>Aggiungi pagina a</b> e <b>Schermata Home</b>.</p>
+  </section>
+
+  <p class="small">Non hai ancora l’accesso? L’iscrizione si fa in studio: per entrare nell’app serve l’email che hai dato alla segreteria.</p>
+</main>
+<script>
+(function () {
+  var d = document.documentElement;
+  d.classList.add('js');
+  var ua = navigator.userAgent || '';
+  var ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  var standalone = (window.navigator.standalone === true) || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  if (standalone) d.classList.add('standalone');
+  var tabs = { ios: document.getElementById('t-ios'), and: document.getElementById('t-and') };
+  var panels = { ios: document.getElementById('p-ios'), and: document.getElementById('p-and') };
+  function show(k) {
+    for (var x in tabs) { tabs[x].setAttribute('aria-selected', x === k ? 'true' : 'false'); panels[x].hidden = x !== k; }
+  }
+  tabs.ios.addEventListener('click', function () { show('ios'); });
+  tabs.and.addEventListener('click', function () { show('and'); });
+  show(ios ? 'ios' : (/Android/.test(ua) ? 'and' : 'ios'));
+})();
+</script>
+</body>
+</html>
