@@ -23,6 +23,9 @@ export const ENTRIES = {
   staff: { dir: 'gestionale', title: 'KUKO LAB | Gestionale', short: 'Gestionale', name: 'KUKO LAB Gestionale', noscript: 'Per usare il gestionale serve JavaScript.' },
 };
 
+/** Accesso con password per le utenze di prova: acceso solo con KUKO_PASSWORD_LOGIN=1 (variabile di build). In produzione resta spento: si entra solo col codice. */
+const passwordLogin = () => process.env.KUKO_PASSWORD_LOGIN === '1';
+
 export const entryHtml = (mode = 'client') => {
   const e = ENTRIES[mode];
   return `<!doctype html>
@@ -46,7 +49,7 @@ export const entryHtml = (mode = 'client') => {
 <body>
 <div id="root"></div>
 <noscript>${e.noscript}</noscript>
-<script>window.KUKO_ASSETS={mode:${JSON.stringify(mode)}};</script>
+<script>window.KUKO_ASSETS={mode:${JSON.stringify(mode)}${passwordLogin() ? ',password:true' : ''}};</script>
 <script type="module" src="/app/app.js"></script>
 </body>
 </html>

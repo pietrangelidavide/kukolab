@@ -62,6 +62,7 @@ Il progetto è un sito statico (`wrangler.jsonc`, cartella `public/`). Su Cloudf
 - **Build command**: `npm run build`
 - **Deploy command**: quello predefinito (`npx wrangler deploy`)
 - **Variabili di build** (solo per la modalità reale, vedi sotto): `KUKO_SUPABASE_URL`, `KUKO_SUPABASE_ANON_KEY`
+- **`KUKO_PASSWORD_LOGIN=1`** (facoltativa, solo per le prove): mostra, sotto il campo email, "Entra con password", per le utenze di prova (vedi *Utenze di prova*). In produzione non va messa: si entra solo col codice.
 
 Senza le due variabili l'app resta in **demo**: va bene per mostrarla al cliente, non per usarla davvero. Con le due variabili la build scrive anche `public/site-config.js` (non in git): è con quella chiave pubblica che il modulo del sito manda le richieste al database. Senza, il modulo è in **anteprima**: la richiesta resta nel browser (stessa origine dell'app) e compare nell'area owner della demo, ma non parte davvero.
 
@@ -86,6 +87,8 @@ Senza le due variabili l'app resta in **demo**: va bene per mostrarla al cliente
 **Come si iscrive un cliente.** In studio, quando fa l'abbonamento: *Iscritti → Nuovo iscritto* con nome, telefono ed **email giusta** (se è sbagliata, il codice non arriva alla persona e non entra). Poi dalla scheda *Invita nell'app su WhatsApp* manda il link dell'app con due righe di istruzioni. Alla scheda compare "Account attivo" dopo il primo accesso. Chi ha l'email scritta male si corregge da *Modifica*. Chi non ha email può comunque essere prenotato dall'owner.
 
 **Sicurezza, in breve.** Senza il codice ricevuto per email non si entra: nessuna password da dimenticare o rubare. Chi conosce l'email di un iscritto non può lasciarci sopra una sua password: alla prima conferma l'app la azzera (`handle_confirmed`, provato con la prova end-to-end contro un finto GoTrue; su Supabase vero conviene rifare la prova una volta, vedi sotto). Il codice dura 10 minuti e vale una volta sola.
+
+**Utenze di prova** (segreteria, trainer, cliente: un account per ruolo, con email e password finte, per provare senza mandare codici). Nello SQL Editor si inseriscono prima le schede con ruolo `staff`, `trainer` e `client` (il database rifiuta account di email sconosciute); poi in *Authentication → Users → Add user → Create new user* si creano i tre account con la stessa email, una password e **Auto Confirm User** acceso: la password resta valida perché la conferma non passa dal codice. Per entrare serve `KUKO_PASSWORD_LOGIN=1` nelle variabili di build. **Prima del lancio**: togliere la variabile, rifare il deploy e cancellare i tre account (Authentication → Users) e le tre schede (Iscritti / Dipendenti).
 
 **Prova da fare una volta sul progetto vero** (le prove automatiche usano un finto Supabase): 1) con l'email di un iscritto inserito dall'owner arriva il codice e si entra; 2) con un'email qualsiasi non arriva niente e l'app dice comunque "Se è tra le email degli iscritti…"; 3) in *Authentication → Users* non compare nessun utente nuovo per quella email; 4) se non arriva niente per un iscritto, guardare *Logs → Auth* e i modelli email (punto 5).
 

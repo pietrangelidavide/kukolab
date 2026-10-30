@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { doorFor, entry, entryOf, appHref, staffHref } from '../src/config';
+import { doorFor, entry, entryOf, appHref, passwordLogin, staffHref } from '../src/config';
 import type { Role } from '../src/lib/types';
 import { ENTRIES, entryHtml, entryManifest } from '../scripts/lib/app.mjs';
 
@@ -45,6 +45,21 @@ test('le pagine d\'ingresso condividono il codice ma hanno titolo, icona install
   assert.match(gest, /KUKO_ASSETS=\{mode:"staff"\}/);
   assert.match(app, /href="\/app\/manifest\.webmanifest"/);
   assert.match(gest, /href="\/gestionale\/manifest\.webmanifest"/);
+});
+
+test("l'accesso con password per le utenze di prova si accende solo con KUKO_PASSWORD_LOGIN=1", () => {
+  const before = process.env.KUKO_PASSWORD_LOGIN;
+  try {
+    delete process.env.KUKO_PASSWORD_LOGIN;
+    assert.doesNotMatch(entryHtml('staff'), /password:true/);
+    process.env.KUKO_PASSWORD_LOGIN = '1';
+    assert.match(entryHtml('staff'), /KUKO_ASSETS=\{mode:"staff",password:true\}/);
+    assert.match(entryHtml('client'), /KUKO_ASSETS=\{mode:"client",password:true\}/);
+  } finally {
+    if (before === undefined) delete process.env.KUKO_PASSWORD_LOGIN; else process.env.KUKO_PASSWORD_LOGIN = before;
+  }
+  setAssets({}); assert.equal(passwordLogin(), false);
+  setAssets({ password: true }); assert.equal(passwordLogin(), true);
 });
 
 test('il gestionale si installa a parte: manifest con il suo avvio e il suo ambito', () => {

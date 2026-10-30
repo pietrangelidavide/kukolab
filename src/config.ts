@@ -8,7 +8,7 @@ export const STUDIO = {
 
 import type { Role } from './lib/types';
 
-type Assets = { site?: string; app?: string; staff?: string; home?: string; mode?: Entry };
+type Assets = { site?: string; app?: string; staff?: string; home?: string; mode?: Entry; password?: boolean };
 const assets = (): Assets => (window as unknown as { KUKO_ASSETS?: Assets }).KUKO_ASSETS ?? {};
 
 /** Gli ingressi della web app. Stessa app e stessi dati, due porte: l'app dei clienti (/app/) e il gestionale dello staff (/gestionale/).
@@ -16,6 +16,8 @@ const assets = (): Assets => (window as unknown as { KUKO_ASSETS?: Assets }).KUK
 export type Entry = 'client' | 'staff';
 export const entry = (): Entry => assets().mode ?? 'client';
 /** Da quale ingresso entra ciascun ruolo: i clienti dall'app, owner, Segreteria e Trainer dal gestionale. */
+/** Accesso con password per le utenze di prova (solo se la build lo accende con KUKO_PASSWORD_LOGIN=1). */
+export const passwordLogin = (): boolean => !!assets().password;
 export const entryOf = (role: Role): Entry => (role === 'client' ? 'client' : 'staff');
 
 /** Indirizzi per i collegamenti tra le pagine. Nelle anteprime pubblicate a parte possono essere cambiati o tolti (stringa vuota: il link sparisce). */

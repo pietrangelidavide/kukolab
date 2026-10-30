@@ -6,7 +6,7 @@ import { logoSrc } from '../App';
 import { ERR_TEXT } from '../lib/types';
 import type { Role } from '../lib/types';
 import { ROLE_LABEL, homePath } from '../lib/access';
-import { appHref, entry, homeHref, siteHref, staffHref } from '../config';
+import { appHref, entry, homeHref, passwordLogin, siteHref, staffHref } from '../config';
 
 /** Accesso. Con l'archivio online si entra solo con un codice mandato per email, e solo se lo studio ha già iscritto quell'email.
  *  Nella demo (dati nel browser) restano i pulsanti di prova.
@@ -66,6 +66,8 @@ function CodeAccess({ staff }: { staff: boolean }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [wait, setWait] = useState(0);
+  const [usePw, setUsePw] = useState(false); // solo se la build accende l'accesso con password (utenze di prova)
+  const [pw, setPw] = useState('');
 
   useEffect(() => {
     if (wait <= 0) return;
@@ -91,16 +93,34 @@ function CodeAccess({ staff }: { staff: boolean }) {
     setBusy(false);
   };
 
-  const submit = (e: FormEvent) => { e.preventDefault(); if (step === 'email') send(); else enter(); };
+  const enterPw = async () => {
+    setBusy(true); setErr(null);
+    try {
+      const r = await s.api.signIn(email, pw);
+      if (r.ok) { s.setSession(r.me, r.data); s.route.go(homePath(r.me.role)); } else setErr(r.message ?? ERR_TEXT[r.error]);
+    } catch { setErr(ERR_TEXT.network); }
+    setBusy(false);
+  };
+
+  const submit = (e: FormEvent) => { e.preventDefault(); if (usePw) enterPw(); else if (step === 'email') send(); else enter(); };
   const site = siteHref();
 
   return (
     <form className="form" onSubmit={submit}>
-      {step === 'email' ? (
+      {usePw ? (
+        <>
+          <Field label="Email"><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" inputMode="email" required /></Field>
+          <Field label="Password" hint="Solo per le utenze di prova."><input type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="current-password" required /></Field>
+          {err && <p className="form-err" role="alert">{err}</p>}
+          <Btn type="submit" block disabled={busy || !email.trim() || !pw}>Entra</Btn>
+          <div className="code-links"><button type="button" className="link" onClick={() => { setUsePw(false); setErr(null); setPw(''); }}>Entra con il codice</button></div>
+        </>
+      ) : step === 'email' ? (
         <>
           <Field label="Email" hint={staff ? 'La stessa con cui lo studio ha creato il tuo accesso.' : 'La stessa che hai dato allo studio quando ti sei iscritto.'}><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" inputMode="email" required /></Field>
           {err && <p className="form-err" role="alert">{err}</p>}
           <Btn type="submit" block disabled={busy || !email.trim()}>Inviami il codice</Btn>
+          {passwordLogin() && <div className="code-links"><button type="button" className="link" onClick={() => { setUsePw(true); setErr(null); }}>Entra con password</button></div>}
         </>
       ) : (
         <>
