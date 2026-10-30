@@ -1,4 +1,4 @@
-/* KUKO LAB, pagina di ingresso: smista tra il sito vetrina (/sito), la web app (/app/) e il gestionale (/gestionale/).
+/* KUKO LAB, pagina di ingresso: smista tra il sito vetrina (/sito) e la web app (/app/).
    Stessa grafica del sito (nero, arancio, tagli inclinati come il logo, caratteri condensati), ma una sola schermata di scelta.
    Il sito e l'app sono due pannelli da sfogliare in orizzontale (scroll-snap: funziona anche senza JavaScript, scorrendo a mano).
    Un piccolo script in fondo a index.html aggiunge frecce, indicatori, tastiera e trascinamento col mouse, e non è necessario ai link. */
