@@ -20,7 +20,7 @@ export function Auth() {
         <h1>Prenota il tuo posto</h1>
         <p className="sub">{demo ? 'Corsi, posti liberi e abbonamento in un’unica app.' : 'Riservato a chi è iscritto a KUKO LAB.'}</p>
         {demo ? <DemoAccess /> : <CodeAccess />}
-        {siteHref() && <a className="back" href={siteHref()} target={siteHref() === '/' ? undefined : '_blank'} rel="noopener">← Torna al sito</a>}
+        {siteHref() && <a className="back" href={siteHref()} target={siteHref().startsWith('/') ? undefined : '_blank'} rel="noopener">← Torna al sito</a>}
       </div>
     </div>
   );

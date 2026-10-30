@@ -15,6 +15,7 @@ import { cap, dayDM, dayLong, euro, plural, timeOf, waLink } from '../lib/format
 import { ago, leadLabel, leadsNew } from '../lib/leads';
 import { messagesToSend } from './owner-messages';
 import { useSentLog } from '../sentlog';
+import { attendanceToMark } from '../lib/insights';
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
@@ -40,6 +41,7 @@ export function Today() {
   const week = kpiBetween(d, wk, addDays(wk, 6));
 
   const soon = expiringPasses(d, s.now, 7);
+  const toMark = attendanceToMark(d, s.now);
   const fresh = leadsNew(d);
   const toSend = messagesToSend(d, s.now, useSentLog());
   const waits = d.sessions
@@ -121,8 +123,13 @@ export function Today() {
             <h3>{owner ? 'Incassi di oggi' : 'Cassa di oggi'}</h3>
             <p className="pay-big">{euro(cash.cents)}</p>
             <p className="muted">{cash.count === 0 ? 'Ancora nessun incasso.' : `${cash.count} ${plural(cash.count, 'incasso', 'incassi')}: ${euro(cash.byMethod.cash)} in contanti, ${euro(cash.byMethod.card)} con carta.`}</p>
-            <div className="row"><Btn kind="ghost" size="sm" onClick={() => s.route.go(owner ? '/incassi' : '/cassa')}>{owner ? 'Apri gli incassi' : 'Apri la cassa'}</Btn></div>
+            <div className="row"><Btn kind="ghost" size="sm" onClick={() => s.route.go(owner ? '/fatturazione' : '/cassa')}>{owner ? 'Apri la fatturazione' : 'Apri la cassa'}</Btn></div>
           </div>
+          {owner && <div className="panel">
+            <h3>Presenze da segnare{toMark.length > 0 && <Badge tone="accent">{toMark.length}</Badge>}</h3>
+            <p className="muted">{toMark.length === 0 ? 'Tutte le presenze sono segnate.' : `${toMark.length} ${plural(toMark.length, 'lezione già fatta', 'lezioni già fatte')} con iscritti da segnare presenti o assenti.`}</p>
+            {toMark.length > 0 && <div className="row"><Btn kind="ghost" size="sm" onClick={() => s.route.go('/prenotazioni')}>Segna le presenze</Btn></div>}
+          </div>}
           {owner && <div className="panel">
             <h3>Messaggi WhatsApp{toSend > 0 && <Badge tone="accent">{toSend}</Badge>}</h3>
             <p className="muted">{toSend === 0 ? 'Nessun messaggio da mandare.' : `${toSend} ${plural(toSend, 'messaggio pronto da mandare', 'messaggi pronti da mandare')}: promemoria, posti liberati, abbonamenti in scadenza.`}</p>

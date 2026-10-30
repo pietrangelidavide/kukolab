@@ -61,9 +61,9 @@ export function NewPayment({ onClose, memberId }: { onClose: () => void; memberI
   );
 }
 
-type Period = 'today' | 'week' | 'month' | 'last';
+export type Period = 'today' | 'week' | 'month' | 'last';
 
-function rangeOf(p: Period, today: string): { from: string; to: string; title: string } {
+export function rangeOf(p: Period, today: string): { from: string; to: string; title: string } {
   const monthStart = `${today.slice(0, 7)}-01`;
   if (p === 'today') return { from: today, to: today, title: 'Oggi' };
   if (p === 'week') return { from: addDays(today, -6), to: today, title: 'Ultimi 7 giorni' };
@@ -98,7 +98,7 @@ function PayRow({ p, canVoid }: { p: Payment; canVoid: boolean }) {
   );
 }
 
-function download(name: string, text: string) {
+export function download(name: string, text: string) {
   try {
     const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
     const a = document.createElement('a');

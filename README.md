@@ -2,11 +2,12 @@
 
 Sito vetrina + web app per prenotare i corsi (area cliente, owner, Segreteria e Trainer), in italiano.
 
-- **Vetrina** (`public/`): HTML e CSS statici, senza framework. Parte da Valerio: la sua foto (`public/img/valerio.jpg`) sta nel quadrante del titolo. Ordine delle sezioni (pensato per portare in fretta alla prova gratuita: cosa fai, com'è il posto, chi ti segue, quanto costa, come si comincia, quando): **Corsi** (Pilates, Functional e Personal training con foto, le quattro tappe di una lezione e i dettagli, più "Gli spazi", una striscia di foto che scorre), Chi siamo, **Trainer** ("Chi ti segue": Valerio; la scheda della maestra di Pilates compare quando c'è la foto), **Abbonamenti** (tessere a biglietto e gioco "Trova il tuo abbonamento"), **Prova gratuita** (modulo), Orari, Prenota nell'app, **Nutrizione** (il Dott. Maurizio Calabrò), Contatti. Sul telefono la barra in basso ha Prova gratuita, Prenota e WhatsApp. Quadrante, anteprima dell'app, orari, tessere e schede dei trainer e del nutrizionista sono generati da `npm run site` (da `src/data/schedule.json`, `packs.json`, `nutritionist.json`, `trainers.json`). `public/site.js` fa il resto: "Oggi" e prossima lezione con il conto alla rovescia (ora di Roma), scelta dell'abbonamento, modulo. `public/fx.js` aggiunge gli effetti (vedi sotto).
+- **Ingresso** (`public/index.html` + `public/landing.css`, indirizzo `/`): la prima pagina. Due porte, **Il sito** (conoscere lo studio) e **L'app** (prenotare), più una fascia per lo staff con le cinque aree del gestionale. Il telefono d'esempio dentro la porta dell'app è generato da `npm run site` (segnaposto `<!--MOCK-->`). I link vanno a `/sito` e `/app/`; l'indirizzo del sito usato dall'app sta in `src/config.ts` (`siteHref`, di base `/sito`).
+- **Vetrina** (`public/sito.html`, indirizzo `/sito`): HTML e CSS statici, senza framework. Parte da Valerio: la sua foto (`public/img/valerio.jpg`) sta nel quadrante del titolo. Ordine delle sezioni: **Corsi** (Pilates, Functional e Personal training con foto, le quattro tappe di una lezione e i dettagli), **Gli spazi** (striscia di foto che scorre, resta tra Corsi e Orari), **Orari**, **Chi siamo**, **Trainer** ("Chi ti segue": Valerio; la scheda della maestra di Pilates compare quando c'è la foto), **Nutrizione** (il Dott. Maurizio Calabrò), **Abbonamenti** (tessere a biglietto e gioco "Trova il tuo abbonamento"), **Prova gratuita** (modulo) e **Contatti**. Sul telefono la barra in basso ha Prova gratuita, Prenota e WhatsApp. Quadrante, anteprima dell'app, orari, tessere e schede dei trainer e del nutrizionista sono generati da `npm run site` (da `src/data/schedule.json`, `packs.json`, `nutritionist.json`, `trainers.json`); lo script riempie i segnaposto `<!--TAG-->…<!--/TAG-->` di `sito.html` e di `index.html` e si ferma se ne manca uno. `public/site.js` fa il resto: "Oggi" e prossima lezione con il conto alla rovescia (ora di Roma), scelta dell'abbonamento, modulo. `public/fx.js` aggiunge gli effetti (vedi sotto).
 - **Web app** (`src/` → `public/app/`): React 19 compilato con esbuild, installabile come app dal telefono. Due modalità:
   - **demo**: i dati stanno nel browser (localStorage), con persone, lezioni e abbonamenti di esempio. È quella che si apre senza configurare nulla;
-  - **reale**: i dati stanno su Supabase (database PostgreSQL). **Solo per iscritti**: non ci si registra da soli. L'account esiste per chi lo studio ha iscritto di persona (*Iscritti → Nuovo iscritto*, con l'email); si entra con un **codice a 6 cifre mandato per email**, senza password. Dalla scheda l'owner vede se la persona ha già fatto il primo accesso e la invita con un messaggio WhatsApp già scritto.
-- **Richieste dal sito** (prova gratuita di una lezione e consulenza con il nutrizionista): il modulo della vetrina chiama la funzione `submit_lead` (l'unica aperta anche a chi non ha un account); l'owner le trova nell'app alla voce **Richieste** (e nel riquadro "Richieste dal sito" di *Oggi*), cambia stato (da contattare → contattata → prova fissata → fatta → iscritta / non interessata), scrive una nota, chiama o scrive su WhatsApp, e con un tocco crea l'iscritto. I soci già iscritti possono chiedere la consulenza dalla schermata *Abbonamento*. Le richieste si cancellano da sole dopo 12 mesi.
+  - **reale**: i dati stanno su Supabase (database PostgreSQL). **Solo per iscritti**: non ci si registra da soli. L'account esiste per chi lo studio ha iscritto di persona (*Clienti → Iscritti → Nuovo iscritto*, con l'email); si entra con un **codice a 6 cifre mandato per email**, senza password. Dalla scheda l'owner vede se la persona ha già fatto il primo accesso e la invita con un messaggio WhatsApp già scritto.
+- **Richieste dal sito** (prova gratuita di una lezione e consulenza con il nutrizionista): il modulo della vetrina chiama la funzione `submit_lead` (l'unica aperta anche a chi non ha un account); l'owner le trova nell'app in **Clienti → Richieste** (e nel riquadro "Richieste dal sito" di *Oggi*), cambia stato (da contattare → contattata → prova fissata → fatta → iscritta / non interessata), scrive una nota, chiama o scrive su WhatsApp, e con un tocco crea l'iscritto. I soci già iscritti possono chiedere la consulenza dalla schermata *Abbonamento*. Le richieste si cancellano da sole dopo 12 mesi.
 - **Chi usa l'app, e cosa vede** (quattro ruoli, applicati dal database e non solo nascosti nelle schermate: `supabase/schema.sql`, `src/lib/access.ts`):
 
   | | Cliente | Segreteria | Trainer | Owner |
@@ -19,22 +20,33 @@ Sito vetrina + web app per prenotare i corsi (area cliente, owner, Segreteria e 
   | Presenze | – | tutte le lezioni | solo le sue lezioni | tutte |
   | Orario, pacchetti e prezzi, impostazioni, correzione lezioni di un abbonamento, note private, richieste dal sito, messaggi WhatsApp, report, Team | – | – | – | sì |
 
-  Dal menu: la **Segreteria** ha *Oggi, Orari, Iscritti, Cassa* (orari in sola lettura: vede le lezioni e le prenotazioni, non le modifica); il **Trainer** ha una sola pagina, *Le mie lezioni* (oggi, prossimi 7 giorni e ultimi 3, con chi viene e le presenze, attive da 30 minuti prima dell'inizio); l'**owner** ha in più *Incassi*, *Messaggi* e *Impostazioni → Team*.
-- **Team** (*Impostazioni → Team*, solo owner). La **Segreteria** è un solo account, quello del banco in palestra: non è una persona, quindi conviene una casella dello studio (es. `segreteria@dominio.it`) che resta anche se cambia chi sta al banco. Per entrare si scrive quell'email e si riceve il codice come tutti. I **Trainer** sono tanti: si aggiunge nome ed email, e le lezioni sono sue quando nel campo *Istruttore* dell'orario c'è il suo nome, **o solo il suo nome di battesimo** (maiuscole e spazi non contano: "Elena Bianchi" tiene "Elena" e "Elena Bianchi"). Due trainer con lo stesso nome di battesimo vedrebbero le lezioni l'uno dell'altro se nell'orario c'è solo il nome: in quel caso scrivere il cognome. Chi è già tra gli iscritti passa al team senza perdere la storia; chi viene tolto con una storia nello studio torna iscritto, gli altri vengono cancellati. Gli incassi registrati restano sempre, col nome di chi li ha incassati.
-- **Incassi.** Si registrano alla vendita del pacchetto (importo preimpostato col prezzo di listino, modificabile; 0 € = omaggio, senza incasso) o a parte (quota d'iscrizione, lezione singola…). Metodi: contanti, carta/POS, bonifico, altro. Uno storno non cancella: la riga resta, segnata *Stornato*, e non conta nei totali; lo può fare solo l'owner, quindi se alla Segreteria scappa un errore lo chiede al titolare. Dal CSV (*Scarica per il commercialista*) si apre in Excel italiano. Il **Report** dell'owner ha una sezione *Soldi* che segue il periodo scelto (4, 8 o 12 settimane): incassato con confronto sul periodo precedente della stessa durata, incasso medio, questo mese e il mese scorso, rinnovi in vista (abbonamenti che scadono entro 14 giorni e che l'iscritto non ha già rinnovato, a prezzo di listino), incassi per settimana, ripartizione per metodo e per pacchetto, incassi stornati. I numeri sono calcolati da `src/lib/revenue.ts`. **Nota**: sono incassi interni all'app, non scontrini né fatture.
+  Dal menu: la **Segreteria** ha *Oggi, Orari, Iscritti, Cassa* (orari in sola lettura: vede le lezioni e le prenotazioni, non le modifica); il **Trainer** ha una sola pagina, *Le mie lezioni* (oggi, prossimi 7 giorni e ultimi 3, con chi viene e le presenze, attive da 30 minuti prima dell'inizio); l'**owner** ha *Oggi* e le cinque aree del gestionale (sotto).
+- **Gestionale dell'owner: cinque aree** (`src/lib/areas.ts`, schermate `src/screens/hub-*.tsx`, `owner-report.tsx`). Menu: *Oggi*, **Prenotazioni**, **Report**, **Clienti**, **Fatturazione**, **Dipendenti**, più *Impostazioni* (solo account e demo). Ogni area si apre su una **panoramica** fatta così: in alto i numeri che contano; **"Fai prima"**, le cose che fanno risparmiare tempo (con il conteggio di quante ce ne sono adesso) e che portano dritte all'azione; **"Funzioni"**, punti che si **espandono** con un tocco (se ne apre uno alla volta, `<details name=…>`) e dentro hanno l'elenco e le azioni. Sulle sottopagine una barra di schede riporta all'area. Il calcolo di cosa è urgente sta in `src/lib/insights.ts` (con prove in `tests/insights.test.ts`).
+
+  | Area | "Fai prima" | Sottopagine |
+  |---|---|---|
+  | **Prenotazioni** | presenze da segnare, liste d'attesa, lezioni da riempire, nuova lezione | Calendario (`/orari`), Orario settimanale (`/orari/modelli`), Regole (`/prenotazioni/regole`) |
+  | **Report e statistiche** | orari da rivedere, orari che funzionano, chi viene di più, per trainer | Report completo con la sezione *Soldi* |
+  | **Clienti** | in scadenza, fermi da un mese, richieste da richiamare, messaggi da mandare | Iscritti, Richieste, Messaggi WhatsApp |
+  | **Fatturazione** | registra un incasso, vendi un pacchetto, rinnovi in arrivo, file per il commercialista | Incassi, Listino pacchetti |
+  | **Dipendenti** | istruttori senza accesso, trainer senza lezioni, lezioni svolte | Team (Segreteria e Trainer), permessi, lezioni e presenze per trainer |
+
+  I vecchi indirizzi (`/orari`, `/iscritti`, `/richieste`, `/messaggi`, `/incassi`, `/pacchetti`, `/impostazioni`) continuano a funzionare e accendono l'area giusta. L'icona WhatsApp in alto, col numero dei messaggi da mandare, resta sempre visibile. **Fatturazione** vuol dire incassi, listino e rinnovi dell'app: non emette fatture o scontrini elettronici (vedi *Cose da fare*).
+- **Team** (*Dipendenti*, solo owner). La **Segreteria** è un solo account, quello del banco in palestra: non è una persona, quindi conviene una casella dello studio (es. `segreteria@dominio.it`) che resta anche se cambia chi sta al banco. Per entrare si scrive quell'email e si riceve il codice come tutti. I **Trainer** sono tanti: si aggiunge nome ed email, e le lezioni sono sue quando nel campo *Istruttore* dell'orario c'è il suo nome, **o solo il suo nome di battesimo** (maiuscole e spazi non contano: "Elena Bianchi" tiene "Elena" e "Elena Bianchi"). Due trainer con lo stesso nome di battesimo vedrebbero le lezioni l'uno dell'altro se nell'orario c'è solo il nome: in quel caso scrivere il cognome. Chi è già tra gli iscritti passa al team senza perdere la storia; chi viene tolto con una storia nello studio torna iscritto, gli altri vengono cancellati. Gli incassi registrati restano sempre, col nome di chi li ha incassati.
+- **Incassi.** Si registrano alla vendita del pacchetto (importo preimpostato col prezzo di listino, modificabile; 0 € = omaggio, senza incasso) o a parte (quota d'iscrizione, lezione singola…). Metodi: contanti, carta/POS, bonifico, altro. Uno storno non cancella: la riga resta, segnata *Stornato*, e non conta nei totali; lo può fare solo l'owner, quindi se alla Segreteria scappa un errore lo chiede al titolare. Dal CSV (*Fatturazione → File per il commercialista*, o *Incassi*) si apre in Excel italiano. Il **Report** dell'owner ha una sezione *Soldi* (le stesse cifre, in sintesi, stanno nella panoramica di *Fatturazione*) che segue il periodo scelto (4, 8 o 12 settimane): incassato con confronto sul periodo precedente della stessa durata, incasso medio, questo mese e il mese scorso, rinnovi in vista (abbonamenti che scadono entro 14 giorni e che l'iscritto non ha già rinnovato, a prezzo di listino), incassi per settimana, ripartizione per metodo e per pacchetto, incassi stornati. I numeri sono calcolati da `src/lib/revenue.ts`. **Nota**: sono incassi interni all'app, non scontrini né fatture.
 - Le regole di prenotazione sono scritte due volte, di proposito: in `src/lib/rules.ts` (demo e anteprime) e in `supabase/schema.sql` (database vero). Se si cambia una, si cambia anche l'altra; le prove lo controllano.
 
 ## Comandi
 
 ```bash
 npm install
-npm run dev            # sito su http://localhost:8800, app su /app/ (si ricompila da sola)
+npm run dev            # ingresso su http://localhost:8800, sito su /sito, app su /app/ (si ricompila da sola)
 npm run build          # compila la web app in public/app/ (è quello che gira su Cloudflare)
-npm run site           # rigenera nella vetrina orari, tessere, nutrizionista, anteprima app e quadrante (da src/data/*.json)
+npm run site           # rigenera in sito.html orari, tessere, nutrizionista, anteprima app e quadrante, e in index.html il telefono d'esempio (da src/data/*.json)
 npm test               # prove delle regole (non serve nulla di installato oltre a Node)
 npm run db:test        # prove dello schema SQL su un PostgreSQL locale
 npm run db:e2e         # prova dell'app in modalità reale contro lo schema vero (finto Supabase locale)
-npm run preview:build  # pagine a file unico in .tmp/preview/ (sito.html, app.html) e, in multi/, index + app + privacy da pubblicare insieme
+npm run preview:build  # pagine a file unico in .tmp/preview/ (ingresso.html, sito.html, app.html) e, in multi/, index (ingresso) + sito + app + privacy da pubblicare insieme
 ```
 
 `db:test` e `db:e2e` usano un PostgreSQL installato sul computer (cercano `/usr/lib/postgresql/*/bin`); non toccano nessun database vero.
@@ -63,7 +75,7 @@ Senza le due variabili l'app resta in **demo**: va bene per mostrarla al cliente
    insert into public.members (name, email, phone, role) values ('Valerio Cuscianna', 'EMAIL_DI_VALERIO', 'TELEFONO', 'owner');
    ```
    Poi Valerio apre `https://DOMINIO/app/`, scrive la sua email e il codice che riceve: la scheda si collega al suo account. Altri owner: stessa cosa, oppure `update public.members set role = 'owner' where lower(email) = lower('EMAIL');` dopo il loro primo accesso.
-9. Da owner: *Pacchetti* (crea i pacchetti in vendita), *Orari → Orario settimanale* (le lezioni si generano da sole per i giorni di prenotazione previsti), *Impostazioni*, poi *Impostazioni → Team* per creare la Segreteria e i Trainer (non serve nessun SQL). Se il progetto era già attivo basta rieseguire `schema.sql`: aggiunge ruoli, incassi e Team senza toccare i dati.
+9. Da owner: *Fatturazione → Listino* (crea i pacchetti in vendita), *Prenotazioni → Orario* (le lezioni si generano da sole per i giorni di prenotazione previsti) e *Prenotazioni → Regole*, poi *Dipendenti* per creare la Segreteria e i Trainer (non serve nessun SQL). Se il progetto era già attivo basta rieseguire `schema.sql`: aggiunge ruoli, incassi e Team senza toccare i dati.
 
 **Pagina per il secondo QR** (`public/installa.html`, indirizzo `/installa`): spiega in tre passi come mettere l'app sulla Home, su iPhone e su Android (riconosce il telefono). Il QR da stampare punta qui; il QR di accesso punta a `/app/`.
 
@@ -73,9 +85,9 @@ Senza le due variabili l'app resta in **demo**: va bene per mostrarla al cliente
 
 **Prova da fare una volta sul progetto vero** (le prove automatiche usano un finto Supabase): 1) con l'email di un iscritto inserito dall'owner arriva il codice e si entra; 2) con un'email qualsiasi non arriva niente e l'app dice comunque "Se è tra le email degli iscritti…"; 3) in *Authentication → Users* non compare nessun utente nuovo per quella email; 4) se non arriva niente per un iscritto, guardare *Logs → Auth* e i modelli email (punto 5).
 
-## Messaggi WhatsApp (pagina *Messaggi*, solo owner)
+## Messaggi WhatsApp (*Clienti → Messaggi*, solo owner)
 
-L'app **non manda niente da sola**: ogni giorno prepara chi va avvisato e con quale testo, l'owner tocca *Invia*, si apre WhatsApp con il messaggio già scritto e preme invio (nessun costo, nessuna approvazione di Meta). Si trova nel menu (con il numero di messaggi da mandare), dall'icona WhatsApp in alto e dal riquadro "Messaggi WhatsApp" di *Oggi*.
+L'app **non manda niente da sola**: ogni giorno prepara chi va avvisato e con quale testo, l'owner tocca *Invia*, si apre WhatsApp con il messaggio già scritto e preme invio (nessun costo, nessuna approvazione di Meta). Si trova in *Clienti* (con il numero di messaggi da mandare), dall'icona WhatsApp in alto e dal riquadro "Messaggi WhatsApp" di *Oggi*.
 
 - **Posto liberato**: chi è entrato dalla lista d'attesa nelle ultime 36 ore.
 - **Lezione annullata**: chi era prenotato o in lista (tolte le persone che avevano già annullato da sole).
@@ -86,7 +98,7 @@ L'app **non manda niente da sola**: ogni giorno prepara chi va avvisato e con qu
 
 La logica sta in `src/lib/messages.ts` (funzioni pure, testi e pesi in un posto solo, test in `tests/messages.test.ts`). Cosa è già stato mandato o scartato lo ricorda il dispositivo (`src/sentlog.ts`, localStorage): su un altro telefono l'elenco riparte da zero. Gli stessi testi si possono usare come modelli quando si passerà all'API ufficiale di WhatsApp (invio automatico, a pagamento per messaggio).
 
-## Regole di prenotazione (valori modificabili in Impostazioni)
+## Regole di prenotazione (valori modificabili in *Prenotazioni → Regole*)
 
 - Si prenota fino a N giorni prima (14) e fino a M minuti prima dell'inizio (15).
 - Serve un abbonamento valido per quel corso; se ce ne sono più di uno, si usa quello che scade prima. I mensili possono avere un limite settimanale.
@@ -98,33 +110,35 @@ La logica sta in `src/lib/messages.ts` (funzioni pure, testi e pesi in un posto 
 ## Cose da fare prima del go-live
 
 - [ ] **Orari reali**, capienze, istruttori: `src/data/schedule.json` (oggi sono esempi) e poi `npm run site`.
-- [ ] **Pacchetti e prezzi reali**: `src/data/packs.json` (sono esempi) e poi `npm run site`; nel database vero si creano da *Pacchetti* nell'app. Se il cliente preferisce non mostrare i prezzi sul sito, `"showPrices": false` nello stesso file.
+- [ ] **Pacchetti e prezzi reali**: `src/data/packs.json` (sono esempi) e poi `npm run site`; nel database vero si creano da *Fatturazione → Listino* nell'app. Se il cliente preferisce non mostrare i prezzi sul sito, `"showPrices": false` nello stesso file.
 - [ ] **Nutrizionista**: foto, telefono, email e Instagram sono presi dalla locandina; da far confermare al Dott. Calabrò (`src/data/nutritionist.json`, la foto è un ritaglio del volantino: meglio una foto originale in `public/img/nutrizionista.jpg`). Va chiarito con lui come passarsi le richieste.
 - [ ] **Foto delle lezioni e degli spazi**: le foto dei corsi e la striscia animata "Gli spazi" (`public/img/studio-*.jpg` e `studio-*-wide.jpg`) sono state ritagliate dalle immagini mandate dal cliente (`scripts/photos.py`). Prima di pubblicare servono il consenso delle persone riprese e, per le foto del sito, la conferma di Valerio. Le "quattro tappe" delle lezioni, "piccoli gruppi" e "gruppi da 6/8 persone" sono testi da confermare con lui.
 - [ ] **Notifica delle nuove richieste**: oggi l'owner le vede nell'app; email o notifica push richiedono un'integrazione in più (ad esempio una funzione di Supabase che manda una mail).
 - [ ] **Trainer**: la sezione "I trainer" della vetrina si genera da `src/data/trainers.json`. Per la maestra di Pilates: salvare la foto come `public/img/trainer-pilates.jpg` (verticale 4:5, almeno 600 px di larghezza), scrivere il nome in `"name"` e lanciare `npm run site`; finché il file non esiste la scheda non compare nella vetrina. Il ritratto di Valerio (`trainer-valerio.jpg`) è un ingrandimento della foto piccola e scura (`public/img/valerio.jpg`) fatto da `scripts/photos.py`: con uno scatto nuovo e nitido si sostituisce quel file. Titoli e credenziali di Valerio sono quelli già presenti nella vetrina; da far confermare. Nel calendario demo il Pilates è ancora assegnato a "Team KUKO" (`src/data/schedule.json`).
 - [ ] **Numero WhatsApp**: in `src/config.ts` è `393920948122` (interpretato da "13920948122"); da confermare.
-- [ ] **Dati societari** (ragione sociale, P. IVA, sede legale) nel footer: il segnaposto è in `public/index.html`. **Informativa privacy**: `public/privacy.html` è una bozza (parti tra parentesi quadre da completare: titolare, email, fornitori e paese dei server) da far rivedere da un consulente prima della pubblicazione.
-- [ ] **Dominio**: collegarlo a Cloudflare, poi togliere `noindex` da `public/index.html`, cancellare `public/robots.txt` (blocca Google), aggiungere canonical/og:url/JSON-LD con l'indirizzo definitivo e i `routes` con `custom_domain` in `wrangler.jsonc`.
+- [ ] **Dati societari** (ragione sociale, P. IVA, sede legale) nel footer: il segnaposto è in `public/sito.html` e `public/index.html` (footer). **Informativa privacy**: `public/privacy.html` è una bozza (parti tra parentesi quadre da completare: titolare, email, fornitori e paese dei server) da far rivedere da un consulente prima della pubblicazione.
+- [ ] **Dominio**: collegarlo a Cloudflare, poi togliere `noindex` da `public/index.html` e `public/sito.html`, cancellare `public/robots.txt` (blocca Google), aggiungere canonical/og:url/JSON-LD con l'indirizzo definitivo e i `routes` con `custom_domain` in `wrangler.jsonc`.
 - [ ] Attivare la modalità reale (sopra) e provare un giro completo: iscrizione in studio, invito WhatsApp, primo accesso con il codice, prenotazione, annullo, lista d'attesa. Poi, con l'account della Segreteria: vendita di un pacchetto con incasso, nuovo iscritto, cassa di oggi; con un Trainer: le sue lezioni e le presenze.
-- [ ] **Segreteria e Trainer**: scegliere l'email della Segreteria (casella dello studio) e creare gli account da *Impostazioni → Team*; per ogni Trainer controllare che il nome nel campo *Istruttore* dell'orario coincida (la pagina Team segna "Da abbinare" chi non ha ancora lezioni).
+- [ ] **Segreteria e Trainer**: scegliere l'email della Segreteria (casella dello studio) e creare gli account da *Dipendenti*; per ogni Trainer controllare che il nome nel campo *Istruttore* dell'orario coincida (la pagina Team segna "Da abbinare" chi non ha ancora lezioni).
 - [ ] **Mittente email del dominio** (SMTP) per i codici: va configurato prima del lancio, con SPF/DKIM del dominio (punto 5 sopra). Senza, i clienti non ricevono il codice e non entrano.
+- [ ] **Fatture e scontrini elettronici** (non ancora fatti): *Fatturazione* è la cassa interna (incassi, listino, rinnovi, CSV). L'emissione fiscale resta al gestionale/commercialista dello studio; si può collegare in un secondo momento.
 - [ ] **Acquisti online** (non ancora fatti): vendita di pacchetti dal sito/app con pagamento online. Richiede un provider di pagamento, le condizioni di vendita (recesso), lo scontrino/fattura e l'informativa privacy aggiornata; oggi i pacchetti si vendono in studio e l'owner li assegna dalla scheda.
 
 ## Dove sta cosa
 
 ```
-public/            vetrina (index.html, privacy.html, style.css, site.js, fx.js, img/, fonts/)
+public/            ingresso (index.html, landing.css), vetrina (sito.html, style.css, site.js, fx.js), privacy.html, img/, fonts/
 public/app/        generata da npm run build (non in git)
 src/lib/rules.ts   regole di prenotazione (pure funzioni)
 src/lib/leads.ts   richieste dal sito (modulo, stati, scadenza a 12 mesi)
 src/lib/access.ts  chi può fare cosa (specchio dei permessi del database) e quali lezioni sono di un Trainer
 src/lib/payments.ts  incassi: totali, periodi, mesi, importi, CSV     src/lib/team.ts  Segreteria e Trainer
 src/lib/revenue.ts  soldi del Report: confronto, settimane, metodi, pacchetti, rinnovi
+src/lib/areas.ts   le cinque aree del gestionale (menu, schede, vecchi indirizzi)   src/lib/insights.ts  cosa è urgente: presenze da segnare, lezioni da riempire, clienti fermi, statistiche per trainer
 src/data/          schedule.json (orari), packs.json (pacchetti), nutritionist.json, trainers.json
 src/lib/local.ts   demo nel browser          src/lib/remote.ts   Supabase (fetch)
 src/lib/api.ts     contratto comune tra le due
-src/screens/       schermate cliente, owner, Segreteria (Oggi/Cassa) e Trainer (lessons.tsx)
+src/screens/       schermate cliente, owner, Segreteria (Oggi/Cassa) e Trainer (lessons.tsx); hub-bookings/clients/billing/staff.tsx = panoramiche delle aree, area-ui.tsx = pezzi in comune (Fai prima, punti espandibili)
 supabase/          schema.sql, prove SQL e prova end-to-end
 tests/             prove delle regole e dei dati demo
 ```
@@ -140,6 +154,6 @@ tests/             prove delle regole e dei dati demo
 
 **Parti espandibili sul telefono** (`site.js`, in fondo + blocco "parti espandibili" di `style.css`). Solo fino a 760 px le parti più lunghe si chiudono dietro un tocco: le tappe/parole chiave di ogni corso (la riga "Una lezione, in quattro tappe"), le 8 tessere ("Vedi tutte le tessere e i prezzi", con "Richiudi" in fondo), un giorno per volta negli orari (aperto quello di oggi; toccare un tipo di lezione nella legenda li apre tutti), i punti della consulenza di nutrizione e i "Come funziona" di prova e prenotazione. I contenitori `.fold` vengono creati e tolti da JS al cambio di larghezza: sul desktop la pagina è identica a prima e senza JS resta tutta aperta. I link che puntano dentro una parte chiusa (per esempio "Guarda la tessera" del gioco) la aprono da soli prima di scorrere. Accessibilità: bottoni con `aria-expanded`/`aria-controls`, contenuto chiuso `inert`. Per escludere una parte basta togliere la sua chiamata `Fold({...})` in `site.js`; l'HTML generato da `npm run site` non cambia.
 
-**Striscia "Gli spazi" (vetrina)**: `[data-reel]` in `public/index.html`, animata da `public/site.js` (scorrimento continuo, trascinabile, rallenta al passaggio del mouse). Con `prefers-reduced-motion` o senza JavaScript diventa una normale fila scorrevole a mano.
+**Striscia "Gli spazi" (vetrina)**: `[data-reel]` in `public/sito.html`, animata da `public/site.js` (scorrimento continuo, trascinabile, rallenta al passaggio del mouse). Con `prefers-reduced-motion` o senza JavaScript diventa una normale fila scorrevole a mano.
 
 Font Big Shoulders e Instrument Sans (vetrina) e Montserrat (app), tutti con licenza SIL Open Font License, inclusi in `public/fonts/`.

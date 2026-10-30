@@ -464,7 +464,7 @@
   // nutrizione e "come funziona"
   var ben = one('.benefits');
   if (ben) Fold({ label: 'Cosa include la consulenza', labelOpen: 'Nascondi i dettagli', count: ben.children.length + ' punti', items: function () { return [ben]; } });
-  $$('#prova .steps, #prenota .steps').forEach(function (st) {
+  $$('#prova .steps').forEach(function (st) {
     Fold({ label: 'Come funziona', labelOpen: 'Nascondi i passi', count: st.children.length + ' passi', items: function () { return [st]; } });
   });
 

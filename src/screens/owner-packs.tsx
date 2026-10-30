@@ -3,9 +3,8 @@ import { useStore } from '../store';
 import { Badge, Btn, Empty, Field, Icon, Sheet, Toggle } from '../ui';
 import { PageHead, PasswordForm, typeNames } from './common';
 import { euro, plural } from '../lib/format';
-import type { Pack, Settings } from '../lib/types';
+import type { Pack } from '../lib/types';
 import { homePath } from '../lib/access';
-import { TeamSection } from './owner-team';
 
 // ------------------------------------------------------------------ Pacchetti
 export function Packs() {
@@ -19,7 +18,7 @@ export function Packs() {
 
   return (
     <>
-      <PageHead title="Pacchetti" sub="Quello che vendi in studio. Alla vendita si propone il prezzo di listino, e l’incasso si registra insieme al pacchetto." right={<Btn size="sm" onClick={() => setEdit('new')}><Icon n="plus" size={16} /> Nuovo pacchetto</Btn>} />
+      <PageHead title="Listino pacchetti" sub="Quello che vendi in studio. Alla vendita si propone il prezzo di listino, e l’incasso si registra insieme al pacchetto." right={<Btn size="sm" onClick={() => setEdit('new')}><Icon n="plus" size={16} /> Nuovo pacchetto</Btn>} />
       {list.length === 0 ? <Empty icon="ticket" title="Nessun pacchetto" text="Crea il primo pacchetto: poi potrai assegnarlo agli iscritti." /> : (
         <ul className="packs">
           {list.map((p) => (
@@ -94,32 +93,15 @@ function PackSheet({ pack, onClose }: { pack: Pack | null; onClose: () => void }
 }
 
 // ------------------------------------------------------------------ Impostazioni
+/** Impostazioni dell'account e della prova. Regole di prenotazione e team stanno nelle loro aree (Prenotazioni, Dipendenti). */
 export function SettingsScreen() {
   const s = useStore();
-  const d = s.data!;
-  const [cw, setCw] = useState(String(d.settings.cancelWindowHours));
-  const [hz, setHz] = useState(String(d.settings.bookingHorizonDays));
-  const [bc, setBc] = useState(String(d.settings.bookingCloseMinutes));
-  const [wl, setWl] = useState(d.settings.waitlistEnabled);
-  const next: Settings = { ...d.settings, cancelWindowHours: Number(cw), bookingHorizonDays: Number(hz), bookingCloseMinutes: Number(bc), waitlistEnabled: wl };
-  const valid = Number(cw) >= 0 && Number(cw) <= 72 && Number(hz) >= 1 && Number(hz) <= 60 && Number(bc) >= 0 && Number(bc) <= 240 && cw !== '' && hz !== '' && bc !== '';
-  const dirty = JSON.stringify(next) !== JSON.stringify(d.settings);
 
   return (
     <>
-      <PageHead title="Impostazioni" sub="Le regole di prenotazione valgono per tutti i clienti." />
-      <form className="form narrow" onSubmit={async (e) => { e.preventDefault(); await s.run(s.api.saveSettings(next), 'Impostazioni salvate.'); }}>
-        <Field label="Annullo gratuito fino a (ore prima)" hint={Number(cw) === 0 ? 'Si può annullare gratis fino all’inizio della lezione.' : `Chi annulla a meno di ${cw || 0} ore dall’inizio perde la lezione.`}><input type="number" min={0} max={72} value={cw} onChange={(e) => setCw(e.target.value)} /></Field>
-        <Field label="Si prenota fino a (giorni in anticipo)" hint="Le lezioni più lontane non si possono ancora prenotare."><input type="number" min={1} max={60} value={hz} onChange={(e) => setHz(e.target.value)} /></Field>
-        <Field label="Le prenotazioni chiudono (minuti prima)" hint="Dopo questo limite il cliente non prenota più da solo: puoi sempre aggiungerlo tu."><input type="number" min={0} max={240} value={bc} onChange={(e) => setBc(e.target.value)} /></Field>
-        <div className="row between"><span><b>Lista d&#8217;attesa</b><br /><small className="muted">Se la lezione è piena, il cliente può mettersi in coda: se si libera un posto entra da solo.</small></span><Toggle on={wl} onChange={setWl} label="Lista d’attesa" /></div>
-        <div className="row"><Btn type="submit" disabled={!dirty || !valid}>Salva</Btn></div>
-      </form>
-
-      <h2 className="sec">Orario</h2>
-      <button className="link-row" onClick={() => s.route.go('/orari/modelli')}><span>Orario settimanale<small className="muted"> · {d.templates.filter((t) => t.active).length} righe attive</small></span><Icon n="right" size={18} /></button>
-
-      <TeamSection />
+      <PageHead title="Impostazioni" sub="Il tuo accesso e la modalità di prova. Il resto sta nelle aree." />
+      <button className="link-row" onClick={() => s.route.go('/prenotazioni/regole')}><span>Regole di prenotazione<small className="muted"> · annulli, anticipo, lista d&#8217;attesa</small></span><Icon n="right" size={18} /></button>
+      <button className="link-row" onClick={() => s.route.go('/dipendenti')}><span>Segreteria e Trainer<small className="muted"> · accessi e permessi</small></span><Icon n="right" size={18} /></button>
 
       {s.api.mode === 'demo' && (
         <div className="demo-box">

@@ -3,6 +3,8 @@ import { useStore } from '../store';
 import { Avatar, Empty, Seg } from '../ui';
 import { PageHead } from './common';
 import { Money } from './report-money';
+import { Fast, Points, openPoint } from './area-ui';
+import { TrainerTable } from './hub-staff';
 import { counts } from '../lib/rules';
 import { typeOf, weeklyBookings } from '../lib/selectors';
 import { addDays, endOf, mondayOf, romeDay, weekdayOf } from '../lib/time';
@@ -61,12 +63,15 @@ export function Report() {
   const top = Math.ceil(max / step) * step;
   const ticks = [0, top / 2, top];
   const typesUsed = d.types.filter((t) => wk.some((w) => (w.byType[t.id] ?? 0) > 0));
+  const weak = r.worst.filter((e) => e.fill < 0.4);
+  const strong = r.best.filter((e) => e.fill >= 0.8);
+  const slotRow = (e: (typeof r.best)[number]) => <li key={`${e.typeId}${e.wd}${e.time}`}><div className="who"><b>{typeOf(d, e.typeId).name}</b><small>{WDN[e.wd]} {e.time} · {e.n} {plural(e.n, 'lezione', 'lezioni')}</small></div><b>{pct(e.fill)}</b></li>;
 
-  if (d.sessions.length === 0) return <><PageHead title="Report" /><Empty icon="chart" title="Ancora nessun dato" text="Il report si riempie con le prime lezioni." /></>;
+  if (d.sessions.length === 0) return <><PageHead title="Report e statistiche" /><Empty icon="chart" title="Ancora nessun dato" text="Il report si riempie con le prime lezioni." /></>;
 
   return (
     <>
-      <PageHead title="Report" sub={`Dal ${dayDM(from)} a oggi. Lezioni già svolte e incassi registrati.`} right={
+      <PageHead title="Report e statistiche" sub={`Dal ${dayDM(from)} a oggi. Lezioni già svolte e incassi registrati.`} right={
         <Seg label="Periodo" value={String(weeks) as '4' | '8' | '12'} onChange={(v) => setWeeks(Number(v) as 4 | 8 | 12)} options={[{ v: '4', t: '4 sett.' }, { v: '8', t: '8 sett.' }, { v: '12', t: '12 sett.' }]} />
       } />
 
@@ -76,6 +81,35 @@ export function Report() {
         <div><dt>Presenze registrate</dt><dd>{r.attended}</dd></div>
         <div><dt>Assenze · annulli tardivi</dt><dd>{r.noShow}<small> · {r.late}</small></dd></div>
       </dl>
+
+      <h2 className="sec">Fai prima</h2>
+      <Fast items={[
+        { icon: 'alert', title: 'Orari da rivedere', count: weak.length, text: 'Lezioni che si riempiono poco: spostale o togline una', done: 'Nessun orario sotto il 40%', onClick: () => openPoint('rv-peggio') },
+        { icon: 'bolt', title: 'Orari che funzionano', count: strong.length, text: 'Pieni quasi sempre: valuta una lezione in più', done: 'Nessun orario sopra l’80%', onClick: () => openPoint('rv-meglio') },
+        { icon: 'users', title: 'Chi viene di più', text: 'I tuoi iscritti più presenti: a loro serve un grazie', onClick: () => openPoint('rv-top') },
+        { icon: 'user', title: 'Per trainer', text: 'Lezioni, riempimento e presenze di ognuno', onClick: () => openPoint('rv-trainer') },
+      ]} />
+
+      <Points group="report" items={[
+        {
+          id: 'rv-peggio', icon: 'alert', title: 'Orari da rivedere', count: weak.length,
+          summary: r.worst[0] ? `${typeOf(d, r.worst[0].typeId).name}, ${WDN[r.worst[0].wd]} ${r.worst[0].time}: ${pct(r.worst[0].fill)}` : 'Servono almeno due settimane di lezioni',
+          children: r.worst.length === 0 ? <p className="muted">Nessun confronto possibile per ora.</p> : <ul className="rank">{r.worst.map(slotRow)}</ul>,
+        },
+        {
+          id: 'rv-meglio', icon: 'bolt', title: 'Orari che funzionano', count: strong.length,
+          summary: r.best[0] ? `${typeOf(d, r.best[0].typeId).name}, ${WDN[r.best[0].wd]} ${r.best[0].time}: ${pct(r.best[0].fill)}` : 'Servono almeno due settimane di lezioni',
+          children: r.best.length === 0 ? <p className="muted">Servono almeno due settimane di lezioni per fare il confronto.</p> : <ul className="rank">{r.best.map(slotRow)}</ul>,
+        },
+        {
+          id: 'rv-top', icon: 'users', title: 'Chi viene di più',
+          summary: r.top[0] ? `${r.top[0].m.name}, ${r.top[0].n} ${plural(r.top[0].n, 'lezione', 'lezioni')}` : 'Ancora nessuna presenza',
+          children: r.top.length === 0 ? <p className="muted">Ancora nessuna presenza.</p> : (
+            <ul className="rank">{r.top.map(({ m, n }) => <li key={m.id}><Avatar name={m.name} size={32} /><div className="who"><a href={`#/iscritti/${m.id}`} onClick={(e) => { e.preventDefault(); s.route.go(`/iscritti/${m.id}`); }}>{m.name}</a></div><b>{n}</b></li>)}</ul>
+          ),
+        },
+        { id: 'rv-trainer', icon: 'user', title: 'Per trainer', summary: `Ultime ${weeks} settimane`, children: <TrainerTable weeks={weeks} /> },
+      ]} />
 
       <Money weeks={weeks} />
 
@@ -140,27 +174,6 @@ export function Report() {
             ))}
           </tbody>
         </table>
-      </div>
-
-      <div className="rep-cols">
-        <section>
-          <h2 className="sec">Orari che funzionano</h2>
-          {r.best.length === 0 ? <p className="muted">Servono almeno due settimane di lezioni per fare il confronto.</p> : (
-            <ul className="rank">{r.best.map((e) => <li key={`${e.typeId}${e.wd}${e.time}`}><div className="who"><b>{typeOf(d, e.typeId).name}</b><small>{WDN[e.wd]} {e.time} · {e.n} {plural(e.n, 'lezione', 'lezioni')}</small></div><b>{pct(e.fill)}</b></li>)}</ul>
-          )}
-        </section>
-        <section>
-          <h2 className="sec">Orari da rivedere</h2>
-          {r.worst.length === 0 ? <p className="muted">Nessun confronto possibile per ora.</p> : (
-            <ul className="rank">{r.worst.map((e) => <li key={`${e.typeId}${e.wd}${e.time}`}><div className="who"><b>{typeOf(d, e.typeId).name}</b><small>{WDN[e.wd]} {e.time} · {e.n} {plural(e.n, 'lezione', 'lezioni')}</small></div><b>{pct(e.fill)}</b></li>)}</ul>
-          )}
-        </section>
-        <section>
-          <h2 className="sec">Chi viene di più</h2>
-          {r.top.length === 0 ? <p className="muted">Ancora nessuna presenza.</p> : (
-            <ul className="rank">{r.top.map(({ m, n }) => <li key={m.id}><Avatar name={m.name} size={32} /><div className="who"><a href={`#/iscritti/${m.id}`} onClick={(e) => { e.preventDefault(); s.route.go(`/iscritti/${m.id}`); }}>{m.name}</a></div><b>{n}</b></li>)}</ul>
-          )}
-        </section>
       </div>
     </>
   );

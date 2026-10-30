@@ -1,5 +1,7 @@
-// Inserisce nella vetrina (public/index.html) le parti generate: orario settimanale (da src/data/schedule.json), anteprima dell'app, quadrante del ritratto,
-// tessere degli abbonamenti (da src/data/packs.json), schede del nutrizionista (da src/data/nutritionist.json) e dei trainer (da src/data/trainers.json).
+// Inserisce le parti generate in due pagine statiche:
+//   public/sito.html  (vetrina): orario settimanale (src/data/schedule.json), quadrante del ritratto, tessere degli abbonamenti (src/data/packs.json),
+//                     schede del nutrizionista (src/data/nutritionist.json) e dei trainer (src/data/trainers.json);
+//   public/index.html (pagina di ingresso): anteprima dell'app nel telefono (primi corsi del lunedì).
 // Uso: npm run site   (da rilanciare quando cambiano orari, pacchetti o dati del nutrizionista)
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -135,19 +137,26 @@ const trainersHtml = trainers.map((t) => {
         </li>`;
 }).join('\n');
 
-const file = join(root, 'public', 'index.html');
-let src = readFileSync(file, 'utf8');
-const put = (tag, body) => {
-  const re = new RegExp(`<!--${tag}-->[\\s\\S]*?<!--/${tag}-->`);
-  if (!re.test(src)) throw new Error(`segnaposto ${tag} non trovato`);
-  src = src.replace(re, () => `<!--${tag}-->\n${body}\n<!--/${tag}-->`);
+// Ogni pagina ha i suoi segnaposto <!--TAG-->…<!--/TAG-->; se ne manca uno si ferma, così un refuso nell'HTML non passa in silenzio.
+const fill = (name, parts) => {
+  const file = join(root, 'public', name);
+  let src = readFileSync(file, 'utf8');
+  for (const [tag, body] of Object.entries(parts)) {
+    const re = new RegExp(`<!--${tag}-->[\\s\\S]*?<!--/${tag}-->`);
+    if (!re.test(src)) throw new Error(`${name}: segnaposto ${tag} non trovato`);
+    src = src.replace(re, () => `<!--${tag}-->\n${body}\n<!--/${tag}-->`);
+  }
+  writeFileSync(file, src);
 };
-put('ORARI', `      <div class="week">\n${week}\n      </div>`);
-put('MOCK', `          <div class="m-days">${chips}</div>\n          <ul class="m-list">\n${mock}\n          </ul>`);
-put('DIAL', `    ${dial}`);
-put('PACKS', [ticket, ...cards].join('\n'));
-put('PACKSDATA', `<script type="application/json" id="packs-data">${JSON.stringify(packsData).replace(/</g, '\\u003c')}</script>`);
-put('NUTRI', nutriHtml);
-put('TRAINERS', trainersHtml);
-writeFileSync(file, src);
-console.log('orari, anteprima app, quadrante, tessere, nutrizionista e trainer inseriti');
+fill('sito.html', {
+  ORARI: `      <div class="week">\n${week}\n      </div>`,
+  DIAL: `    ${dial}`,
+  PACKS: [ticket, ...cards].join('\n'),
+  PACKSDATA: `<script type="application/json" id="packs-data">${JSON.stringify(packsData).replace(/</g, '\\u003c')}</script>`,
+  NUTRI: nutriHtml,
+  TRAINERS: trainersHtml,
+});
+fill('index.html', {
+  MOCK: `          <div class="m-days">${chips}</div>\n          <ul class="m-list">\n${mock}\n          </ul>`,
+});
+console.log('sito: orari, quadrante, tessere, nutrizionista e trainer · ingresso: anteprima app');

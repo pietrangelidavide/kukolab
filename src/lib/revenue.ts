@@ -3,6 +3,7 @@
 import type { Data, PayMethod, Payment } from './types';
 import { METHODS, between, byMonth, totals } from './payments';
 import { expiringPasses, passState } from './selectors';
+import type { Expiring } from './selectors';
 import { addDays, diffDays, mondayOf, romeDay } from './time';
 
 export interface WeekMoney { weekStart: string; cents: number; count: number }
@@ -36,15 +37,21 @@ export const niceTop = (cents: number): number => {
   return (steps.find((x) => x >= e) ?? Math.ceil(e / 100000) * 100000) * 100;
 };
 
-/** Abbonamenti che scadono entro `days` giorni e che l'iscritto non ha già rinnovato: è quello che potrebbe rientrare. */
-export function renewalsDue(d: Data, now: Date, days = 14): Renewals {
+/** Abbonamenti che scadono entro `days` giorni e che l'iscritto non ha già rinnovato: sono quelli che potrebbero rientrare. */
+export function renewalCandidates(d: Data, now: Date, days = 14): Expiring[] {
   const today = romeDay(now);
+  return expiringPasses(d, now, days).filter(({ pass: p, reason }) => {
+    if (reason !== 'date') return false;
+    const covered = d.passes.some((q) => q.id !== p.id && q.memberId === p.memberId && ['active', 'upcoming'].includes(passState(q, today)) && q.expiresOn >= p.expiresOn && !(q.kind === 'pack' && (q.creditsLeft ?? 0) <= 2));
+    return !covered;
+  });
+}
+
+/** Quanti sono e quanto varrebbero (a prezzo di listino) i rinnovi in arrivo. */
+export function renewalsDue(d: Data, now: Date, days = 14): Renewals {
   const price = new Map(d.packs.map((p) => [p.id, p.priceCents]));
   let count = 0, cents = 0, unpriced = 0;
-  for (const { pass: p, reason } of expiringPasses(d, now, days)) {
-    if (reason !== 'date') continue;
-    const covered = d.passes.some((q) => q.id !== p.id && q.memberId === p.memberId && ['active', 'upcoming'].includes(passState(q, today)) && q.expiresOn >= p.expiresOn && !(q.kind === 'pack' && (q.creditsLeft ?? 0) <= 2));
-    if (covered) continue;
+  for (const { pass: p } of renewalCandidates(d, now, days)) {
     count += 1;
     const c = p.packId ? price.get(p.packId) : undefined;
     if (c === undefined) unpriced += 1; else cents += c;

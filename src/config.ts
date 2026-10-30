@@ -7,4 +7,4 @@ export const STUDIO = {
 };
 
 /** Indirizzo della vetrina per il link "Torna al sito". Nelle anteprime pubblicate a parte può essere cambiato o tolto (stringa vuota). */
-export const siteHref = (): string => (window as unknown as { KUKO_ASSETS?: { site?: string } }).KUKO_ASSETS?.site ?? '/';
+export const siteHref = (): string => (window as unknown as { KUKO_ASSETS?: { site?: string } }).KUKO_ASSETS?.site ?? '/sito';
