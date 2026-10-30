@@ -5,7 +5,7 @@ import packsFile from '../data/packs.json';
 import type { Booking, Data, Lead, Member, Pack, PayMethod, Payment, Pass, Template, Tone } from './types';
 import { book, cancelBooking, generateSessions, pickPass } from './rules';
 import { newId } from './ids';
-import { HOUR, addDays, romeDay } from './time';
+import { HOUR, addDays, romeDay, romeWall } from './time';
 
 export const DEMO_OWNER_ID = 'm_owner';
 export const DEMO_CLIENT_ID = 'm_martina';
@@ -232,7 +232,8 @@ function demoPayments(d: Data, now: Date): Payment[] {
       note: `Vendita: ${p.name}`, paidAt: p.createdAt, byName: rand() < 0.8 ? 'Segreteria' : 'Valerio Cuscianna', voidedAt: null,
     });
   }
-  const mins = (n: number) => new Date(now.getTime() - n * 60000).toISOString();
+  const startOfDay = romeWall(romeDay(now), '00:00').getTime();
+  const mins = (n: number) => new Date(Math.max(now.getTime() - n * 60000, startOfDay)).toISOString(); // gli incassi "di oggi" restano di oggi anche subito dopo mezzanotte
   out.push(
     { id: newId('y'), memberId: 'm_stefano', passId: null, amountCents: 1500, method: 'cash', note: 'Lezione singola', paidAt: mins(35), byName: 'Segreteria', voidedAt: null },
     { id: newId('y'), memberId: 'm_noemi', passId: null, amountCents: 2500, method: 'card', note: 'Quota iscrizione', paidAt: mins(12), byName: 'Segreteria', voidedAt: null },

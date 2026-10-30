@@ -1,6 +1,6 @@
 // Anteprima senza server, con font e immagini incorporati. L'app è sempre in modalità demo (dati nel browser).
 // Crea in .tmp/preview/:
-//   ingresso.html, sito.html, app.html, gestionale.html   pagine separate (collegamenti: KUKO_APP_URL per "Prenota"/"Apri l'app", KUKO_STAFF_URL per "Il gestionale", KUKO_SITE_URL per "Il sito" e "Torna al sito")
+//   ingresso.html, sito.html, app.html, gestionale.html   pagine separate (collegamenti: KUKO_APP_URL per "Prenota"/"Apri l'app", KUKO_STAFF_URL per il gestionale (non è collegato dall'ingresso: si apre dal suo indirizzo), KUKO_SITE_URL per "Il sito" e "Torna al sito")
 //   multi/index.html (ingresso), multi/sito.html, multi/app.html, multi/gestionale.html, multi/privacy.html   le stesse pagine da pubblicare insieme sotto un unico indirizzo: così stanno
 //                              nella stessa origine e la richiesta di prova gratuita lasciata sul sito compare nell'area owner dell'app (la coda è nel browser, vedi public/site.js)
 // Uso: npm run preview:build
@@ -54,7 +54,6 @@ for (const [mode, file] of [['client', 'app'], ['staff', 'gestionale']]) {
 
 // ------------------------------------------------------------------ vetrina e pagina di ingresso
 const appUrl = process.env.KUKO_APP_URL || '#';
-const staffUrl = process.env.KUKO_STAFF_URL || '#';
 const siteUrl = process.env.KUKO_SITE_URL || '#';
 const withData = (css) => css
   .replace(/url\((['"]?)(fonts\/[^'")]+)\1\)/g, (_m, _q, p) => `url('${dataUri(p)}')`)
@@ -88,11 +87,11 @@ const landStyle = withData(readFileSync(pub('landing.css'), 'utf8'));
 const landHtml = readFileSync(pub('index.html'), 'utf8');
 const landTitle = titleOf(landHtml);
 const landRaw = inline(bodyOf(landHtml));
-const landSolo = relink(landRaw, [[/href="\/app\/"/g, ext(appUrl)], [/href="\/gestionale\/"/g, ext(staffUrl)], [/href="\/sito"/g, ext(siteUrl)], [/href="\/"/g, 'href="#"']]);
+const landSolo = relink(landRaw, [[/href="\/app\/"/g, ext(appUrl)], [/href="\/sito"/g, ext(siteUrl)], [/href="\/"/g, 'href="#"']]);
 const landFragment = `<title>${landTitle}</title>\n<style>${landStyle}</style>\n${landSolo}`;
 writeFileSync(join(out, 'ingresso.html'), landFragment);
 writeFileSync(join(out, 'ingresso-page.html'), frame(landTitle, landFragment));
-const landMulti = relink(landRaw, [[/href="\/app\/"/g, 'href="app.html"'], [/href="\/gestionale\/"/g, 'href="gestionale.html"'], [/href="\/sito"/g, 'href="sito.html"'], [/href="\/"/g, 'href="index.html"'], [/href="installa\.html"/g, 'href="app.html"']]);
+const landMulti = relink(landRaw, [[/href="\/app\/"/g, 'href="app.html"'], [/href="\/sito"/g, 'href="sito.html"'], [/href="\/"/g, 'href="index.html"'], [/href="installa\.html"/g, 'href="app.html"']]);
 writeFileSync(join(multi, 'index.html'), `<title>${landTitle}</title>\n<style>${landStyle}</style>\n${landMulti}`);
 
 // pagina privacy: documento completo, con gli stessi font e stili

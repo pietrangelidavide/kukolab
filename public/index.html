@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>KUKO LAB | Sito e app</title>
-<meta name="description" content="KUKO LAB, performance studio all'EUR. Scopri lo studio sul sito oppure prenota le lezioni con l'app. Per lo staff c'è il gestionale, a parte.">
+<meta name="description" content="KUKO LAB, performance studio all'EUR. Scopri lo studio sul sito oppure prenota le lezioni con l'app.">
 <meta name="theme-color" content="#0a0a0b">
 <!-- Finché il sito non ha il dominio definitivo resta fuori da Google: togliere noindex e robots.txt al go-live. -->
 <meta name="robots" content="noindex, nofollow">
@@ -26,7 +26,6 @@
   <nav class="l-links" aria-label="Sezioni">
     <a href="/sito">Il sito</a>
     <a href="/app/">L'app</a>
-    <a href="/gestionale/">Gestionale</a>
   </nav>
 </header>
 
@@ -34,11 +33,22 @@
   <section class="wrap l-hero" aria-labelledby="h-scegli">
     <p class="l-kicker">Performance studio, EUR Roma</p>
     <h1 id="h-scegli">Da dove vuoi partire?</h1>
-    <p class="l-lead">Il sito per conoscerci, l'app per prenotare. Il gestionale, a parte, è per chi lavora in studio.</p>
+    <p class="l-lead">Il sito per conoscerci, l'app per prenotare. Due ingressi, un solo studio.</p>
   </section>
 
-  <div class="wrap doors">
-    <section class="door door-site" aria-labelledby="h-sito">
+  <div class="deck" data-deck>
+    <div class="wrap deck-bar" data-deck-ui hidden>
+      <div class="deck-pick" role="group" aria-label="Scegli: sito o app">
+        <button type="button" class="pick on" data-go="0" aria-current="true">Il sito</button>
+        <button type="button" class="pick" data-go="1">L'app</button>
+      </div>
+      <div class="deck-arrows">
+        <button type="button" class="arrow" data-step="-1" aria-label="Pannello precedente" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12H5M11 6l-6 6 6 6"/></svg></button>
+        <button type="button" class="arrow" data-step="1" aria-label="Pannello successivo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>
+    <div class="deck-track" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Il sito e l'app: scorri in orizzontale">
+    <section class="door door-site" role="group" aria-roledescription="slide" aria-label="1 di 2" aria-labelledby="h-sito">
       <div class="door-photo"><img src="img/studio-forza-wide.jpg" alt="" width="1000" height="715" fetchpriority="high"></div>
       <p class="door-tag"><span>Per conoscerci</span></p>
       <h2 id="h-sito">Il sito</h2>
@@ -51,7 +61,7 @@
       <a class="door-link" href="/sito" aria-label="Vai al sito"><span class="btn">Vai al sito<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></a>
     </section>
 
-    <section class="door door-app" aria-labelledby="h-app">
+    <section class="door door-app" role="group" aria-roledescription="slide" aria-label="2 di 2" aria-labelledby="h-app">
       <div class="phone-wrap" aria-hidden="true">
         <div class="phone">
           <div class="phone-in">
@@ -80,77 +90,102 @@
         <a class="door-link" href="/app/" aria-label="Apri l'app"><span class="btn">Apri l'app<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></a>
       </div>
     </section>
-  </div>
-
-  <section class="staff" id="gestionale" aria-labelledby="h-staff">
-    <div class="wrap">
-      <div class="staff-head">
-        <div>
-          <p class="door-tag"><span>Per lo staff</span></p>
-          <h2 id="h-staff">Il gestionale ha cinque aree.</h2>
-        </div>
-        <p>Ha il suo indirizzo e il suo accesso, a parte dall'app dei clienti, ma è la stessa web app: stessi dati, stesse prenotazioni. In ogni area, in cima, c'è la cosa che ti fa risparmiare più tempo.</p>
-      </div>
-      <div class="areas">
-        <article class="area">
-          <h3>Prenotazioni</h3>
-          <ul>
-            <li class="hot">Presenze segnate in un tocco, lezione per lezione</li>
-            <li>Orario settimanale e lezioni extra</li>
-            <li>Liste d'attesa che scalano da sole</li>
-          </ul>
-        </article>
-        <article class="area">
-          <h3>Report e statistiche</h3>
-          <ul>
-            <li class="hot">Quali orari funzionano e quali rivedere</li>
-            <li>Riempimento di ogni corso, settimana per settimana</li>
-            <li>Presenze e assenze di ogni trainer</li>
-          </ul>
-        </article>
-        <article class="area">
-          <h3>Clienti</h3>
-          <ul>
-            <li class="hot">Chi sta per scadere e chi non si vede da un po'</li>
-            <li>Richieste di prova gratuita da richiamare</li>
-            <li>Scheda con abbonamento, lezioni e messaggi</li>
-          </ul>
-        </article>
-        <article class="area">
-          <h3>Fatturazione</h3>
-          <ul>
-            <li class="hot">Incassi del mese e rinnovi in arrivo</li>
-            <li>Listino dei pacchetti, con prezzi e validità</li>
-            <li>File CSV pronto per il commercialista</li>
-          </ul>
-        </article>
-        <article class="area">
-          <h3>Dipendenti</h3>
-          <ul>
-            <li class="hot">Trainer e staff con i permessi giusti</li>
-            <li>Chi può vedere cosa, e chi può modificare</li>
-            <li>Nuovi accessi in pochi secondi</li>
-          </ul>
-        </article>
-      </div>
-      <div class="staff-cta">
-        <a class="door-link-plain" href="/gestionale/"><span class="btn btn-sm">Entra nel gestionale</span></a>
-        <p>Accesso riservato a owner, Segreteria e Trainer, con il codice mandato per email. I clienti entrano dall'app.</p>
-      </div>
     </div>
-  </section>
+  </div>
 </main>
 
 <footer class="wrap l-foot">
   <nav aria-label="Link utili">
     <a href="/sito">Il sito</a>
     <a href="/app/">L'app</a>
-    <a href="/gestionale/">Gestionale</a>
     <a href="installa.html">Installa sul telefono</a>
     <a href="privacy.html">Privacy</a>
   </nav>
   <!-- Dati societari (ragione sociale, P. IVA, sede): da inserire anche qui quando il cliente li comunica, come in sito.html. -->
   <p>KUKO LAB · Performance studio · Via del Pianeta Urano 44, Roma EUR</p>
 </footer>
+
+<script>
+/* Sito e app come pannelli da sfogliare in orizzontale. I pannelli scorrono anche senza questo script (scroll-snap):
+   qui si aggiungono indicatori, frecce, tastiera, trascinamento col mouse e il pannello attivo in evidenza. */
+(function () {
+  var deck = document.querySelector('[data-deck]');
+  if (!deck) return;
+  var track = deck.querySelector('.deck-track');
+  var slides = [].slice.call(track.children);
+  var ui = deck.querySelector('[data-deck-ui]');
+  var picks = [].slice.call(deck.querySelectorAll('[data-go]'));
+  var prev = deck.querySelector('[data-step="-1"]');
+  var next = deck.querySelector('[data-step="1"]');
+  var still = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  var cur = 0, raf = 0, drag = null, noClick = false;
+
+  var pad = function () { return parseFloat(getComputedStyle(track).paddingLeft) || 0; };
+  var at = function (i) { return Math.max(0, Math.min(track.scrollWidth - track.clientWidth, slides[i].offsetLeft - pad())); };
+  var clamp = function (i) { return Math.max(0, Math.min(slides.length - 1, i)); };
+  var go = function (i) { track.scrollTo({ left: at(clamp(i)), behavior: still.matches ? 'auto' : 'smooth' }); };
+
+  function update() {
+    raf = 0;
+    var x = track.scrollLeft, best = 0, d = Infinity;
+    for (var i = 0; i < slides.length; i++) { var t = Math.abs(at(i) - x); if (t < d) { d = t; best = i; } }
+    cur = best;
+    slides.forEach(function (s, i) { s.classList.toggle('is-on', i === cur); });
+    picks.forEach(function (b, i) { b.classList.toggle('on', i === cur); if (i === cur) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
+    prev.disabled = cur === 0;
+    next.disabled = cur === slides.length - 1;
+  }
+  var soon = function () { if (!raf) raf = requestAnimationFrame(update); };
+
+  picks.forEach(function (b) { b.addEventListener('click', function () { go(+b.getAttribute('data-go')); }); });
+  prev.addEventListener('click', function () { go(cur - 1); });
+  next.addEventListener('click', function () { go(cur + 1); });
+  track.addEventListener('scroll', soon, { passive: true });
+  window.addEventListener('resize', soon);
+
+  // tastiera: frecce, Home e Fine con il carosello a fuoco
+  track.addEventListener('keydown', function (e) {
+    if (e.target !== track) return;
+    var k = e.key, to = k === 'ArrowRight' ? cur + 1 : k === 'ArrowLeft' ? cur - 1 : k === 'Home' ? 0 : k === 'End' ? slides.length - 1 : null;
+    if (to === null) return;
+    e.preventDefault();
+    go(to);
+  });
+
+  // mouse: si trascina come col dito. Il tocco scorre già da solo.
+  track.addEventListener('pointerdown', function (e) {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    drag = { x: e.clientX, left: track.scrollLeft, from: cur, moved: false };
+  });
+  window.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    var dx = e.clientX - drag.x;
+    if (!drag.moved && Math.abs(dx) > 6) { drag.moved = true; track.classList.add('is-drag'); }
+    if (drag.moved) track.scrollLeft = drag.left - dx;
+  });
+  function release(e) {
+    if (!drag) return;
+    var d = drag, dx = e.clientX - d.x;
+    drag = null;
+    if (!d.moved) return;
+    track.classList.remove('is-drag');
+    noClick = true; setTimeout(function () { noClick = false; }, 0);
+    go(Math.abs(dx) > 60 ? d.from + (dx < 0 ? 1 : -1) : d.from);
+  }
+  window.addEventListener('pointerup', release);
+  window.addEventListener('pointercancel', release);
+
+  // un clic sul pannello accanto lo porta in primo piano, senza aprire il link; dopo un trascinamento non apre niente
+  track.addEventListener('click', function (e) {
+    var s = e.target.closest ? e.target.closest('.door') : null;
+    var i = s ? slides.indexOf(s) : -1;
+    if (noClick || (i > -1 && i !== cur)) { e.preventDefault(); e.stopPropagation(); if (!noClick) go(i); }
+  }, true);
+
+  deck.classList.add('is-live');
+  ui.hidden = false;
+  update();
+})();
+</script>
 </body>
 </html>
