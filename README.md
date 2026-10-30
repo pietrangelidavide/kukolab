@@ -2,9 +2,13 @@
 
 Sito vetrina + web app per prenotare i corsi (area cliente, owner, Segreteria e Trainer), in italiano.
 
-- **Ingresso** (`public/index.html` + `public/landing.css`, indirizzo `/`): la prima pagina. Due porte, **Il sito** (conoscere lo studio) e **L'app** (prenotare), più una fascia per lo staff con le cinque aree del gestionale. Il telefono d'esempio dentro la porta dell'app è generato da `npm run site` (segnaposto `<!--MOCK-->`). I link vanno a `/sito` e `/app/`; l'indirizzo del sito usato dall'app sta in `src/config.ts` (`siteHref`, di base `/sito`).
+- **Ingresso** (`public/index.html` + `public/landing.css`, indirizzo `/`): la prima pagina, con tre ingressi: **Il sito** (conoscere lo studio), **L'app** (prenotare, per i clienti) e, a parte, **Il gestionale** (per lo staff, con le sue cinque aree). Il telefono d'esempio dentro la porta dell'app è generato da `npm run site` (segnaposto `<!--MOCK-->`). I link vanno a `/sito`, `/app/` e `/gestionale/`; l'indirizzo del sito usato dall'app sta in `src/config.ts` (`siteHref`, di base `/sito`).
 - **Vetrina** (`public/sito.html`, indirizzo `/sito`): HTML e CSS statici, senza framework. Parte da Valerio: la sua foto (`public/img/valerio.jpg`) sta nel quadrante del titolo. Ordine delle sezioni: **Corsi** (Pilates, Functional e Personal training con foto, le quattro tappe di una lezione e i dettagli), **Gli spazi** (striscia di foto che scorre, resta tra Corsi e Orari), **Orari**, **Chi siamo**, **Trainer** ("Chi ti segue": Valerio; la scheda della maestra di Pilates compare quando c'è la foto), **Nutrizione** (il Dott. Maurizio Calabrò), **Abbonamenti** (tessere a biglietto e gioco "Trova il tuo abbonamento"), **Prova gratuita** (modulo) e **Contatti**. Sul telefono la barra in basso ha Prova gratuita, Prenota e WhatsApp. Quadrante, anteprima dell'app, orari, tessere e schede dei trainer e del nutrizionista sono generati da `npm run site` (da `src/data/schedule.json`, `packs.json`, `nutritionist.json`, `trainers.json`); lo script riempie i segnaposto `<!--TAG-->…<!--/TAG-->` di `sito.html` e di `index.html` e si ferma se ne manca uno. `public/site.js` fa il resto: "Oggi" e prossima lezione con il conto alla rovescia (ora di Roma), scelta dell'abbonamento, modulo. `public/fx.js` aggiunge gli effetti (vedi sotto).
-- **Web app** (`src/` → `public/app/`): React 19 compilato con esbuild, installabile come app dal telefono. Due modalità:
+- **Web app** (`src/` → `public/app/`): React 19 compilato con esbuild, installabile come app dal telefono. **Un solo codice, due ingressi** (`scripts/lib/app.mjs`, `src/config.ts`):
+  - `/app/`, **l'app dei clienti** (prenotare, abbonamento, profilo);
+  - `/gestionale/`, **il gestionale dello staff** (owner, Segreteria, Trainer), a parte: indirizzo, accesso e icona installabile propri (`manifest` con `start_url` e `scope` `/gestionale/`, nome "Gestionale").
+
+  Le due pagine d'ingresso (`public/app/index.html`, `public/gestionale/index.html`, generate da `npm run build`, non in git) caricano lo stesso `app.js` e dicono quale porta è aperta (`window.KUKO_ASSETS.mode`). Ogni porta ha il suo accesso (il gestionale parla di staff e non propone l'iscrizione). I dati e la sessione sono gli stessi (stessa origine): chi entra dalla porta sbagliata, un cliente nel gestionale o dello staff nell'app, vede una schermata che indica quella giusta (`WrongEntry` in `src/screens/Auth.tsx`). Quale ruolo va dove: `entryOf` in `src/config.ts`. Due modalità:
   - **demo**: i dati stanno nel browser (localStorage), con persone, lezioni e abbonamenti di esempio. È quella che si apre senza configurare nulla;
   - **reale**: i dati stanno su Supabase (database PostgreSQL). **Solo per iscritti**: non ci si registra da soli. L'account esiste per chi lo studio ha iscritto di persona (*Clienti → Iscritti → Nuovo iscritto*, con l'email); si entra con un **codice a 6 cifre mandato per email**, senza password. Dalla scheda l'owner vede se la persona ha già fatto il primo accesso e la invita con un messaggio WhatsApp già scritto.
 - **Richieste dal sito** (prova gratuita di una lezione e consulenza con il nutrizionista): il modulo della vetrina chiama la funzione `submit_lead` (l'unica aperta anche a chi non ha un account); l'owner le trova nell'app in **Clienti → Richieste** (e nel riquadro "Richieste dal sito" di *Oggi*), cambia stato (da contattare → contattata → prova fissata → fatta → iscritta / non interessata), scrive una nota, chiama o scrive su WhatsApp, e con un tocco crea l'iscritto. I soci già iscritti possono chiedere la consulenza dalla schermata *Abbonamento*. Le richieste si cancellano da sole dopo 12 mesi.
@@ -21,7 +25,7 @@ Sito vetrina + web app per prenotare i corsi (area cliente, owner, Segreteria e 
   | Orario, pacchetti e prezzi, impostazioni, correzione lezioni di un abbonamento, note private, richieste dal sito, messaggi WhatsApp, report, Team | – | – | – | sì |
 
   Dal menu: la **Segreteria** ha *Oggi, Orari, Iscritti, Cassa* (orari in sola lettura: vede le lezioni e le prenotazioni, non le modifica); il **Trainer** ha una sola pagina, *Le mie lezioni* (oggi, prossimi 7 giorni e ultimi 3, con chi viene e le presenze, attive da 30 minuti prima dell'inizio); l'**owner** ha *Oggi* e le cinque aree del gestionale (sotto).
-- **Gestionale dell'owner: cinque aree** (`src/lib/areas.ts`, schermate `src/screens/hub-*.tsx`, `owner-report.tsx`). Menu: *Oggi*, **Prenotazioni**, **Report**, **Clienti**, **Fatturazione**, **Dipendenti**, più *Impostazioni* (solo account e demo). Ogni area si apre su una **panoramica** fatta così: in alto i numeri che contano; **"Fai prima"**, le cose che fanno risparmiare tempo (con il conteggio di quante ce ne sono adesso) e che portano dritte all'azione; **"Funzioni"**, punti che si **espandono** con un tocco (se ne apre uno alla volta, `<details name=…>`) e dentro hanno l'elenco e le azioni. Sulle sottopagine una barra di schede riporta all'area. Il calcolo di cosa è urgente sta in `src/lib/insights.ts` (con prove in `tests/insights.test.ts`).
+- **Gestionale dell'owner: cinque aree** (si apre da `/gestionale/`; `src/lib/areas.ts`, schermate `src/screens/hub-*.tsx`, `owner-report.tsx`). Menu: *Oggi*, **Prenotazioni**, **Report**, **Clienti**, **Fatturazione**, **Dipendenti**, più *Impostazioni* (solo account e demo). Ogni area si apre su una **panoramica** fatta così: in alto i numeri che contano; **"Fai prima"**, le cose che fanno risparmiare tempo (con il conteggio di quante ce ne sono adesso) e che portano dritte all'azione; **"Funzioni"**, punti che si **espandono** con un tocco (se ne apre uno alla volta, `<details name=…>`) e dentro hanno l'elenco e le azioni. Sulle sottopagine una barra di schede riporta all'area. Il calcolo di cosa è urgente sta in `src/lib/insights.ts` (con prove in `tests/insights.test.ts`).
 
   | Area | "Fai prima" | Sottopagine |
   |---|---|---|
@@ -40,13 +44,13 @@ Sito vetrina + web app per prenotare i corsi (area cliente, owner, Segreteria e 
 
 ```bash
 npm install
-npm run dev            # ingresso su http://localhost:8800, sito su /sito, app su /app/ (si ricompila da sola)
-npm run build          # compila la web app in public/app/ (è quello che gira su Cloudflare)
+npm run dev            # ingresso su http://localhost:8800, sito su /sito, app dei clienti su /app/, gestionale su /gestionale/ (si ricompila da sola)
+npm run build          # compila la web app: codice in public/app/, pagine d'ingresso in public/app/ e public/gestionale/ (è quello che gira su Cloudflare)
 npm run site           # rigenera in sito.html orari, tessere, nutrizionista, anteprima app e quadrante, e in index.html il telefono d'esempio (da src/data/*.json)
 npm test               # prove delle regole (non serve nulla di installato oltre a Node)
 npm run db:test        # prove dello schema SQL su un PostgreSQL locale
 npm run db:e2e         # prova dell'app in modalità reale contro lo schema vero (finto Supabase locale)
-npm run preview:build  # pagine a file unico in .tmp/preview/ (ingresso.html, sito.html, app.html) e, in multi/, index (ingresso) + sito + app + privacy da pubblicare insieme
+npm run preview:build  # pagine a file unico in .tmp/preview/ (ingresso.html, sito.html, app.html, gestionale.html) e, in multi/, index (ingresso) + sito + app + gestionale + privacy da pubblicare insieme
 ```
 
 `db:test` e `db:e2e` usano un PostgreSQL installato sul computer (cercano `/usr/lib/postgresql/*/bin`); non toccano nessun database vero.
@@ -68,16 +72,16 @@ Senza le due variabili l'app resta in **demo**: va bene per mostrarla al cliente
 3. **Authentication → Providers → Email**: lasciare **Enable Email provider** e **Confirm email** attivi. Il codice per email è il solo modo di entrare, quindi la mail deve funzionare (punto 5).
 4. **Authentication → Sign In / Providers → "Allow new users to sign up"**: lasciarlo **attivo**. Sembra strano ma serve: il primo accesso con il codice crea l'account. A chiudere le registrazioni ci pensa il database (`kuko_signup_guard` in `schema.sql`): un account nasce solo se quell'email è già tra gli iscritti dello studio. Chi non lo è riceve da Supabase un errore interno, che l'app mostra come se il codice fosse partito (così da fuori non si scopre chi è iscritto).
 5. **Mail con il codice**. Authentication → Emails → Templates: in **Confirm signup** (la usa il primo accesso) e in **Magic Link** (gli accessi successivi) il testo deve contenere `{{ .Token }}`, il codice. Modelli già pronti in `supabase/email-templates/` (incollare l'HTML e l'oggetto indicato). Authentication → Providers → Email: *Email OTP Expiration* 600 secondi (10 minuti) e *OTP length* 6. **SMTP**: il servizio predefinito di Supabase manda poche mail all'ora e solo agli indirizzi della squadra del progetto: per i clienti serve un SMTP proprio (Project Settings → Authentication → SMTP Settings), con un mittente del dominio dello studio (es. `prenotazioni@dominio.it`).
-6. **Authentication → URL Configuration**: *Site URL* = `https://DOMINIO/app/`; *Redirect URLs* = `https://DOMINIO/app/**`.
+6. **Authentication → URL Configuration**: *Site URL* = `https://DOMINIO/app/`; *Redirect URLs* = `https://DOMINIO/app/**` e `https://DOMINIO/gestionale/**` (le due porte).
 7. **Project Settings → API**: copiare *Project URL* e la chiave `anon` nelle due variabili di build su Cloudflare e rifare il deploy. La chiave `anon` è pubblica per natura: le tabelle sono chiuse (RLS attiva, nessuna policy) e l'app può solo chiamare le funzioni di `schema.sql`, che controllano chi sei.
 8. **Il primo owner** si inserisce a mano, nello SQL Editor (non può iscriversi da solo: le registrazioni sono chiuse):
    ```sql
    insert into public.members (name, email, phone, role) values ('Valerio Cuscianna', 'EMAIL_DI_VALERIO', 'TELEFONO', 'owner');
    ```
-   Poi Valerio apre `https://DOMINIO/app/`, scrive la sua email e il codice che riceve: la scheda si collega al suo account. Altri owner: stessa cosa, oppure `update public.members set role = 'owner' where lower(email) = lower('EMAIL');` dopo il loro primo accesso.
+   Poi Valerio apre il gestionale, `https://DOMINIO/gestionale/`, scrive la sua email e il codice che riceve: la scheda si collega al suo account. Altri owner: stessa cosa, oppure `update public.members set role = 'owner' where lower(email) = lower('EMAIL');` dopo il loro primo accesso.
 9. Da owner: *Fatturazione → Listino* (crea i pacchetti in vendita), *Prenotazioni → Orario* (le lezioni si generano da sole per i giorni di prenotazione previsti) e *Prenotazioni → Regole*, poi *Dipendenti* per creare la Segreteria e i Trainer (non serve nessun SQL). Se il progetto era già attivo basta rieseguire `schema.sql`: aggiunge ruoli, incassi e Team senza toccare i dati.
 
-**Pagina per il secondo QR** (`public/installa.html`, indirizzo `/installa`): spiega in tre passi come mettere l'app sulla Home, su iPhone e su Android (riconosce il telefono). Il QR da stampare punta qui; il QR di accesso punta a `/app/`.
+**Pagina per il secondo QR** (`public/installa.html`, indirizzo `/installa`): spiega in tre passi come mettere l'app sulla Home (in fondo rimanda al gestionale, che si installa allo stesso modo da `/gestionale/`), su iPhone e su Android (riconosce il telefono). Il QR da stampare punta qui; il QR di accesso punta a `/app/`.
 
 **Come si iscrive un cliente.** In studio, quando fa l'abbonamento: *Iscritti → Nuovo iscritto* con nome, telefono ed **email giusta** (se è sbagliata, il codice non arriva alla persona e non entra). Poi dalla scheda *Invita nell'app su WhatsApp* manda il link dell'app con due righe di istruzioni. Alla scheda compare "Account attivo" dopo il primo accesso. Chi ha l'email scritta male si corregge da *Modifica*. Chi non ha email può comunque essere prenotato dall'owner.
 
@@ -128,7 +132,8 @@ La logica sta in `src/lib/messages.ts` (funzioni pure, testi e pesi in un posto 
 
 ```
 public/            ingresso (index.html, landing.css), vetrina (sito.html, style.css, site.js, fx.js), privacy.html, img/, fonts/
-public/app/        generata da npm run build (non in git)
+public/app/        codice della web app (app.js, app.css) e ingresso dei clienti: generata da npm run build (non in git)
+public/gestionale/ ingresso del gestionale (stesso codice di /app/): generata da npm run build (non in git)
 src/lib/rules.ts   regole di prenotazione (pure funzioni)
 src/lib/leads.ts   richieste dal sito (modulo, stati, scadenza a 12 mesi)
 src/lib/access.ts  chi può fare cosa (specchio dei permessi del database) e quali lezioni sono di un Trainer

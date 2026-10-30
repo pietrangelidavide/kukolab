@@ -1,13 +1,13 @@
 // Anteprima senza server, con font e immagini incorporati. L'app è sempre in modalità demo (dati nel browser).
 // Crea in .tmp/preview/:
-//   ingresso.html, sito.html, app.html   tre pagine separate (collegamenti: KUKO_APP_URL per i pulsanti "Prenota"/"Apri l'app", KUKO_SITE_URL per "Il sito" e "Torna al sito")
-//   multi/index.html (ingresso), multi/sito.html, multi/app.html, multi/privacy.html   le stesse pagine da pubblicare insieme sotto un unico indirizzo: così stanno
+//   ingresso.html, sito.html, app.html, gestionale.html   pagine separate (collegamenti: KUKO_APP_URL per "Prenota"/"Apri l'app", KUKO_STAFF_URL per "Il gestionale", KUKO_SITE_URL per "Il sito" e "Torna al sito")
+//   multi/index.html (ingresso), multi/sito.html, multi/app.html, multi/gestionale.html, multi/privacy.html   le stesse pagine da pubblicare insieme sotto un unico indirizzo: così stanno
 //                              nella stessa origine e la richiesta di prova gratuita lasciata sul sito compare nell'area owner dell'app (la coda è nel browser, vedi public/site.js)
 // Uso: npm run preview:build
 import { build } from 'esbuild';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { appOptions, root } from './lib/app.mjs';
+import { ENTRIES, appOptions, root } from './lib/app.mjs';
 
 const out = join(root, '.tmp', 'preview');
 mkdirSync(out, { recursive: true });
@@ -34,21 +34,27 @@ const res = await build(appOptions({
 const js = res.outputFiles.find((f) => f.path.endsWith('.js')).text;
 const css = res.outputFiles.find((f) => f.path.endsWith('.css')).text;
 const logo = dataUri('img/logo-cerchio.png');
-const appPage = (site) => `<title>KUKO LAB Prenotazioni</title>
+// links: dove portano le uscite ("Torna al sito", "Apri l'app", "Apri il gestionale", "Torna all'ingresso"); stringa vuota = il link non compare
+const appPage = (mode, links) => `<title>${ENTRIES[mode].name}</title>
 <style>${css}</style>
 <div id="root"></div>
-<script>window.KUKO_ASSETS=${JSON.stringify({ logo, site })};</script>
+<script>window.KUKO_ASSETS=${JSON.stringify({ logo, mode, ...links })};</script>
 <script>${safeScript(js)}</script>
 `;
-const appFragment = appPage(process.env.KUKO_SITE_URL ?? '');
-writeFileSync(join(out, 'app.html'), appFragment);
-writeFileSync(join(out, 'app-page.html'), frame('KUKO LAB Prenotazioni', appFragment));
+const soloLinks = { site: process.env.KUKO_SITE_URL ?? '', app: process.env.KUKO_APP_URL ?? '', staff: process.env.KUKO_STAFF_URL ?? '', home: '' };
 const multi = join(out, 'multi');
 mkdirSync(multi, { recursive: true });
-writeFileSync(join(multi, 'app.html'), frame('KUKO LAB Prenotazioni', appPage('sito.html')));
+const multiLinks = { site: 'sito.html', app: 'app.html', staff: 'gestionale.html', home: 'index.html' };
+for (const [mode, file] of [['client', 'app'], ['staff', 'gestionale']]) {
+  const fragment = appPage(mode, soloLinks);
+  writeFileSync(join(out, `${file}.html`), fragment);
+  writeFileSync(join(out, `${file}-page.html`), frame(ENTRIES[mode].name, fragment));
+  writeFileSync(join(multi, `${file}.html`), frame(ENTRIES[mode].name, appPage(mode, multiLinks)));
+}
 
 // ------------------------------------------------------------------ vetrina e pagina di ingresso
 const appUrl = process.env.KUKO_APP_URL || '#';
+const staffUrl = process.env.KUKO_STAFF_URL || '#';
 const siteUrl = process.env.KUKO_SITE_URL || '#';
 const withData = (css) => css
   .replace(/url\((['"]?)(fonts\/[^'")]+)\1\)/g, (_m, _q, p) => `url('${dataUri(p)}')`)
@@ -82,11 +88,11 @@ const landStyle = withData(readFileSync(pub('landing.css'), 'utf8'));
 const landHtml = readFileSync(pub('index.html'), 'utf8');
 const landTitle = titleOf(landHtml);
 const landRaw = inline(bodyOf(landHtml));
-const landSolo = relink(landRaw, [[/href="\/app\/"/g, ext(appUrl)], [/href="\/sito"/g, ext(siteUrl)], [/href="\/"/g, 'href="#"']]);
+const landSolo = relink(landRaw, [[/href="\/app\/"/g, ext(appUrl)], [/href="\/gestionale\/"/g, ext(staffUrl)], [/href="\/sito"/g, ext(siteUrl)], [/href="\/"/g, 'href="#"']]);
 const landFragment = `<title>${landTitle}</title>\n<style>${landStyle}</style>\n${landSolo}`;
 writeFileSync(join(out, 'ingresso.html'), landFragment);
 writeFileSync(join(out, 'ingresso-page.html'), frame(landTitle, landFragment));
-const landMulti = relink(landRaw, [[/href="\/app\/"/g, 'href="app.html"'], [/href="\/sito"/g, 'href="sito.html"'], [/href="\/"/g, 'href="index.html"'], [/href="installa\.html"/g, 'href="app.html"']]);
+const landMulti = relink(landRaw, [[/href="\/app\/"/g, 'href="app.html"'], [/href="\/gestionale\/"/g, 'href="gestionale.html"'], [/href="\/sito"/g, 'href="sito.html"'], [/href="\/"/g, 'href="index.html"'], [/href="installa\.html"/g, 'href="app.html"']]);
 writeFileSync(join(multi, 'index.html'), `<title>${landTitle}</title>\n<style>${landStyle}</style>\n${landMulti}`);
 
 // pagina privacy: documento completo, con gli stessi font e stili
@@ -96,4 +102,4 @@ const privHead = `<!doctype html><html lang="it"><head><meta charset="utf-8"><me
 writeFileSync(join(multi, 'privacy.html'), `${privHead}${privBody.replace(/(src|href)="(img\/[^"]+)"/g, (_m, a, p) => `${a}="${dataUri(p)}"`).replace(/<body[^>]*>/, '<body class="legal-page">')}</body></html>`);
 
 const kb = (f) => `${Math.round(readFileSync(join(out, f)).length / 1024)} KB`;
-console.log(`Anteprime in .tmp/preview: ingresso.html (${kb('ingresso.html')}), sito.html (${kb('sito.html')}), app.html (${kb('app.html')}); *-page.html = con la cornice del visualizzatore; multi/ = index (ingresso), sito, app e privacy da pubblicare insieme (${kb('multi/index.html')} + ${kb('multi/sito.html')} + ${kb('multi/app.html')} + ${kb('multi/privacy.html')})`);
+console.log(`Anteprime in .tmp/preview: ingresso.html (${kb('ingresso.html')}), sito.html (${kb('sito.html')}), app.html (${kb('app.html')}), gestionale.html (${kb('gestionale.html')}); *-page.html = con la cornice del visualizzatore; multi/ = index (ingresso), sito, app, gestionale e privacy da pubblicare insieme (${kb('multi/index.html')} + ${kb('multi/sito.html')} + ${kb('multi/app.html')} + ${kb('multi/gestionale.html')} + ${kb('multi/privacy.html')})`);

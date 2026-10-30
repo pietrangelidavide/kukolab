@@ -53,7 +53,7 @@ a { color: inherit; }
 .l-links { margin-left: auto; display: flex; flex-wrap: wrap; gap: .4rem 1.6rem; font-size: .95rem; font-weight: 700; }
 .l-links a { text-decoration: none; padding-block: .5rem; border-bottom: 2px solid transparent; }
 .l-links a:hover { border-bottom-color: var(--orange); }
-@media (max-width: 560px) { .l-links a:not(:last-child) { display: none; } }
+@media (max-width: 560px) { .l-links a:not(:nth-child(2)) { display: none; } }
 
 /* ------------------------------------------------------------ titolo */
 .l-hero { padding-block: clamp(1.6rem, 5vw, 3.6rem) clamp(1.6rem, 4vw, 2.6rem); display: grid; gap: .9rem; }
@@ -138,6 +138,7 @@ a { color: inherit; }
 .staff-head { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1rem clamp(2rem, 6vw, 5rem); align-items: end; margin-bottom: clamp(1.6rem, 4vw, 2.6rem); }
 .staff-head h2 { font: 700 clamp(2.6rem, 6vw, 4.6rem)/.9 var(--display); text-transform: uppercase; text-wrap: balance; }
 .staff-head h2 em { font-style: normal; color: var(--orange); }
+.staff-head .door-tag { margin-bottom: .9rem; max-width: none; color: var(--ink); }
 .staff-head p { max-width: 42ch; color: var(--mute-dark); }
 .areas { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px; background: var(--line-dark); border: 1px solid var(--line-dark); }
 .area { background: var(--coal); padding: 1.5rem 1.3rem 1.4rem; display: grid; align-content: start; gap: .8rem; position: relative; }

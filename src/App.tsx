@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useStore } from './store';
 import { Avatar, Chevron, Host, Icon } from './ui';
-import { Auth } from './screens/Auth';
+import { Auth, WrongEntry } from './screens/Auth';
 import { MyBookings, Notices, PassScreen, Profile, Schedule } from './screens/client';
 import { Today } from './screens/owner-today';
 import { Calendar, Templates } from './screens/owner-calendar';
@@ -24,6 +24,7 @@ import { unreadNotices } from './lib/selectors';
 import { leadsNew } from './lib/leads';
 import { AREAS, OWNER_ROUTES, areaOf } from './lib/areas';
 import { attendanceToMark } from './lib/insights';
+import { entry, entryOf } from './config';
 
 const CLIENT_NAV = [
   { to: '/corsi', label: 'Corsi', icon: 'calendar' },
@@ -39,7 +40,7 @@ const STAFF_NAV = [
 ];
 const TRAINER_NAV = [{ to: '/lezioni', label: 'Lezioni', icon: 'calendar' }];
 const NAV: Record<Role, { to: string; label: string; short?: string; icon: string }[]> = { client: CLIENT_NAV, owner: [], staff: STAFF_NAV, trainer: TRAINER_NAV };
-const AREA: Record<Role, string> = { client: 'Prenotazioni', owner: 'Area owner', staff: 'Segreteria', trainer: 'Area Trainer' };
+const AREA: Record<Role, string> = { client: 'Prenotazioni', owner: 'Gestionale', staff: 'Segreteria', trainer: 'Area Trainer' };
 const OWNER_NAV: { to: string; label: string; short?: string; icon: string }[] = AREAS.map((a) => ({ to: a.to, label: a.label, short: a.short, icon: a.icon }));
 
 export function App() {
@@ -47,7 +48,7 @@ export function App() {
   if (!s.ready) return <div className="splash"><img src={logoSrc()} alt="KUKO LAB" width="96" height="96" /></div>;
   return (
     <>
-      {s.me ? <Shell /> : <Auth />}
+      {s.me ? (entryOf(s.me.role) === entry() ? <Shell /> : <WrongEntry />) : <Auth />}
       <Host />
     </>
   );

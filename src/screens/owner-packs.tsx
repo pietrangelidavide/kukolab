@@ -5,6 +5,7 @@ import { PageHead, PasswordForm, typeNames } from './common';
 import { euro, plural } from '../lib/format';
 import type { Pack } from '../lib/types';
 import { homePath } from '../lib/access';
+import { doorFor, entry, entryOf } from '../config';
 
 // ------------------------------------------------------------------ Pacchetti
 export function Packs() {
@@ -109,7 +110,7 @@ export function SettingsScreen() {
           <p>I dati restano solo su questo dispositivo. Puoi provare tutto senza rischi.</p>
           <div className="row">
             {(['client', 'staff', 'trainer'] as const).map((role) => (
-              <Btn key={role} kind="ghost" size="sm" onClick={async () => { const r = await s.api.demoLogin!(role); if (r.ok) { s.setSession(r.me, r.data); s.route.go(homePath(role)); } }}>Passa all&#8217;area {role === 'client' ? 'cliente' : role === 'staff' ? 'Segreteria' : 'Trainer'}</Btn>
+              <Btn key={role} kind="ghost" size="sm" onClick={async () => { const r = await s.api.demoLogin!(role); if (!r.ok) return; s.setSession(r.me, r.data); if (entryOf(role) === entry() || !doorFor(role)) s.route.go(homePath(role)); else location.assign(`${doorFor(role)}#${homePath(role)}`); }}>Passa all&#8217;area {role === 'client' ? 'cliente' : role === 'staff' ? 'Segreteria' : 'Trainer'}</Btn>
             ))}
             <Btn kind="quiet" size="sm" onClick={async () => { const ok = await s.ask({ title: 'Ripristinare i dati demo?', text: 'Si perdono le modifiche fatte in prova.', confirm: 'Ripristina' }); if (!ok) return; const r = await s.api.resetDemo!(); if (r.ok) { s.setSession(r.me, r.data); s.toast('Dati demo ripristinati.', 'ok'); } }}>Ripristina i dati</Btn>
           </div>

@@ -771,3 +771,7 @@ tbody tr:last-child > * { border-bottom: 0; }
 .side nav a.side-sep { position: relative; margin-top: .6rem; }
 .side nav a.side-sep::before { content: ""; position: absolute; left: .9rem; right: .9rem; top: -.35rem; height: 1px; background: var(--line); }
 .side nav a.side-sep.on { background: var(--panel-2); color: var(--text); }
+
+/* ---- gestionale (stessa app, ingresso dello staff): l'accesso si riconosce dal bordo arancio */
+.auth.is-staff .auth-card { border-color: color-mix(in srgb, var(--orange) 55%, var(--line)); }
+.auth.is-staff h1 { color: var(--orange); }

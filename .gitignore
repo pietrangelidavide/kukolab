@@ -2,6 +2,7 @@ node_modules
 dist
 .tmp
 public/app/
+public/gestionale/
 .wrangler
 .env*
 public/site-config.js

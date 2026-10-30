@@ -1,15 +1,15 @@
-// Sviluppo: ricompila la web app a ogni modifica e serve tutto il sito su http://localhost:8800 (ingresso su /, vetrina su /sito, app su /app/).
+// Sviluppo: ricompila la web app a ogni modifica e serve tutto il sito su http://localhost:8800 (ingresso su /, vetrina su /sito, app dei clienti su /app/, gestionale su /gestionale/).
 // Uso: npm run dev   (PORT per cambiare porta; con KUKO_SUPABASE_URL e KUKO_SUPABASE_ANON_KEY usa Supabase)
 import { context } from 'esbuild';
 import { createServer } from 'node:http';
+import * as fs from 'node:fs';
 import { createReadStream, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
-import { appHtml, appOptions, manifest, root, siteConfig } from './lib/app.mjs';
+import { appOptions, root, siteConfig, writeEntries } from './lib/app.mjs';
 
 const out = join(root, 'public', 'app');
 mkdirSync(out, { recursive: true });
-writeFileSync(join(out, 'index.html'), appHtml);
-writeFileSync(join(out, 'manifest.webmanifest'), manifest);
+writeEntries(join(root, 'public'), fs);
 writeFileSync(join(root, 'public', 'site-config.js'), siteConfig());
 
 const ctx = await context(appOptions({
@@ -31,4 +31,4 @@ createServer((req, res) => {
   if (!existsSync(file)) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }).end('Non trovato'); return; }
   res.writeHead(200, { 'Content-Type': TYPES[extname(file)] ?? 'application/octet-stream', 'Cache-Control': 'no-store' });
   createReadStream(file).pipe(res);
-}).listen(port, () => console.log(`Ingresso su http://localhost:${port}  ·  sito su /sito  ·  app su /app/`));
+}).listen(port, () => console.log(`Ingresso su http://localhost:${port}  ·  sito su /sito  ·  app su /app/  ·  gestionale su /gestionale/`));
