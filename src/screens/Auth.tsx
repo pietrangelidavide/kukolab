@@ -31,12 +31,21 @@ export function Auth() {
   );
 }
 
-/** Chi è entrato dalla porta sbagliata (un cliente nel gestionale, o dello staff nell'app dei clienti): l'account resta, si indica la porta giusta. */
+/** Chi è entrato dalla porta sbagliata (un cliente nel gestionale, o dello staff nell'app dei clienti) viene portato subito a quella giusta:
+ *  sono la stessa app, con la stessa sessione. Solo se il passaggio non parte (o nelle anteprime, dove i collegamenti sono tolti) resta una schermata che lo indica. */
 export function WrongEntry() {
   const s = useStore();
   const me = s.me!;
   const inStaff = entry() === 'staff'; // la porta aperta
   const to = inStaff ? appHref() : staffHref();
+  const [late, setLate] = useState(false);
+  useEffect(() => {
+    if (!to) return;
+    location.replace(to);
+    const t = setTimeout(() => setLate(true), 4000);
+    return () => clearTimeout(t);
+  }, [to]);
+  if (to && !late) return <div className="splash"><img src={logoSrc()} alt="KUKO LAB" width="96" height="96" /></div>;
   return (
     <div className={`auth grain${inStaff ? ' is-staff' : ''}`}>
       <div className="auth-card">
