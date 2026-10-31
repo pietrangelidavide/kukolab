@@ -891,5 +891,7 @@ revoke all on schema private from public, anon, authenticated;
 grant execute on function public.submit_lead(jsonb) to anon;
 
 -- =========================================================================================== primo owner
--- Dopo che Valerio si è registrato dall'app con la sua email, eseguire (con la sua email vera):
---   update public.members set role = 'owner' where lower(email) = lower('EMAIL_DI_VALERIO');
+-- Le registrazioni sono chiuse: il primo owner si inserisce a mano (con la sua email vera), poi entra col codice e la scheda si collega al suo account:
+--   insert into public.members (name, email, role) values ('NOME COGNOME', 'EMAIL', 'owner');
+-- Altri owner, dopo il loro primo accesso:
+--   update public.members set role = 'owner' where lower(email) = lower('EMAIL');
