@@ -88,13 +88,17 @@ const trainers = JSON.parse(readFileSync(join(root, 'src', 'data', 'trainers.jso
   .filter((t) => t.photo && existsSync(join(root, 'public', t.photo)));
 const trainersHtml = trainers.map((t) => {
   const label = t.name || t.role;
-  const photo = `<img src="${esc(t.photo)}" loading="lazy" alt="${esc(t.alt || label)}">`;
+  // una seconda foto (facoltativa) sta sovrapposta alla prima, in basso a lato
+  const second = t.photo2 && existsSync(join(root, 'public', t.photo2))
+    ? `<span class="t-photo-2"><img src="${esc(t.photo2)}" loading="lazy" alt="${esc(t.alt2 || label)}"></span>` : '';
+  const photo = `<img src="${esc(t.photo)}" loading="lazy" alt="${esc(t.alt || label)}">${second}`;
   const courses = t.courses.map((c) => `<li><svg class="ic" aria-hidden="true"><use href="#${ICON[c]}"/></svg>${esc(types[c].name)}</li>`).join('');
+  const intro = t.intro ? `\n            <p class="t-intro">${esc(t.intro)}</p>` : '';
   const creds = t.creds.length ? `\n            <ul class="creds">${t.creds.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : '';
   return `        <li class="trainer" id="t-${esc(t.id)}">
-          <figure class="t-photo">${photo}</figure>
+          <figure class="t-photo${second ? ' has-2' : ''}">${photo}</figure>
           <div class="t-body">
-            <h3>${esc(label)}</h3>${t.name ? `\n            <p class="t-role">${esc(t.role)}</p>` : ''}
+            <h3>${esc(label)}</h3>${t.name ? `\n            <p class="t-role">${esc(t.role)}</p>` : ''}${intro}
             <ul class="t-courses" aria-label="Corsi">${courses}</ul>${creds}
           </div>
         </li>`;

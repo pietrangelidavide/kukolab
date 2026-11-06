@@ -115,7 +115,7 @@ a { color: inherit; }
 
 .fig { margin: 0; width: min(100%, 32rem); justify-self: center; }
 .fig-dial { position: relative; touch-action: pan-y; }
-.face { position: absolute; left: 16%; top: 16%; width: 68%; height: 68%; border-radius: 50%; object-fit: cover; object-position: 47% 50%; border: 2px solid rgba(255, 255, 255, .16); background: var(--coal); filter: brightness(1.22) contrast(1.06); translate: calc(var(--px, 0) * 12px) calc(var(--py, 0) * 12px); }
+.face { position: absolute; left: 16%; top: 16%; width: 68%; height: 68%; border-radius: 50%; object-fit: cover; object-position: 50% 42%; border: 2px solid rgba(255, 255, 255, .16); background: var(--coal); filter: brightness(1.04) contrast(1.04); translate: calc(var(--px, 0) * 12px) calc(var(--py, 0) * 12px); }
 .fig figcaption { display: grid; margin-top: 1.3rem; }
 .name { font: 700 clamp(2.4rem, 4.4vw, 3.4rem)/.95 var(--display); text-transform: uppercase; }
 .role { margin-top: .4rem; font-weight: 700; color: var(--orange); }
@@ -352,8 +352,13 @@ button.btn { border: 0; background: none; appearance: none; }
 }
 
 /* ================================================================ trainer */
-.trainers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(2.6rem, 5vw, 4.5rem) clamp(2rem, 5vw, 4rem); margin-top: clamp(2.2rem, 5vw, 3.8rem); }
-.trainer { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.4rem clamp(1.6rem, 3.4vw, 2.8rem); align-items: start; }
+.trainers { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(3.6rem, 8vw, 6rem); margin-top: clamp(2.2rem, 5vw, 3.8rem); }
+/* uno sotto l'altro: la foto cambia lato a ogni scheda */
+.trainer { display: grid; grid-template-columns: minmax(0, 25rem) minmax(0, 1fr); gap: 1.4rem clamp(1.8rem, 4vw, 3.4rem); align-items: center; max-width: 68rem; }
+.trainer:nth-child(even) { grid-template-columns: minmax(0, 1fr) minmax(0, 25rem); justify-self: end; }
+.trainer:nth-child(even) .t-photo { order: 2; }
+.trainer:nth-child(even) .t-photo::before { inset: .9rem .9rem -.9rem -.9rem; clip-path: polygon(0 0, 92% 0, 100% 100%, 8% 100%); }
+.trainer:nth-child(even) .t-photo > img { clip-path: polygon(0 0, 92% 0, 100% 100%, 8% 100%); }
 .t-photo { position: relative; isolation: isolate; margin: 0; }
 .t-photo::before { content: ""; position: absolute; inset: .9rem -.9rem -.9rem .9rem; z-index: -1; background: var(--orange); clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%); }
 .t-photo img, .t-ph { display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; background: var(--coal); clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%); }
@@ -369,11 +374,12 @@ button.btn { border: 0; background: none; appearance: none; }
 .trainer .creds { width: 100%; border-top: 1px solid var(--line-light); }
 .trainer .creds li { position: relative; padding: .5rem 0 .5rem 1.5rem; border-bottom: 1px solid var(--line-light); font-weight: 700; font-size: .98rem; }
 .trainer .creds li::before { top: .82rem; }
-@media (max-width: 1040px) { .trainers { grid-template-columns: minmax(0, 1fr); } }
-/* un solo trainer (finché non c'è la foto della maestra di Pilates): la scheda occupa tutta la riga */
-.trainers:has(> .trainer:only-child) { grid-template-columns: minmax(0, 1fr); }
-.trainers:has(> .trainer:only-child) .trainer { max-width: 62rem; }
-@media (max-width: 560px) { .trainer { grid-template-columns: minmax(0, 1fr); } .t-photo { width: min(100%, 17rem); } }
+.t-intro { max-width: 40ch; color: var(--mute-light); }
+/* seconda foto: una cornice bianca inclinata sovrapposta alla prima, in basso sul lato esterno */
+.t-photo.has-2 { margin-bottom: 3rem; }
+.t-photo-2 { position: absolute; right: -1.8rem; bottom: -3rem; width: 50%; padding: 6px; background: var(--white); clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%); }
+.t-photo .t-photo-2 img { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+@media (max-width: 760px) { .trainer, .trainer:nth-child(even) { grid-template-columns: minmax(0, 1fr); justify-self: stretch; } .trainer:nth-child(even) .t-photo { order: 0; } .t-photo { width: min(100%, 19rem); } }
 
 /* ================================================================ nutrizionista */
 .nutri { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 2.5rem clamp(2rem, 6vw, 5rem); align-items: center; }
@@ -429,19 +435,33 @@ button.btn { border: 0; background: none; appearance: none; }
 .cx-track.is-drag { scroll-snap-type: none; cursor: grabbing; user-select: none; }
 .cx-track.is-drag img { pointer-events: none; }
 
-.cx-slide { position: relative; flex: 0 0 100%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); align-items: center; column-gap: clamp(2rem, 5vw, 4.5rem); padding: clamp(1.2rem, 3vw, 2.2rem) var(--cxp) 5.4rem; overflow: hidden; }
+.cx-slide { position: relative; flex: 0 0 100%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); align-items: center; column-gap: clamp(2rem, 5vw, 4.5rem); padding: clamp(1.2rem, 3vw, 2.2rem) var(--cxp) 5.4rem; overflow: hidden; overflow: clip; }
 .cx-slide.c-flip { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
 .cx-slide .cx-photo { order: 2; }
 .cx-slide.c-flip .cx-photo { order: 0; }
 
 .cx-ghost { position: absolute; z-index: 0; left: 50%; top: 50%; translate: calc(-50% + var(--o, 0) * -22vw) -50%; font: 700 clamp(9rem, 29vw, 28rem)/.8 var(--display); text-transform: uppercase; letter-spacing: .01em; white-space: nowrap; color: transparent; -webkit-text-stroke: 2px rgba(255, 255, 255, .13); pointer-events: none; user-select: none; }
 
-.cx-photo { position: relative; z-index: 1; isolation: isolate; margin: 0; width: min(100%, 34rem); justify-self: center; translate: calc(var(--o, 0) * 7vw) 0; }
-.cx-clip { display: block; position: relative; overflow: hidden; height: clamp(20rem, calc(100vh - 19rem), 38rem); height: clamp(20rem, calc(100svh - 19rem), 38rem); background: var(--coal-2); clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%); }
-.cx-clip img { width: 100%; height: 100%; object-fit: cover; scale: 1.25; translate: calc(var(--o, 0) * -10%) 0; }
-.cx-plate { position: absolute; z-index: -1; inset: 1.2rem -1.2rem -1.2rem 1.2rem; background: var(--orange); clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%); translate: calc(var(--o, 0) * -3vw) 0; }
-.c-flip .cx-clip, .c-flip .cx-plate { clip-path: polygon(0 0, 92% 0, 100% 100%, 8% 100%); }
-.c-flip .cx-plate { inset: 1.2rem 1.2rem -1.2rem -1.2rem; }
+.cx-photo { --sk: 8deg; position: relative; z-index: 1; isolation: isolate; margin: 0; width: min(100%, 38rem); justify-self: center; translate: calc(var(--o, 0) * 7vw) 0; }
+.c-flip .cx-photo { --sk: -8deg; }
+/* su desktop la vista delle foto esce fino al bordo della pagina, dal lato opposto al testo */
+@media (min-width: 901px) {
+  .cx-slide .cx-photo { width: auto; justify-self: stretch; margin-right: calc(-1 * max(var(--gut), (100vw - var(--max)) / 2)); }
+  .cx-slide.c-flip .cx-photo { margin-right: 0; margin-left: calc(-1 * max(var(--gut), (100vw - var(--max)) / 2)); }
+}
+.cx-plate { position: absolute; z-index: -1; inset: 1.1rem -1.1rem -1.1rem 1.1rem; background: var(--orange); clip-path: polygon(13% 0, 100% 0, 87% 100%, 0 100%); translate: calc(var(--o, 0) * -3vw) 0; }
+.c-flip .cx-plate { inset: 1.1rem 1.1rem -1.1rem -1.1rem; clip-path: polygon(0 0, 87% 0, 100% 100%, 13% 100%); }
+
+/* le quattro foto del corso: lamelle inclinate, quella scelta si allarga e prende colore, le altre restano in ombra */
+.cx-gal { position: relative; display: flex; gap: .45rem; height: clamp(20rem, calc(100vh - 19rem), 38rem); height: clamp(20rem, calc(100svh - 19rem), 38rem); }
+.cx-pic { position: relative; flex: 1 1 0; min-width: 0; padding: 0; border: 0; overflow: hidden; background: var(--coal-2); cursor: pointer; transform: skewX(calc(var(--sk) * -1)); transition: flex-grow .9s var(--ease); }
+.cx-pic.is-active { flex-grow: 2.8; cursor: default; }
+.cx-pic img { position: absolute; top: 0; bottom: 0; left: -3.4rem; width: calc(100% + 6.8rem); height: 100%; max-width: none; object-fit: cover; object-position: var(--fx, 50%) var(--fy, 50%); transform: skewX(var(--sk)); translate: calc(var(--o, 0) * -5%) 0; filter: grayscale(.55) brightness(.68) contrast(1.05); transition: filter .9s var(--ease), transform 1.4s var(--ease); }
+.cx-pic.is-active img { filter: none; transform: skewX(var(--sk)) scale(1.06); }
+.cx-pic:hover:not(.is-active) img { filter: grayscale(.15) brightness(.88); }
+.cx-pic::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(10, 10, 11, .6), transparent 42%); pointer-events: none; }
+.cx-pic::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: var(--orange); transform: scaleX(0); transform-origin: 0 50%; }
+.cx-pic:focus-visible { outline: 3px solid var(--white); outline-offset: -5px; }
 .cx .c-medal { position: absolute; left: -.9rem; bottom: 2.2rem; display: grid; place-items: center; width: 4.2rem; height: 4.2rem; border-radius: 50%; background: var(--ink); color: var(--orange); border: 4px solid var(--ink); box-shadow: 0 0 0 2px var(--orange); }
 .cx .c-medal .ic { width: 2.1rem; height: 2.1rem; }
 .c-flip .c-medal { left: auto; right: -.9rem; }
@@ -470,7 +490,8 @@ button.btn { border: 0; background: none; appearance: none; }
   .cx { min-height: max(34rem, calc(100vh - 4.4rem)); min-height: max(34rem, calc(100svh - 4.4rem)); }
   .cx-slide, .cx-slide.c-flip { grid-template-columns: minmax(0, 1fr); align-content: start; row-gap: 1.8rem; padding-top: 1.4rem; padding-bottom: 2.6rem; }
   .cx-slide .cx-photo, .cx-slide.c-flip .cx-photo { order: 0; width: 100%; justify-self: stretch; }
-  .cx-clip { height: clamp(12rem, 32svh, 19rem); }
+  .cx-gal { height: clamp(14rem, 36svh, 22rem); }
+  .cx-photo { padding-inline: .6rem; }
   .cx-ghost { top: 22%; font-size: 42vw; }
   .cx-arrows { display: none; }
   .cx .c-medal, .c-flip .c-medal { left: auto; right: .6rem; bottom: -1.3rem; width: 3.6rem; height: 3.6rem; }
@@ -504,7 +525,7 @@ button.btn { border: 0; background: none; appearance: none; }
 .pro-contacts a:hover { color: var(--orange); }
 .pros-note { margin-top: 1.8rem; font-weight: 700; }
 .pros-note a { text-decoration: underline; text-decoration-thickness: 3px; text-decoration-color: var(--ink); text-underline-offset: .3em; }
-.pros-note a:hover { text-decoration-color: var(--white); }
+.pros-note a:hover { text-decoration-color: var(--orange); }
 @media (max-width: 1000px) { .pros { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 520px) { .pro { grid-template-columns: minmax(0, 1fr); } .pro-art { width: 8.5rem; } .pro-art.has-photo { width: min(100%, 15rem); } }
 
@@ -530,10 +551,15 @@ html.fx .t-photo:not(.in) img, html.fx .t-photo:not(.in) .t-ph, html.fx .t-photo
 html.fx .n-photo:not(.in) img, html.fx .n-photo:not(.in)::before { clip-path: polygon(0 0, 0 0, 0 93%, 0 93%, 0 100%); }
 
 /* carosello dei corsi: ogni corso entra quando arriva (site.js gli mette .on). Senza .is-live (cioè senza site.js) resta tutto visibile. */
-html.fx .cx.is-live .cx-clip, html.fx .cx.is-live .cx-plate { transition: clip-path 1.1s var(--ease); }
-html.fx .cx.is-live .cx-plate { transition-delay: .14s; }
-html.fx .cx.is-live .cx-slide:not(.on) .cx-clip, html.fx .cx.is-live .cx-slide:not(.on) .cx-plate { clip-path: polygon(8% 0, 8% 0, 0 100%, 0 100%); }
-html.fx .cx.is-live .cx-slide.c-flip:not(.on) .cx-clip, html.fx .cx.is-live .cx-slide.c-flip:not(.on) .cx-plate { clip-path: polygon(92% 0, 92% 0, 100% 100%, 100% 100%); }
+html.fx .cx.is-live .cx-plate { transition: clip-path 1.1s .14s var(--ease); }
+html.fx .cx.is-live .cx-slide:not(.on) .cx-plate { clip-path: polygon(13% 0, 13% 0, 0 100%, 0 100%); }
+html.fx .cx.is-live .cx-slide.c-flip:not(.on) .cx-plate { clip-path: polygon(87% 0, 87% 0, 100% 100%, 100% 100%); }
+html.fx .cx.is-live .cx-pic { transition: flex-grow .9s var(--ease), clip-path 1s calc(var(--i, 0) * .11s + .12s) var(--ease); }
+html.fx .cx.is-live .cx-slide:not(.on) .cx-pic { clip-path: inset(100% 0 0 0); }
+/* avanza da sola (site.js ascolta la fine dell'animazione): ferma quando il corso non è in vista, col mouse sopra o con la tastiera */
+@keyframes galprog { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+html.fx .cx.is-live .cx-pic.is-active::after { animation: galprog 4.4s linear forwards paused; }
+html.fx .cx.is-live .cx-slide.on .cx-gal:not(.is-hold) .cx-pic.is-active::after { animation-play-state: running; }
 html.fx .cx.is-live .c-medal { transition: scale .6s .85s cubic-bezier(.3, 1.7, .5, 1); }
 html.fx .cx.is-live .cx-slide:not(.on) .c-medal { scale: 0; }
 html.fx .cx.is-live .cx-ghost { transition: opacity 1.2s .1s, scale 1.6s .1s var(--ease); }

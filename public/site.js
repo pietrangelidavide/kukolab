@@ -1,4 +1,4 @@
-// KUKO LAB, vetrina: menu, "Oggi", carosello dei corsi, fascia degli spazi e parti espandibili su telefono.
+// KUKO LAB, vetrina: menu, "Oggi", carosello dei corsi (con le quattro foto di ogni corso), fascia degli spazi e parti espandibili su telefono.
 // (Il gioco degli abbonamenti e il modulo della prova gratuita sono stati tolti dalla pagina: restano nella storia di git, vedi il README.)
 (function () {
   // menu su telefono
@@ -206,6 +206,37 @@
   setCur(0);
   frame();
   cx.classList.add('is-live');
+})();
+
+// ------------------------------------------------------------------ corsi: le quattro foto di ogni corso
+// Quattro lamelle inclinate: quella scelta si allarga e prende colore. Si sceglie col mouse sopra, col tocco o con la tastiera.
+// Da sole avanzano: il CSS fa correre la barra arancione sulla lamella aperta solo quando il corso è in vista e il mouse non c'è sopra
+// (con "riduci animazioni" non parte), e alla fine dell'animazione si apre la foto dopo. Senza questo codice resta aperta la prima foto.
+(function () {
+  Array.prototype.forEach.call(document.querySelectorAll('[data-gal]'), function (gal) {
+    var pics = Array.prototype.slice.call(gal.querySelectorAll('.cx-pic'));
+    if (pics.length < 2) return;
+    var cur = 0;
+    var show = function (i) {
+      if (i === cur) return;
+      cur = i;
+      pics.forEach(function (p, k) {
+        p.classList.toggle('is-active', k === i);
+        if (k === i) p.setAttribute('aria-current', 'true'); else p.removeAttribute('aria-current');
+      });
+    };
+    pics.forEach(function (p, k) {
+      p.addEventListener('click', function () { show(k); });
+      p.addEventListener('focus', function () { show(k); });
+      p.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') show(k); });
+    });
+    var hold = function (on) { gal.classList.toggle('is-hold', on); };
+    gal.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') hold(true); });
+    gal.addEventListener('pointerleave', function () { hold(false); });
+    gal.addEventListener('focusin', function () { hold(true); });
+    gal.addEventListener('focusout', function () { hold(false); });
+    gal.addEventListener('animationend', function (e) { if (e.animationName === 'galprog') show((cur + 1) % pics.length); });
+  });
 })();
 
 // "Gli spazi": la fascia di foto scorre da sola, rallenta col mouse sopra e si trascina col dito o col mouse. Con "riduci animazioni" resta una fascia da scorrere a mano.

@@ -1,39 +1,75 @@
 #!/usr/bin/env python3
-"""Prepara le foto del sito (ritagli e peso) a partire dagli originali che il cliente ha mandato.
-Uso: python3 scripts/photos.py CARTELLA_ORIGINALI   (i nomi dei file sono in SRC qui sotto)
-Gli originali non stanno nel repository: restano in public/img solo i ritagli già pronti."""
+"""Prepara le foto del sito (ritagli, ritocco, peso) e le scrive in public/img.
+Uso: python3 scripts/photos.py CARTELLA_FOTO_NUOVE      (le foto arrivate il 6 novembre 2026; i nomi dei file sono in NUOVE)
+     python3 scripts/photos.py --retouch               (ritocca le foto già pubblicate, partendo dalla versione del commit BASE)
+
+Gli originali non stanno nel repository: restano in public/img solo i ritagli già pronti. Il ritocco (pulizia, luci, nitidezza)
+è in scripts/enhance.py; le foto delle prime consegne (ritagli del cliente) non esistono più in originale, quindi --retouch
+parte sempre dalla versione del commit BASE, in modo che rilanciarlo non le ritocchi due volte."""
+import subprocess
 import sys
+from io import BytesIO
 from pathlib import Path
+
 from PIL import Image, ImageOps
 
-src_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path('.')
-out_dir = Path(__file__).resolve().parent.parent / 'public' / 'img'
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from enhance import enhance, save  # noqa: E402
 
-# nome in uscita: (file originale, riquadro (sinistra, alto, destra, basso) nell'originale, larghezza in uscita)
-JOBS = {
-    'corso-pilates.jpg':    ('002f6815-image.jpg', (4, 4, 1214, 1214), 900),     # lezione sul reformer
-    'corso-functional.jpg': ('d648a1e5-image.jpg', (70, 0, 640, 564), 760),      # il trainer segue una cliente, altri si allenano alle spalle
-    'corso-pt.jpg':         ('847d4cd1-image.jpg', (110, 4, 1124, 1014), 900),   # wall ball in coppia, vetrina "K LAB"
-    'studio-pilates.jpg':   ('550d1603-image.jpg', (30, 640, 1270, 2294), 820),  # sala Pilates
-    'studio-forza.jpg':     ('f43ec08b-image.jpg', (30, 780, 1270, 2434), 820),  # rack e reception
-    'studio-cardio.jpg':    ('361e8fc6-image.jpg', (30, 880, 1276, 2542), 820),  # area cardio
-    # ritagli larghi (7:5) delle stesse sale, per la fascia che scorre
-    'studio-pilates-wide.jpg': ('550d1603-image.jpg', (302, 1048, 1270, 1739), 1000),  # pianta, rivestimento in legno e attrezzo
-    'studio-forza-wide.jpg':   ('f43ec08b-image.jpg', (287, 780, 1270, 1483), 1000),   # rack, dischi e specchio
-    'studio-cardio-wide.jpg':  ('361e8fc6-image.jpg', (212, 1336, 1276, 2095), 1000),  # tapis roulant e bici
-    'nutrizionista.jpg':    ('4a88e8bd-image.jpg', (775, 400, 1320, 1290), 545),  # dal volantino del dott. Calabrò
+root = Path(__file__).resolve().parent.parent
+out_dir = root / 'public' / 'img'
+BASE = '777463f'  # ultimo commit con le foto non ritoccate
+
+# foto del 6 novembre 2026: nome in uscita: (file consegnato, riquadro (sinistra, alto, destra, basso) o None, larghezza in uscita)
+NUOVE = {
+    'valerio.jpg':          ('8450e6a0-image.png', (215, 400, 855, 1040), 720),   # ritratto al banco: quadrato per il quadrante del titolo
+    'trainer-valerio.jpg':  ('8450e6a0-image.png', (0, 140, 891, 1328), 960),     # stesso ritratto, 3:4, per la scheda del trainer
+    # personal training
+    'corso-pt-2.jpg':       ('6302d0eb-image.jpg', None, 760),                    # stacco con il trap bar
+    'corso-pt-3.jpg':       ('79178007-image.jpg', None, 760),                    # wall ball con Valerio
+    'corso-pt-4.jpg':       ('29855b02-image.jpg', None, 760),                    # wall ball in squat
+    # functional in gruppo
+    'corso-functional-2.jpg': ('08d87565-image.jpg', None, 760),                  # allungamento a terra
+    'corso-functional-3.jpg': ('67608cdb-image.jpg', (0, 0, 1320, 2230), 760),    # addominali sui materassini (tolta l'icona del video in basso)
+    'corso-functional-4.jpg': ('e1d8c453-image.jpg', None, 760),                  # squat con i manubri
+    # pilates
+    'corso-pilates-2.jpg':  ('d14dc3e4-image.jpg', None, 760),                    # sul reformer, in piedi sul box
+    'corso-pilates-3.jpg':  ('c4a6a2ca-image.jpg', None, 760),                    # tre allieve sui reformer
+    'corso-pilates-4.jpg':  ('2c558f46-image.jpg', None, 760),                    # ponte sui reformer
+    # Chiara, maestra di Pilates (3:4)
+    'trainer-chiara.jpg':   ('7e01eb73-image.png', (0, 380, 892, 1569), 900),
+    'trainer-chiara-2.jpg': ('2e2483f1-image.png', (0, 330, 919, 1555), 900),
 }
-for name, (f, box, w) in JOBS.items():
-    im = ImageOps.exif_transpose(Image.open(src_dir / f)).convert('RGB').crop(box)
-    h = round(im.height * w / im.width)
-    im = im.resize((w, h), Image.LANCZOS)
-    im.save(out_dir / name, 'JPEG', quality=80, optimize=True, progressive=True)
-    print(f'{name}: {w}x{h}, {(out_dir / name).stat().st_size // 1024} KB')
 
-# ritratto verticale di Valerio per la sezione "I trainer": ritaglio 4:5 della foto del quadrante (public/img/valerio.jpg), un po' più chiaro perché l'originale è scuro
-from PIL import ImageEnhance
-v = Image.open(out_dir / 'valerio.jpg').convert('RGB').crop((178, 0, 550, 465))
-v = ImageEnhance.Contrast(ImageEnhance.Brightness(v).enhance(1.22)).enhance(1.06)
-v = v.resize((744, 930), Image.LANCZOS)
-v.save(out_dir / 'trainer-valerio.jpg', 'JPEG', quality=82, optimize=True, progressive=True)
-print(f'trainer-valerio.jpg: 744x930, {(out_dir / "trainer-valerio.jpg").stat().st_size // 1024} KB')
+# foto già pubblicate, da ritoccare: nome: (larghezza in uscita, forza del ritocco) (la foto di partenza è quella del commit BASE)
+RITOCCO = {
+    'corso-pt.jpg': (900, 1.0), 'corso-functional.jpg': (900, 1.0), 'corso-pilates.jpg': (900, 1.0),
+    'studio-pilates.jpg': (1000, 1.0), 'studio-forza.jpg': (1000, 1.0), 'studio-cardio.jpg': (1000, 1.0),
+    'studio-pilates-wide.jpg': (1200, 1.0), 'studio-forza-wide.jpg': (1200, 1.0), 'studio-cardio-wide.jpg': (1200, 1.0),
+    'nutrizionista.jpg': (820, 0.6),  # il camice si impasta se si pulisce troppo
+}
+
+
+def run_new(src_dir):
+    for name, (f, box, w) in NUOVE.items():
+        im = ImageOps.exif_transpose(Image.open(src_dir / f)).convert('RGB')
+        if box:
+            im = im.crop(box)
+        out = enhance(im, width=w)
+        save(out, out_dir / name)
+        print(f'{name}: {out.width}x{out.height}, {(out_dir / name).stat().st_size // 1024} KB')
+
+
+def run_retouch():
+    for name, (w, strength) in RITOCCO.items():
+        data = subprocess.run(['git', 'show', f'{BASE}:public/img/{name}'], cwd=root, check=True, capture_output=True).stdout
+        out = enhance(Image.open(BytesIO(data)), width=w, strength=strength)
+        save(out, out_dir / name)
+        print(f'{name}: {out.width}x{out.height}, {(out_dir / name).stat().st_size // 1024} KB')
+
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1 and sys.argv[1] == '--retouch':
+        run_retouch()
+    else:
+        run_new(Path(sys.argv[1]) if len(sys.argv) > 1 else Path('.'))
