@@ -1,8 +1,8 @@
 // Inserisce le parti generate in due pagine statiche:
-//   public/sito.html  (vetrina): orario settimanale (src/data/schedule.json), quadrante del ritratto, tessere degli abbonamenti (src/data/packs.json),
-//                     schede del nutrizionista (src/data/nutritionist.json) e dei trainer (src/data/trainers.json);
+//   public/sito.html  (vetrina): orario settimanale (src/data/schedule.json), quadranti (ritratto e carosello dei corsi),
+//                     schede del nutrizionista (src/data/nutritionist.json), dei trainer (src/data/trainers.json) e di fisioterapista e osteopata (src/data/professionals.json);
 //   public/index.html (pagina di ingresso): anteprima dell'app nel telefono (primi corsi del lunedì).
-// Uso: npm run site   (da rilanciare quando cambiano orari, pacchetti o dati del nutrizionista)
+// Uso: npm run site   (da rilanciare quando cambiano orari o i dati di nutrizionista, trainer e professionisti)
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -52,58 +52,22 @@ const dial = `<svg class="dial" viewBox="0 0 1000 1000" aria-hidden="true" focus
 </svg>`;
 
 
-// ------------------------------------------------------------------ abbonamenti: tessere e dati del gioco "trova il tuo"
-const packsFile = JSON.parse(readFileSync(join(root, 'src', 'data', 'packs.json'), 'utf8'));
-const showPrices = packsFile.showPrices !== false;
-const packs = packsFile.packs.filter((p) => p.active);
-const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-const ALLTYPES = ['functional', 'pilates', 'pt'];
-const ICON = { functional: 'i-functional', pilates: 'i-pilates', pt: 'i-pt' };
-const price = (cents) => { const v = cents / 100; return Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.', ','); };
-const per = (p) => (p.kind === 'pack' ? p.priceCents / p.lessons : null);
-const forText = (p) => (p.typeIds.length ? p.typeIds : ALLTYPES).map((t) => types[t].name).join(' + ');
-const forIcons = (p) => (p.typeIds.length ? p.typeIds : ALLTYPES).map((t) => `<svg class="ic" aria-hidden="true"><use href="#${ICON[t]}"/></svg>`).join('');
-const TONES = ['w', 'k', 'p'];
-const WK = ['L', 'M', 'M', 'G', 'V', 'S'];
+// ------------------------------------------------------------------ quadrante dietro il carosello dei corsi: solo tacche e un arco che si completa sull'ultimo corso
+let cticks = '';
+for (let d = 0; d < 360; d += 4) {
+  const major = d % 90 === 0, mid = d % 30 === 0;
+  const len = major ? 46 : mid ? 28 : 12;
+  const [x1, y1] = pt(d, R), [x2, y2] = pt(d, R - len);
+  cticks += `<line x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}" class="${major ? 't4' : mid ? 't2' : 't1'}"/>`;
+}
+const cdial = `    <svg class="cdial" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false">
+      <circle cx="500" cy="500" r="${R}" class="ring"/>
+      ${cticks}
+      <circle cx="500" cy="500" r="430" class="arc" pathLength="100" transform="rotate(-90 500 500)"/>
+    </svg>`;
 
-const ticket = `        <li class="pass ticket tone-k" id="p-prova">
-          <span class="sticker">Gratis</span>
-          <div class="pass-in">
-            <div class="pass-top"><h3>Prima volta?</h3><span class="gift" aria-hidden="true"><svg class="ic"><use href="#i-gift"/></svg></span></div>
-            <p class="pass-meta">La prima prova è un regalo</p>
-            <p class="pass-blurb">Scegli un corso (o il nutrizionista), compila il modulo: ti chiamiamo noi per fissare l'orario.</p>
-            <a class="pass-cta" href="#prova">Prenota la prova</a>
-          </div>
-        </li>`;
-const cards = packs.map((p, i) => {
-  const monthly = p.kind === 'monthly';
-  const holes = monthly
-    ? `<span class="punch wk" aria-hidden="true">${WK.map((d, k) => `<i${k < (p.weeklyLimit || 6) ? ' class="on"' : ''}>${d}</i>`).join('')}</span>`
-    : `<span class="punch" aria-hidden="true">${Array.from({ length: Math.min(p.lessons, 12) }, (_, k) => `<i${k === 0 ? ' class="on"' : ''}></i>`).join('')}</span>`;
-  const meta = monthly
-    ? `${p.weeklyLimit ? `Fino a ${p.weeklyLimit} volte a settimana` : 'Lezioni illimitate'} · ${p.validityDays} giorni`
-    : `${p.lessons} ${p.lessons === 1 ? 'lezione' : 'lezioni'} · valide ${p.validityDays} giorni`;
-  const pr = showPrices
-    ? `<p class="pass-price" aria-label="${price(p.priceCents)} euro${monthly ? ' al mese' : ''}"><span aria-hidden="true">€</span><b aria-hidden="true">${price(p.priceCents)}</b>${monthly ? '<small aria-hidden="true">/mese</small>' : ''}</p>`
-    : '';
-  const perLesson = showPrices && !monthly && p.lessons > 1 ? `\n            <p class="pass-per">Circa €${price(Math.round(per(p)))} a lezione</p>` : '';
-  const topic = p.typeIds.length === 1 ? p.typeIds[0] : '';
-  return `        <li class="pass tone-${TONES[i % 3]}" id="p-${p.id}" data-pack="${p.id}">
-${p.site?.tag ? `          <span class="sticker">${esc(p.site.tag)}</span>\n` : ''}          <span class="fits" aria-hidden="true">Fa per te!</span>
-          <div class="pass-in">
-            <div class="pass-top"><h3>${esc(p.name)}</h3>${pr}</div>
-            ${holes}
-            <p class="pass-meta">${esc(meta)}</p>
-            <p class="pass-meta pass-for">${forIcons(p)}<span>${esc(forText(p))}</span></p>
-            <p class="pass-blurb">${esc(p.site?.blurb ?? '')}</p>${perLesson}
-            <a class="pass-cta" href="#prova" data-topic="${topic}">Provalo gratis</a>
-          </div>
-        </li>`;
-});
-const packsData = {
-  showPrices,
-  packs: packs.map((p) => ({ id: p.id, name: p.name, kind: p.kind, lessons: p.lessons, validityDays: p.validityDays, priceCents: p.priceCents, typeIds: p.typeIds, weeklyLimit: p.weeklyLimit })),
-};
+const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const ICON = { functional: 'i-functional', pilates: 'i-pilates', pt: 'i-pt' };
 
 // ------------------------------------------------------------------ nutrizionista: benefici e contatti
 const nutri = JSON.parse(readFileSync(join(root, 'src', 'data', 'nutritionist.json'), 'utf8'));
@@ -132,7 +96,29 @@ const trainersHtml = trainers.map((t) => {
           <div class="t-body">
             <h3>${esc(label)}</h3>${t.name ? `\n            <p class="t-role">${esc(t.role)}</p>` : ''}
             <ul class="t-courses" aria-label="Corsi">${courses}</ul>${creds}
-            <div class="c-cta"><a class="btn btn-sm" href="#prova" data-topic="${t.courses[0]}"><span>Prova una lezione</span></a></div>
+          </div>
+        </li>`;
+}).join('\n');
+
+// ------------------------------------------------------------------ fisioterapista e osteopata: una scheda a persona. Senza foto la scheda ha un grande disegno al posto del ritratto (completa, non "in arrivo"); nome e contatti compaiono solo quando ci sono.
+const pros = JSON.parse(readFileSync(join(root, 'src', 'data', 'professionals.json'), 'utf8')).professionals;
+const prosHtml = pros.map((p) => {
+  const label = p.name || p.role;
+  const hasPhoto = p.photo && existsSync(join(root, 'public', p.photo));
+  const art = hasPhoto
+    ? `<figure class="pro-art has-photo"><img src="${esc(p.photo)}" loading="lazy" alt="${esc(p.alt || label)}"></figure>`
+    : `<div class="pro-art" aria-hidden="true"><svg class="ic big"><use href="#i-${esc(p.icon)}"/></svg></div>`;
+  const when = p.when.map((w) => `<li>${esc(w)}</li>`).join('');
+  const tel = p.phone ? `<a href="tel:${esc(p.phone.replace(/\s/g, ''))}"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg>${esc(p.phone)}</a>` : '';
+  const mail = p.email ? `<a href="mailto:${esc(p.email)}"><svg class="ic" aria-hidden="true"><use href="#i-mail"/></svg>${esc(p.email)}</a>` : '';
+  const ig = p.instagram ? `<a href="https://www.instagram.com/${esc(p.instagram)}/" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-ig"/></svg>@${esc(p.instagram)}</a>` : '';
+  const contacts = tel || mail || ig ? `\n            <p class="pro-contacts">${tel}${mail}${ig}</p>` : '';
+  return `        <li class="pro" id="p-${esc(p.id)}">
+          ${art}
+          <div class="pro-body">
+            <h3>${esc(label)}</h3>${p.name ? `\n            <p class="pro-role">${esc(p.role)}</p>` : ''}
+            <p class="pro-intro">${esc(p.intro)}</p>
+            <ul class="pro-when" aria-label="Quando può servirti">${when}</ul>${contacts}
           </div>
         </li>`;
 }).join('\n');
@@ -151,12 +137,12 @@ const fill = (name, parts) => {
 fill('sito.html', {
   ORARI: `      <div class="week">\n${week}\n      </div>`,
   DIAL: `    ${dial}`,
-  PACKS: [ticket, ...cards].join('\n'),
-  PACKSDATA: `<script type="application/json" id="packs-data">${JSON.stringify(packsData).replace(/</g, '\\u003c')}</script>`,
+  CDIAL: cdial,
+  PROS: prosHtml,
   NUTRI: nutriHtml,
   TRAINERS: trainersHtml,
 });
 fill('index.html', {
   MOCK: `          <div class="m-days">${chips}</div>\n          <ul class="m-list">\n${mock}\n          </ul>`,
 });
-console.log('sito: orari, quadrante, tessere, nutrizionista e trainer · ingresso: anteprima app');
+console.log('sito: orari, quadranti, nutrizionista, trainer e professionisti · ingresso: anteprima app');

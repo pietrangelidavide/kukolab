@@ -2,7 +2,7 @@
 // Crea in .tmp/preview/:
 //   ingresso.html, sito.html, app.html, gestionale.html   pagine separate (collegamenti: KUKO_APP_URL per "Prenota"/"Apri l'app", KUKO_STAFF_URL per il gestionale (non è collegato dall'ingresso: si apre dal suo indirizzo), KUKO_SITE_URL per "Il sito" e "Torna al sito")
 //   multi/index.html (ingresso), multi/sito.html, multi/app.html, multi/gestionale.html, multi/privacy.html   le stesse pagine da pubblicare insieme sotto un unico indirizzo: così stanno
-//                              nella stessa origine e la richiesta di prova gratuita lasciata sul sito compare nell'area owner dell'app (la coda è nel browser, vedi public/site.js)
+//                              nella stessa origine (la vetrina non ha più il modulo della prova gratuita: vedi README)
 // Uso: npm run preview:build
 import { build } from 'esbuild';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -67,7 +67,7 @@ const titleOf = (html) => html.match(/<title>([^<]+)<\/title>/)[1];
 const relink = (b, map) => map.reduce((acc, [re, to]) => acc.replace(re, to), b);
 const ext = (url) => `href="${url}"${url === '#' ? '' : ' target="_blank" rel="noopener"'}`;
 
-// vetrina (sito.html). site.js va dentro la pagina; site-config.js no: l'anteprima è sempre in modalità demo (le richieste restano nel browser)
+// vetrina (sito.html). site.js va dentro la pagina; l'anteprima è sempre in modalità demo
 const siteStyle = withData(readFileSync(pub('style.css'), 'utf8'));
 const siteHtml = readFileSync(pub('sito.html'), 'utf8');
 const siteTitle = titleOf(siteHtml);

@@ -1,4 +1,5 @@
-// KUKO LAB, vetrina: menu, "Oggi", gioco degli abbonamenti e modulo della prova gratuita.
+// KUKO LAB, vetrina: menu, "Oggi", carosello dei corsi, fascia degli spazi e parti espandibili su telefono.
+// (Il gioco degli abbonamenti e il modulo della prova gratuita sono stati tolti dalla pagina: restano nella storia di git, vedi il README.)
 (function () {
   // menu su telefono
   var b = document.querySelector('.menu-btn'), d = document.getElementById('drawer');
@@ -87,204 +88,124 @@
   })();
 })();
 
-// ------------------------------------------------------------------ "Trova il tuo abbonamento": gioco a due domande
+// ------------------------------------------------------------------ corsi: carosello a tutta pagina
+// Personal training, gruppo, Pilates scorrono di lato con scroll-snap (funziona anche senza questo codice). Qui si aggiungono tab, frecce, tastiera e trascinamento col mouse,
+// e la posizione di ogni corso (--o: 0 al centro, ±1 di lato) con cui il CSS sposta foto, cornice, parola gigante e testo a velocità diverse; --p (0..1) fa girare il quadrante.
 (function () {
-  var box = document.querySelector('[data-picker]');
-  var dataEl = document.getElementById('packs-data');
-  if (!box || !dataEl) return;
-  var data;
-  try { data = JSON.parse(dataEl.textContent); } catch (e) { return; }
-  var packs = data.packs || [];
-  if (!packs.length) return;
-  var prices = data.showPrices !== false;
-  var ALL = ['functional', 'pilates', 'pt'];
-  var WEEKS = 4.33;
-  var res = box.querySelector('.pk-res');
-  box.hidden = false;
+  var cx = document.querySelector('[data-cx]');
+  var track = cx && cx.querySelector('.cx-track');
+  if (!track) return;
+  var slides = Array.prototype.slice.call(track.children), n = slides.length;
+  if (n < 2) return;
+  var tabs = Array.prototype.slice.call(cx.querySelectorAll('.cx-tab'));
+  var prev = cx.querySelector('[data-step="-1"]'), next = cx.querySelector('[data-step="1"]');
+  var arc = cx.querySelector('.cdial .arc');
+  var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var cur = -1, seen = !('IntersectionObserver' in window), raf = 0;
+  var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
+  var width = function () { return track.clientWidth || 1; };
 
-  var euro = function (cents) { var v = cents / 100; return '€' + (Math.abs(v - Math.round(v)) < 0.05 ? String(Math.round(v)) : v.toFixed(1).replace('.', ',')); };
-  var covers = function (p, want) { var t = p.typeIds && p.typeIds.length ? p.typeIds : ALL; return want.every(function (w) { return t.indexOf(w) >= 0; }); };
-  var plan = function (p, freq) {
-    var perMonth = freq * WEEKS;
-    if (p.kind === 'monthly') {
-      if (p.weeklyLimit && p.weeklyLimit < freq) return null;
-      return { cost: p.priceCents, per: p.priceCents / perMonth };
-    }
-    var one = p.priceCents / p.lessons;
-    return { cost: one * perMonth, per: one };
-  };
+  function go(i, instant) {
+    i = clamp(i, 0, n - 1);
+    track.scrollTo({ left: i * width(), behavior: instant || reduce ? 'auto' : 'smooth' });
+  }
 
-  function choose(topic, freq) {
-    var want = topic === 'all' ? ['functional', 'pilates'] : [topic];
-    var best = null;
-    packs.forEach(function (p) {
-      if (!covers(p, want)) return;
-      var pl = plan(p, freq);
-      if (!pl) return;
-      if (!best || pl.cost < best.pl.cost - 0.5 || (Math.abs(pl.cost - best.pl.cost) <= 0.5 && p.kind === 'monthly' && best.p.kind !== 'monthly')) best = { p: p, pl: pl };
+  function setCur(i) {
+    cur = i;
+    tabs.forEach(function (t, k) { if (k === i) t.setAttribute('aria-current', 'true'); else t.removeAttribute('aria-current'); });
+    if (prev) prev.disabled = i <= 0;
+    if (next) next.disabled = i >= n - 1;
+  }
+
+  function frame() {
+    raf = 0;
+    var p = clamp(track.scrollLeft / width(), 0, n - 1), q = p / (n - 1);
+    slides.forEach(function (s, i) {
+      if (seen && Math.abs(i - p) < .6 && !s.classList.contains('on')) s.classList.add('on');
+      if (reduce) return;
+      var o = clamp(i - p, -1.2, 1.2);
+      s.style.setProperty('--o', o.toFixed(3));
+      s.style.setProperty('--a', Math.min(1, Math.abs(o)).toFixed(3));
     });
-    if (!best) return null;
-    var single = null;
-    packs.forEach(function (p) { if (p.kind === 'pack' && p.lessons === 1 && covers(p, want)) single = p; });
-    best.saving = single && best.p.kind === 'monthly' ? Math.round(single.priceCents * freq * WEEKS - best.pl.cost) : 0;
-    return best;
-  }
-
-  function why(best, freq) {
-    var p = best.p, f = freq >= 4 ? 'almeno 4 volte' : (freq === 1 ? 'una volta' : freq + ' volte');
-    if (p.kind === 'monthly') return 'Se vieni ' + f + ' a settimana il mensile è la scelta giusta: un prezzo fisso e ti alleni quanto vuoi' + (p.weeklyLimit ? ', fino a ' + p.weeklyLimit + ' volte a settimana.' : '.');
-    if (p.lessons === 1) return 'Per ora basta una lezione alla volta: provi, senza impegno.';
-    return 'Se vieni ' + f + ' a settimana un pacchetto di lezioni è la scelta più comoda: le usi quando vuoi, entro ' + p.validityDays + ' giorni.';
-  }
-
-  function show(topic, freq) {
-    var best = choose(topic, freq);
-    document.querySelectorAll('.pass.is-pick').forEach(function (el) { el.classList.remove('is-pick'); });
-    res.innerHTML = '';
-    if (!best) {
-      var np = document.createElement('p'); np.className = 'pk-hint'; np.textContent = 'Per questa combinazione scrivici su WhatsApp: ti consigliamo noi.';
-      res.appendChild(np); return;
+    if (!reduce) {
+      cx.style.setProperty('--p', q.toFixed(3));
+      if (arc) arc.style.strokeDashoffset = (100 - (30 + q * 70)).toFixed(1);
     }
-    var card = document.createElement('div'); card.className = 'pk-card';
-    var stamp = document.createElement('span'); stamp.className = 'stamp'; stamp.textContent = 'Fa per te!';
-    var h = document.createElement('h3'); h.textContent = best.p.name;
-    var t = document.createElement('p'); t.className = 'pk-why'; t.textContent = why(best, freq);
-    card.appendChild(stamp); card.appendChild(h); card.appendChild(t);
-    if (prices) {
-      var pr = document.createElement('p'); pr.className = 'pk-price';
-      pr.textContent = euro(best.p.priceCents) + (best.p.kind === 'monthly' ? ' al mese' : '') + ' · circa ' + euro(Math.round(best.pl.per)) + ' a ' + (topic === 'pt' ? 'seduta' : 'lezione');
-      card.appendChild(pr);
-      if (best.saving > 4) { var sv = document.createElement('p'); sv.className = 'pk-save'; sv.textContent = 'Risparmi circa ' + euro(Math.round(best.saving / 100) * 100) + ' al mese rispetto alle lezioni singole.'; card.appendChild(sv); }
+    tabs.forEach(function (t, i) { t.style.setProperty('--f', clamp(1 - Math.abs(i - p), 0, 1).toFixed(3)); });
+    var c = Math.round(p);
+    if (c !== cur) setCur(c);
+  }
+  var schedule = function () { if (!raf) raf = requestAnimationFrame(frame); };
+  track.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', function () { if (cur >= 0) go(cur, true); schedule(); });
+
+  tabs.forEach(function (t) { t.addEventListener('click', function () { go(Number(t.getAttribute('data-go'))); }); });
+  if (prev) prev.addEventListener('click', function () { go(cur - 1); });
+  if (next) next.addEventListener('click', function () { go(cur + 1); });
+
+  // tastiera: frecce, Home e Fine mentre il fuoco è dentro il carosello
+  cx.addEventListener('keydown', function (e) {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    if (e.target.closest && e.target.closest('input, textarea, select')) return;
+    var to = e.key === 'ArrowRight' ? cur + 1 : e.key === 'ArrowLeft' ? cur - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : null;
+    if (to === null) return;
+    e.preventDefault(); go(to);
+  });
+
+  // mouse: si trascina come col dito; il gesto parte dopo qualche pixel, così i link restano cliccabili
+  var drag = null, moved = false;
+  track.addEventListener('dragstart', function (e) { e.preventDefault(); });
+  track.addEventListener('pointerdown', function (e) {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    drag = { x: e.clientX, left: track.scrollLeft, base: cur, on: false, id: e.pointerId };
+    moved = false;
+  });
+  track.addEventListener('pointermove', function (e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var dx = e.clientX - drag.x;
+    if (!drag.on) {
+      if (Math.abs(dx) < 6) return;
+      drag.on = true; moved = true; track.classList.add('is-drag');
+      try { track.setPointerCapture(e.pointerId); } catch (err) {}
     }
-    var row = document.createElement('div'); row.className = 'pk-go';
-    var go = document.createElement('a'); go.className = 'btn btn-sm'; go.href = '#prova'; go.setAttribute('data-topic', topic === 'all' ? '' : topic);
-    go.innerHTML = '<span>Provalo gratis</span>';
-    var see = document.createElement('a'); see.className = 'more'; see.href = '#p-' + best.p.id; see.textContent = 'Guarda la tessera';
-    row.appendChild(go); row.appendChild(see); card.appendChild(row);
-    res.appendChild(card);
-    var el = document.getElementById('p-' + best.p.id);
-    if (el) { void el.offsetWidth; el.classList.add('is-pick'); }
-  }
+    track.scrollLeft = drag.left - dx;
+  });
+  var drop = function (e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var d = drag, dx = e.clientX - d.x; drag = null;
+    if (!d.on) return;
+    track.classList.remove('is-drag');
+    go(dx < -60 ? d.base + 1 : dx > 60 ? d.base - 1 : d.base);
+  };
+  track.addEventListener('pointerup', drop);
+  track.addEventListener('pointercancel', drop);
+  track.addEventListener('click', function (e) { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
 
-  function read() {
-    var t = box.querySelector('input[name="pk-topic"]:checked'), f = box.querySelector('input[name="pk-freq"]:checked');
-    if (t && f) show(t.value, Number(f.value));
-  }
-  box.addEventListener('change', read);
-})();
-
-// ------------------------------------------------------------------ modulo "prova gratuita"
-(function () {
-  var form = document.getElementById('trial-form'), done = document.getElementById('trial-done');
-  if (!form || !done) return;
-  var cfg = window.KUKO_SITE || {};
-  var live = !!(cfg.supabaseUrl && cfg.supabaseKey);
-  document.querySelectorAll('.tf-demo').forEach(function (el) { el.hidden = live; });
-
-  // i pulsanti "Prova gratis" scelgono già il corso nel modulo
+  // un link che punta a un corso (#personal, #functional, #pilates) porta qui e apre quel corso
+  var ids = slides.map(function (s) { return s.id; });
+  var open = function (hash, instant) {
+    var i = ids.indexOf(decodeURIComponent(hash.replace(/^#/, '')));
+    if (i < 0) return false;
+    cx.scrollIntoView({ behavior: instant || reduce ? 'auto' : 'smooth', block: 'start' });
+    go(i, true);
+    return true;
+  };
   document.addEventListener('click', function (e) {
-    var a = e.target.closest ? e.target.closest('a[data-topic]') : null;
-    if (!a) return;
-    var v = a.getAttribute('data-topic');
-    var r = v ? form.querySelector('input[name="topic"][value="' + v + '"]') : null;
-    if (r) {
-      r.checked = true; clear('topic');
-      var sp = r.nextElementSibling;
-      if (sp) { sp.classList.remove('flash'); void sp.offsetWidth; sp.classList.add('flash'); }
-    }
+    var a = e.target.closest && e.target.closest('a[href^="#"]');
+    if (a && a.hash.length > 1 && open(a.hash)) e.preventDefault();
   });
+  if (location.hash.length > 1) open(location.hash, true);
 
-  var MSG = {
-    topic: 'Scegli che cosa vuoi provare.', name: 'Scrivi nome e cognome.', phone: 'Controlla il numero di telefono.',
-    email: 'Controlla l’indirizzo email.', consent: 'Serve il consenso per poterti ricontattare.',
-  };
-  var errEl = function (k) { return form.querySelector('[data-err="' + k + '"]'); };
-  function setErr(k, text) {
-    var el = errEl(k); if (!el) return;
-    el.textContent = text || ''; el.hidden = !text;
-    var inp = form.elements[k];
-    if (inp && inp.setAttribute) { if (text) { inp.setAttribute('aria-invalid', 'true'); el.id = el.id || 'err-' + k; inp.setAttribute('aria-describedby', el.id); } else inp.removeAttribute('aria-invalid'); }
+  // ogni corso si presenta (foto che si scopre, testo, tappe) la prima volta che lo vedi
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (en, io) {
+      if (!en[0].isIntersecting) return;
+      seen = true; io.disconnect(); schedule();
+    }, { threshold: .3 }).observe(cx);
   }
-  function clear(k) { setErr(k, ''); }
-  ['name', 'phone', 'email'].forEach(function (k) { form.elements[k].addEventListener('input', function () { clear(k); setErr('form', ''); }); });
-  form.elements.consent.addEventListener('change', function () { clear('consent'); });
-  form.addEventListener('change', function (e) { if (e.target.name === 'topic') clear('topic'); });
-
-  var digits = function (s) { return s.replace(/\D/g, ''); };
-  function collect() {
-    var slots = [];
-    form.querySelectorAll('input[name="slots"]:checked').forEach(function (c) { slots.push(c.value); });
-    var t = form.querySelector('input[name="topic"]:checked');
-    return {
-      topic: t ? t.value : '', name: form.elements.name.value.trim().replace(/\s+/g, ' '), phone: form.elements.phone.value.trim(),
-      email: form.elements.email.value.trim().toLowerCase(), slots: slots, note: form.elements.note.value.trim().slice(0, 400),
-      consent: form.elements.consent.checked, website: form.elements.website.value,
-    };
-  }
-  function validate(p) {
-    var bad = [];
-    if (!p.topic) bad.push('topic');
-    if (p.name.length < 2) bad.push('name');
-    if (digits(p.phone).length < 8 || digits(p.phone).length > 15) bad.push('phone');
-    if (p.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(p.email)) bad.push('email');
-    if (!p.consent) bad.push('consent');
-    ['topic', 'name', 'phone', 'email', 'consent'].forEach(function (k) { setErr(k, bad.indexOf(k) >= 0 ? MSG[k] : ''); });
-    return bad;
-  }
-
-  function send(p) {
-    if (live) {
-      return fetch(cfg.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/submit_lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', apikey: cfg.supabaseKey, Authorization: 'Bearer ' + cfg.supabaseKey },
-        body: JSON.stringify({ p: p }),
-      }).then(function (r) {
-        if (r.ok) return { ok: true };
-        return r.json().catch(function () { return {}; }).then(function (j) { return { ok: false, code: j && j.message }; });
-      }, function () { return { ok: false, code: 'network' }; });
-    }
-    // senza database la richiesta resta su questo dispositivo: la app (stessa origine) la legge e la mostra all'owner
-    return new Promise(function (resolve) {
-      try {
-        if (p.website) return resolve({ ok: true });
-        var q = JSON.parse(localStorage.getItem('kuko-site-leads') || '[]');
-        q.push({ topic: p.topic, name: p.name, phone: p.phone, email: p.email, slots: p.slots, note: p.note, consent: p.consent, at: new Date().toISOString() });
-        localStorage.setItem('kuko-site-leads', JSON.stringify(q.slice(-50)));
-        resolve({ ok: true });
-      } catch (e) { resolve({ ok: false, code: 'storage' }); }
-    });
-  }
-  var FAIL = {
-    invalid: 'Controlla i dati e riprova.',
-    busy: 'Troppe richieste in poco tempo: riprova tra qualche minuto, oppure scrivici su WhatsApp.',
-  };
-
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    setErr('form', '');
-    var p = collect(), bad = validate(p);
-    if (bad.length) {
-      var first = bad[0] === 'topic' ? form.querySelector('input[name="topic"]') : form.elements[bad[0]];
-      if (first && first.focus) first.focus();
-      return;
-    }
-    var btn = form.querySelector('.tf-send'), label = btn.querySelector('span');
-    btn.disabled = true; label.textContent = 'Invio in corso…';
-    send(p).then(function (r) {
-      btn.disabled = false; label.textContent = 'Richiedi la prova gratuita';
-      if (!r.ok) { setErr('form', FAIL[r.code] || 'Non riesco a inviare: controlla la connessione e riprova, oppure scrivici su WhatsApp.'); return; }
-      done.querySelector('.done-name').textContent = p.name.split(' ')[0];
-      form.hidden = true; done.hidden = false;
-      done.focus({ preventScroll: true });
-      if (done.scrollIntoView) done.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    });
-  });
-
-  var again = document.getElementById('trial-again');
-  if (again) again.addEventListener('click', function () {
-    form.reset(); form.hidden = false; done.hidden = true;
-    ['topic', 'name', 'phone', 'email', 'consent', 'form'].forEach(clear);
-  });
+  setCur(0);
+  frame();
+  cx.classList.add('is-live');
 })();
 
 // "Gli spazi": la fascia di foto scorre da sola, rallenta col mouse sopra e si trascina col dito o col mouse. Con "riduci animazioni" resta una fascia da scorrere a mano.
@@ -361,7 +282,7 @@
 })();
 
 // ------------------------------------------------------------------ sezioni espandibili (solo telefono, fino a 760 px)
-// Le parti più lunghe (tappe dei corsi, tessere, orari, nutrizione, "come funziona") si aprono a un tocco: meno scorrimento.
+// Le parti più lunghe (tappe dei corsi, orari, nutrizione) si aprono a un tocco: meno scorrimento.
 // I contenitori si creano solo sotto i 760 px e si tolgono sopra: sul desktop la pagina è identica a prima. Senza JS tutto resta aperto.
 (function () {
   var mq = window.matchMedia && window.matchMedia('(max-width: 760px)');
@@ -440,15 +361,8 @@
   var one = function (s, c) { return (c || document).querySelector(s); };
 
   // corsi: la riga "Una lezione, in quattro tappe" apre tappe, parole chiave e dimensione del gruppo
-  $$('.course').forEach(function (c) {
+  $$('.cx-slide').forEach(function (c) {
     Fold({ head: function () { return one('.c-sub', c); }, items: function () { return ['.flow', '.tags', '.group'].map(function (s) { return one(s, c); }).filter(Boolean); } });
-  });
-
-  // abbonamenti: le tessere si aprono sotto il gioco; la nota sotto resta sempre visibile
-  var passes = one('.passes');
-  if (passes) Fold({
-    label: 'Vedi tutte le tessere e i prezzi', labelOpen: 'Nascondi le tessere', count: passes.children.length + ' tessere', closer: 'Richiudi le tessere',
-    items: function () { return [passes]; },
   });
 
   // orari: un giorno alla volta, si apre quello di oggi (o il primo)
@@ -461,18 +375,15 @@
   var legend = one('.legend');
   if (legend) legend.addEventListener('click', function () { dayFolds.forEach(function (f) { f.set(true); }); });
 
-  // nutrizione e "come funziona"
+  // nutrizione
   var ben = one('.benefits');
   if (ben) Fold({ label: 'Cosa include la consulenza', labelOpen: 'Nascondi i dettagli', count: ben.children.length + ' punti', items: function () { return [ben]; } });
-  $$('#prova .steps').forEach(function (st) {
-    Fold({ label: 'Come funziona', labelOpen: 'Nascondi i passi', count: st.children.length + ' passi', items: function () { return [st]; } });
-  });
 
   var sync = function () { folds.forEach(function (f) { if (mq.matches) f.mount(); else f.unmount(); }); document.documentElement.classList.toggle('has-folds', mq.matches); };
   sync();
   if (mq.addEventListener) mq.addEventListener('change', sync); else if (mq.addListener) mq.addListener(sync);
 
-  // un link che punta dentro una parte chiusa (per esempio "Guarda la tessera") la apre prima di scorrere
+  // un link che punta dentro una parte chiusa la apre prima di scorrere
   var reveal = function (id) {
     if (!id || !mq.matches) return;
     var t = document.getElementById(id), w = t && t.closest ? t.closest('.fold') : null;

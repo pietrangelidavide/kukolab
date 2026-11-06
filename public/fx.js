@@ -1,6 +1,6 @@
 // KUKO LAB, vetrina: effetti e piccoli dettagli d'uso.
 // L'idea: il quadrante del logo è lo strumento della pagina. Si accende all'apertura, le tacche seguono il dito o il mouse,
-// e lo stesso quadrante, piccolo attorno al logo in alto, segna a che punto del giro sei (360° = fondo pagina).
+// e lo stesso quadrante, piccolo attorno al logo in alto, segna a che punto del giro sei (360° = fondo pagina). Un terzo quadrante gira dietro il carosello dei corsi (site.js).
 // Tutto è a strati: senza questo file, o con "riduci animazioni", la pagina resta completa e ferma.
 (function () {
   'use strict';
@@ -99,9 +99,9 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { place(cur); });
   });
 
-  // ------------------------------------------------------------ barra rapida su telefono: compare dopo l'apertura, sparisce sul modulo
+  // ------------------------------------------------------------ barra rapida su telefono (WhatsApp): compare dopo l'apertura, sparisce sui contatti, dove c'è già
   safe('barra', function () {
-    var dock = $('#dock'), card = $('#prova');
+    var dock = $('#dock'), card = $('#contatti');
     if (!dock) return;
     var over = false;
     if (hasIO && card) new IntersectionObserver(function (en) { over = en[0].isIntersecting; schedule(); }, { threshold: .02 }).observe(card);
@@ -125,12 +125,12 @@
   // da qui in poi solo movimento: con "riduci animazioni" o senza IntersectionObserver ci si ferma
   if (reduce || !hasIO) { window.__fx = true; schedule(); return; }
 
-  // ------------------------------------------------------------ foto e tappe: si scoprono quando arrivano
+  // ------------------------------------------------------------ foto, schede e testi: si scoprono quando arrivano
   safe('rivelazioni', function () {
     var io = new IntersectionObserver(function (en) {
       en.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
     }, { threshold: .22, rootMargin: '0px 0px -6% 0px' });
-    $$('.course, .t-photo, .n-photo').forEach(function (el) { io.observe(el); });
+    $$('.t-photo, .n-photo, .pro, [data-reveal]').forEach(function (el) { io.observe(el); });
   });
 
   // ------------------------------------------------------------ taglio diagonale: il cuneo si apre mentre la sezione sale
@@ -170,18 +170,32 @@
     });
   });
 
-  // ------------------------------------------------------------ foto dei corsi: scorrono dentro la cornice
-  safe('parallasse', function () {
-    var boxes = $$('.c-clip');
+  // ------------------------------------------------------------ "chi siamo": la scritta gigante scorre di lato e il righello accende i tre punti fermi uno dopo l'altro
+  safe('chi siamo', function () {
+    var sec = $('[data-about]');
+    if (!sec) return;
+    var gauge = $('[data-gauge]', sec), items = gauge ? $$('.pillars li', gauge) : [];
+    if (gauge) gauge.classList.add('is-live');
+    var lastAb = 9, lastG = -1, lastHit = '';
     updaters.push(function () {
-      var todo = [];
-      boxes.forEach(function (b) {
-        var r = b.getBoundingClientRect();
-        if (r.bottom < -120 || r.top > vh + 120) return;
-        var c = clamp(((r.top + r.height / 2) - vh / 2) / (vh / 2 + r.height / 2), -1, 1);
-        todo.push([b, c * -24]);
-      });
-      if (todo.length) return function () { todo.forEach(function (t) { t[0].style.setProperty('--py', t[1].toFixed(1)); }); };
+      var r = sec.getBoundingClientRect();
+      if (r.bottom < -80 || r.top > vh + 80) return;
+      var ab = clamp((r.top + r.height / 2 - vh / 2) / (vh / 2 + r.height / 2), -1, 1), g = 0, flags = [];
+      if (gauge) {
+        g = clamp((vh * .92 - gauge.getBoundingClientRect().top) / (vh * .5), 0, 1);
+        var stacked = items.length > 1 && items[1].getBoundingClientRect().top > items[0].getBoundingClientRect().top + 8;
+        flags = items.map(function (li, i) { return stacked ? li.getBoundingClientRect().top < vh * .88 : g >= (i + .25) / items.length; });
+      }
+      var hit = flags.join();
+      if (Math.abs(ab - lastAb) < .003 && Math.abs(g - lastG) < .003 && hit === lastHit) return;
+      return function () {
+        lastAb = ab; lastG = g; lastHit = hit;
+        sec.style.setProperty('--ab', ab.toFixed(3));
+        if (gauge) {
+          gauge.style.setProperty('--g', g.toFixed(3));
+          items.forEach(function (li, i) { li.classList.toggle('hit', !!flags[i]); });
+        }
+      };
     });
   });
 
@@ -332,30 +346,6 @@
     // un giro di luce a fine apertura: fa capire che il quadrante risponde (una volta sola, solo se non l'hai già toccato)
     setTimeout(function () { if (!ptr.in) { wave = { t0: performance.now(), dur: 1700 }; go(); } }, 2100);
     go();
-  });
-
-  // ------------------------------------------------------------ tessere: si inclinano verso il mouse e riflettono la luce
-  safe('tessere', function () {
-    if (!fine) return;
-    $$('.pass').forEach(function (p) {
-      var inn = $('.pass-in', p);
-      if (!inn) return;
-      p.addEventListener('pointermove', function (e) {
-        if (e.pointerType !== 'mouse') return;
-        var r = p.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
-        p.classList.add('is-tilting');
-        p.style.setProperty('--ry', ((x - .5) * 12).toFixed(2) + 'deg');
-        p.style.setProperty('--rx', ((.5 - y) * 9).toFixed(2) + 'deg');
-        inn.style.setProperty('--gx', (x * 100).toFixed(1) + '%');
-        inn.style.setProperty('--gy', (y * 100).toFixed(1) + '%');
-        inn.style.setProperty('--go', '1');
-      });
-      p.addEventListener('pointerleave', function () {
-        p.classList.remove('is-tilting');
-        p.style.removeProperty('--rx'); p.style.removeProperty('--ry');
-        inn.style.setProperty('--go', '0');
-      });
-    });
   });
 
   // ------------------------------------------------------------ "trascina": un gettone segue il mouse sulla fascia delle foto

@@ -1,0 +1,31 @@
+{
+  "note": "Fisioterapista e osteopata mostrati nella vetrina (sezione \"Fisioterapista e osteopata\", generata da npm run site). Per ora le schede hanno solo il ruolo e un disegno: quando si hanno i dati basta compilare \"name\", \"photo\" (es. img/pro-fisioterapista.jpg, verticale 4:5, almeno 600 px di larghezza), \"phone\", \"email\", \"instagram\" e rilanciare npm run site. I campi lasciati a null non compaiono. \"intro\" e \"when\" sono testi generici da far confermare ai professionisti.",
+  "professionals": [
+    {
+      "id": "fisioterapista",
+      "role": "Fisioterapista",
+      "icon": "physio",
+      "name": null,
+      "photo": null,
+      "alt": "Il fisioterapista di KUKO LAB",
+      "phone": null,
+      "email": null,
+      "instagram": null,
+      "intro": "Ti aiuta a recuperare dopo un infortunio, un intervento o un dolore che non passa, e a tornare ad allenarti in sicurezza.",
+      "when": ["Dopo un infortunio o un intervento", "Quando un dolore torna sempre", "Per riprendere ad allenarti con fiducia"]
+    },
+    {
+      "id": "osteopata",
+      "role": "Osteopata",
+      "icon": "osteo",
+      "name": null,
+      "photo": null,
+      "alt": "L'osteopata di KUKO LAB",
+      "phone": null,
+      "email": null,
+      "instagram": null,
+      "intro": "Con un approccio manuale lavora su tensioni, rigidità e mobilità, per aiutarti a muoverti meglio, dentro e fuori dall'allenamento.",
+      "when": ["Tensioni a schiena, collo e spalle", "Rigidità e poca mobilità", "Postura e movimenti di ogni giorno"]
+    }
+  ]
+}

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>KUKO LAB | Performance studio</title>
-<meta name="description" content="KUKO LAB, performance studio all'EUR: personal training, corsi funzionali e Pilates in piccoli gruppi. Il tuo benessere a 360°++. Prenota online.">
+<meta name="description" content="KUKO LAB, performance studio all'EUR: personal training, corsi funzionali e Pilates in piccoli gruppi, con nutrizionista, fisioterapista e osteopata. Il tuo benessere a 360°++.">
 <meta name="theme-color" content="#0a0a0b">
 <!-- Finché il sito non ha il dominio definitivo resta fuori da Google: togliere noindex e robots.txt al go-live. -->
 <meta name="robots" content="noindex, nofollow">
@@ -64,6 +64,10 @@
     <symbol id="i-ig" viewBox="0 0 24 24"><rect x="3.500" y="3.500" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17 7v.1"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.500 4.500 4.500L19 7.500"/></symbol>
     <symbol id="i-all" viewBox="0 0 24 24"><rect x="4" y="4" width="6.500" height="6.500" rx="1.500"/><rect x="13.500" y="4" width="6.500" height="6.500" rx="1.500"/><rect x="4" y="13.500" width="6.500" height="6.500" rx="1.500"/><rect x="13.500" y="13.500" width="6.500" height="6.500" rx="1.500"/></symbol>
+    <symbol id="i-prev" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-physio" viewBox="0 0 24 24"><g transform="rotate(-40 12 12)"><path d="M7.670 10.800H16.330A2 2 0 1 1 18.820 12A2 2 0 1 1 16.330 13.200H7.670A2 2 0 1 1 5.180 12A2 2 0 1 1 7.670 10.800Z"/></g></symbol>
+    <symbol id="i-osteo" viewBox="0 0 24 24"><rect x="9.500" y="1.800" width="5" height="3.200" rx="1.300"/><rect x="8.700" y="6.200" width="6.400" height="3.200" rx="1.300"/><rect x="9.300" y="10.600" width="7" height="3.200" rx="1.300"/><rect x="8.700" y="15" width="6.800" height="3.200" rx="1.300"/><rect x="9.500" y="19.400" width="5.400" height="2.800" rx="1.300"/></symbol>
     <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19c0-8 4-13 14-14 0 9-4.500 14-12.500 14.200M5 19c2-4 5-7 9-9"/></symbol>
   </defs>
 </svg>
@@ -84,10 +88,9 @@
       <a href="#chi-siamo">Chi siamo</a>
       <a href="#trainer">Trainer</a>
       <a href="#nutrizione">Nutrizione</a>
-      <a href="#abbonamenti">Abbonamenti</a>
+      <a href="#professionisti">Fisio e osteo</a>
       <a href="#contatti">Contatti</a>
     </nav>
-    <a class="btn btn-sm" href="#prova"><span>Prova gratuita</span></a>
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="drawer" aria-label="Apri il menu"><i></i><i></i><i></i></button>
   </div>
   <nav class="drawer" id="drawer" aria-label="Menu">
@@ -96,9 +99,8 @@
     <a href="#chi-siamo">Chi siamo</a>
     <a href="#trainer">Trainer</a>
     <a href="#nutrizione">Nutrizione</a>
-    <a href="#abbonamenti">Abbonamenti</a>
+    <a href="#professionisti">Fisio e osteo</a>
     <a href="#contatti">Contatti</a>
-    <a class="btn drawer-cta" href="#prova"><span>Prova gratuita</span></a>
   </nav>
 </header>
 
@@ -108,10 +110,6 @@
       <div class="hero-text">
         <h1><span class="ln"><span>Il tuo</span></span> <span class="ln"><span>benessere</span></span> <span class="ln"><span>a 360°++</span></span></h1>
         <p class="lead">Personal training, corsi funzionali e Pilates in piccoli gruppi, nel nostro studio all'EUR.</p>
-        <div class="cta">
-          <a class="btn" href="#prova"><span>Prova gratuita</span></a>
-          <a class="btn btn-line" href="/app/"><span>Prenota una lezione</span></a>
-        </div>
         <p class="next" id="next" hidden></p>
       </div>
       <figure class="fig">
@@ -158,75 +156,99 @@
     </div>
   </div>
 
-  <section id="corsi" class="sec paper">
-    <div class="wrap">
-      <header class="sec-head">
-        <h2>Tre modi di allenarti</h2>
-        <p>Cambia il modo di allenarti, non la cura con cui ti seguiamo. Qui vedi com'è fatta una lezione, passo dopo passo.</p>
-      </header>
-
-      <article class="course c-pilates" id="pilates">
-        <figure class="c-photo">
-          <span class="c-clip"><img src="img/corso-pilates.jpg" width="900" height="900" loading="lazy" alt="Una cliente fa un esercizio per gambe e addome su un attrezzo da Pilates"></span>
-          <span class="c-medal"><svg class="ic" aria-hidden="true"><use href="#i-pilates"/></svg></span>
-        </figure>
-        <div class="c-body">
-          <h3>Pilates</h3>
-          <p class="c-lead">Esercizi controllati, dosati a poco a poco. Lavori su postura, forza, mobilità, equilibrio e stabilità, con una cura particolare per i muscoli profondi.</p>
-          <p class="c-sub">Una lezione, in quattro tappe <span class="lap-ring" aria-hidden="true"></span></p>
-          <ol class="flow">
-            <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-breath"/></svg></span><b>Respiro</b><small>Si parte da respirazione e postura.</small></li>
-            <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-core"/></svg></span><b>Muscoli profondi</b><small>Attivi il centro del corpo, a piccole dosi.</small></li>
-            <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-control"/></svg></span><b>Controllo</b><small>Movimenti lenti e precisi, anche con gli attrezzi.</small></li>
-            <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-stretch"/></svg></span><b>Mobilità</b><small>Chiudi allungando e sciogliendo.</small></li>
-          </ol>
-          <ul class="tags"><li>Postura</li><li>Forza</li><li>Mobilità</li><li>Equilibrio</li><li>Stabilità</li></ul>
-          <p class="group"><span class="dots" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>Piccoli gruppi, metodo controllato e progressivo</p>
-          <div class="c-cta"><a class="btn" href="#prova" data-topic="pilates"><span>Prova gratis</span></a><a class="more" href="#orari">Vedi gli orari</a></div>
+  <section id="corsi" class="sec ink cx-sec" aria-labelledby="corsi-t">
+    <div class="cx" data-cx role="region" aria-roledescription="carosello" aria-label="I corsi di KUKO LAB">
+<!--CDIAL-->
+    <svg class="cdial" viewBox="0 0 1000 1000" aria-hidden="true" focusable="false">
+      <circle cx="500" cy="500" r="480" class="ring"/>
+      <line x1="500.0" y1="20.0" x2="500.0" y2="66.0" class="t4"/><line x1="533.5" y1="21.2" x2="532.6" y2="33.1" class="t1"/><line x1="566.8" y1="24.7" x2="565.1" y2="36.6" class="t1"/><line x1="599.8" y1="30.5" x2="597.3" y2="42.2" class="t1"/><line x1="632.3" y1="38.6" x2="629.0" y2="50.1" class="t1"/><line x1="664.2" y1="48.9" x2="660.1" y2="60.2" class="t1"/><line x1="695.2" y1="61.5" x2="690.4" y2="72.5" class="t1"/><line x1="725.3" y1="76.2" x2="719.7" y2="86.8" class="t1"/><line x1="754.4" y1="92.9" x2="748.0" y2="103.1" class="t1"/><line x1="782.1" y1="111.7" x2="775.1" y2="121.4" class="t1"/><line x1="808.5" y1="132.3" x2="800.8" y2="141.5" class="t1"/><line x1="833.4" y1="154.7" x2="825.1" y2="163.3" class="t1"/><line x1="856.7" y1="178.8" x2="847.8" y2="186.8" class="t1"/><line x1="878.2" y1="204.5" x2="868.8" y2="211.9" class="t1"/><line x1="897.9" y1="231.6" x2="888.0" y2="238.3" class="t1"/><line x1="915.7" y1="260.0" x2="891.4" y2="274.0" class="t2"/><line x1="931.4" y1="289.6" x2="920.6" y2="294.8" class="t1"/><line x1="945.0" y1="320.2" x2="933.9" y2="324.7" class="t1"/><line x1="956.5" y1="351.7" x2="945.1" y2="355.4" class="t1"/><line x1="965.7" y1="383.9" x2="954.1" y2="386.8" class="t1"/><line x1="972.7" y1="416.6" x2="960.9" y2="418.7" class="t1"/><line x1="977.4" y1="449.8" x2="965.4" y2="451.1" class="t1"/><line x1="979.7" y1="483.2" x2="967.7" y2="483.7" class="t1"/><line x1="979.7" y1="516.8" x2="967.7" y2="516.3" class="t1"/><line x1="977.4" y1="550.2" x2="965.4" y2="548.9" class="t1"/><line x1="972.7" y1="583.4" x2="960.9" y2="581.3" class="t1"/><line x1="965.7" y1="616.1" x2="954.1" y2="613.2" class="t1"/><line x1="956.5" y1="648.3" x2="945.1" y2="644.6" class="t1"/><line x1="945.0" y1="679.8" x2="933.9" y2="675.3" class="t1"/><line x1="931.4" y1="710.4" x2="920.6" y2="705.2" class="t1"/><line x1="915.7" y1="740.0" x2="891.4" y2="726.0" class="t2"/><line x1="897.9" y1="768.4" x2="888.0" y2="761.7" class="t1"/><line x1="878.2" y1="795.5" x2="868.8" y2="788.1" class="t1"/><line x1="856.7" y1="821.2" x2="847.8" y2="813.2" class="t1"/><line x1="833.4" y1="845.3" x2="825.1" y2="836.7" class="t1"/><line x1="808.5" y1="867.7" x2="800.8" y2="858.5" class="t1"/><line x1="782.1" y1="888.3" x2="775.1" y2="878.6" class="t1"/><line x1="754.4" y1="907.1" x2="748.0" y2="896.9" class="t1"/><line x1="725.3" y1="923.8" x2="719.7" y2="913.2" class="t1"/><line x1="695.2" y1="938.5" x2="690.4" y2="927.5" class="t1"/><line x1="664.2" y1="951.1" x2="660.1" y2="939.8" class="t1"/><line x1="632.3" y1="961.4" x2="629.0" y2="949.9" class="t1"/><line x1="599.8" y1="969.5" x2="597.3" y2="957.8" class="t1"/><line x1="566.8" y1="975.3" x2="565.1" y2="963.4" class="t1"/><line x1="533.5" y1="978.8" x2="532.6" y2="966.9" class="t1"/><line x1="500.0" y1="980.0" x2="500.0" y2="934.0" class="t4"/><line x1="466.5" y1="978.8" x2="467.4" y2="966.9" class="t1"/><line x1="433.2" y1="975.3" x2="434.9" y2="963.4" class="t1"/><line x1="400.2" y1="969.5" x2="402.7" y2="957.8" class="t1"/><line x1="367.7" y1="961.4" x2="371.0" y2="949.9" class="t1"/><line x1="335.8" y1="951.1" x2="339.9" y2="939.8" class="t1"/><line x1="304.8" y1="938.5" x2="309.6" y2="927.5" class="t1"/><line x1="274.7" y1="923.8" x2="280.3" y2="913.2" class="t1"/><line x1="245.6" y1="907.1" x2="252.0" y2="896.9" class="t1"/><line x1="217.9" y1="888.3" x2="224.9" y2="878.6" class="t1"/><line x1="191.5" y1="867.7" x2="199.2" y2="858.5" class="t1"/><line x1="166.6" y1="845.3" x2="174.9" y2="836.7" class="t1"/><line x1="143.3" y1="821.2" x2="152.2" y2="813.2" class="t1"/><line x1="121.8" y1="795.5" x2="131.2" y2="788.1" class="t1"/><line x1="102.1" y1="768.4" x2="112.0" y2="761.7" class="t1"/><line x1="84.3" y1="740.0" x2="108.6" y2="726.0" class="t2"/><line x1="68.6" y1="710.4" x2="79.4" y2="705.2" class="t1"/><line x1="55.0" y1="679.8" x2="66.1" y2="675.3" class="t1"/><line x1="43.5" y1="648.3" x2="54.9" y2="644.6" class="t1"/><line x1="34.3" y1="616.1" x2="45.9" y2="613.2" class="t1"/><line x1="27.3" y1="583.4" x2="39.1" y2="581.3" class="t1"/><line x1="22.6" y1="550.2" x2="34.6" y2="548.9" class="t1"/><line x1="20.3" y1="516.8" x2="32.3" y2="516.3" class="t1"/><line x1="20.3" y1="483.2" x2="32.3" y2="483.7" class="t1"/><line x1="22.6" y1="449.8" x2="34.6" y2="451.1" class="t1"/><line x1="27.3" y1="416.6" x2="39.1" y2="418.7" class="t1"/><line x1="34.3" y1="383.9" x2="45.9" y2="386.8" class="t1"/><line x1="43.5" y1="351.7" x2="54.9" y2="355.4" class="t1"/><line x1="55.0" y1="320.2" x2="66.1" y2="324.7" class="t1"/><line x1="68.6" y1="289.6" x2="79.4" y2="294.8" class="t1"/><line x1="84.3" y1="260.0" x2="108.6" y2="274.0" class="t2"/><line x1="102.1" y1="231.6" x2="112.0" y2="238.3" class="t1"/><line x1="121.8" y1="204.5" x2="131.2" y2="211.9" class="t1"/><line x1="143.3" y1="178.8" x2="152.2" y2="186.8" class="t1"/><line x1="166.6" y1="154.7" x2="174.9" y2="163.3" class="t1"/><line x1="191.5" y1="132.3" x2="199.2" y2="141.5" class="t1"/><line x1="217.9" y1="111.7" x2="224.9" y2="121.4" class="t1"/><line x1="245.6" y1="92.9" x2="252.0" y2="103.1" class="t1"/><line x1="274.7" y1="76.2" x2="280.3" y2="86.8" class="t1"/><line x1="304.8" y1="61.5" x2="309.6" y2="72.5" class="t1"/><line x1="335.8" y1="48.9" x2="339.9" y2="60.2" class="t1"/><line x1="367.7" y1="38.6" x2="371.0" y2="50.1" class="t1"/><line x1="400.2" y1="30.5" x2="402.7" y2="42.2" class="t1"/><line x1="433.2" y1="24.7" x2="434.9" y2="36.6" class="t1"/><line x1="466.5" y1="21.2" x2="467.4" y2="33.1" class="t1"/>
+      <circle cx="500" cy="500" r="430" class="arc" pathLength="100" transform="rotate(-90 500 500)"/>
+    </svg>
+<!--/CDIAL-->
+      <div class="cx-top">
+        <h2 id="corsi-t">Tre modi di allenarti</h2>
+        <div class="cx-tabs" role="group" aria-label="Scegli il corso">
+          <button class="cx-tab" type="button" data-go="0"><svg class="ic" aria-hidden="true"><use href="#i-pt"/></svg><span>Personal<span class="lg"> training</span></span></button>
+          <button class="cx-tab" type="button" data-go="1"><svg class="ic" aria-hidden="true"><use href="#i-functional"/></svg><span>Gruppo</span></button>
+          <button class="cx-tab" type="button" data-go="2"><svg class="ic" aria-hidden="true"><use href="#i-pilates"/></svg><span>Pilates</span></button>
         </div>
-      </article>
+      </div>
 
-      <article class="course c-functional c-flip" id="functional">
-        <figure class="c-photo">
-          <span class="c-clip"><img src="img/corso-functional.jpg" width="760" height="752" loading="lazy" alt="Il trainer segue una cliente che fa un esercizio con l'elastico, mentre altri si allenano sullo sfondo"></span>
-          <span class="c-medal"><svg class="ic" aria-hidden="true"><use href="#i-functional"/></svg></span>
-        </figure>
-        <div class="c-body">
-          <h3>Corsi di Functional</h3>
-          <p class="c-lead">Si allena a circuito, alternando esercizi diversi che coinvolgono tutto il corpo. Il risultato: più forza, più resistenza, più mobilità e coordinazione.</p>
-          <p class="c-sub">Una lezione, in quattro tappe <span class="lap-ring" aria-hidden="true"></span></p>
-          <ol class="flow">
-            <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-flame"/></svg></span><b>Riscaldamento</b><small>Prepari articolazioni e muscoli.</small></li>
-            <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-circuit"/></svg></span><b>Circuito</b><small>Alterni esercizi a tutto corpo, stazione dopo stazione.</small></li>
-            <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-strength"/></svg></span><b>Forza e fiato</b><small>Lavori su forza, resistenza e coordinazione.</small></li>
-            <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-stretch"/></svg></span><b>Defaticamento</b><small>Rientri con calma, allungando.</small></li>
-          </ol>
-          <ul class="tags"><li>Forza</li><li>Resistenza</li><li>Mobilità</li><li>Coordinazione</li></ul>
-          <p class="group"><span class="dots" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>Gruppi da 6/8 persone al massimo</p>
-          <div class="c-cta"><a class="btn" href="#prova" data-topic="functional"><span>Prova gratis</span></a><a class="more" href="#orari">Vedi gli orari</a></div>
-        </div>
-      </article>
+      <ul class="cx-track" tabindex="0" aria-label="Scorri di lato per vedere i corsi">
+        <li class="cx-slide s-pt" id="personal" role="group" aria-roledescription="diapositiva" aria-label="1 di 3: Personal training">
+          <span class="cx-ghost" aria-hidden="true">Personal</span>
+          <figure class="cx-photo">
+            <span class="cx-plate"></span>
+            <span class="cx-clip"><img src="img/corso-pt.jpg" width="900" height="896" decoding="async" alt="Valerio e una cliente fanno squat con la palla medica davanti alla vetrina dello studio"></span>
+            <span class="c-medal"><svg class="ic" aria-hidden="true"><use href="#i-pt"/></svg></span>
+          </figure>
+          <div class="cx-body">
+            <h3>Personal training</h3>
+            <p class="c-lead">Sedute individuali, costruite su di te. Si parte da una valutazione iniziale, poi il programma segue i tuoi obiettivi e si aggiorna settimana dopo settimana.</p>
+            <p class="c-sub">Un percorso, in quattro tappe <span class="lap-ring" aria-hidden="true"></span></p>
+            <ol class="flow">
+              <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg></span><b>Valutazione</b><small>Si parte da dove sei oggi.</small></li>
+              <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-plan"/></svg></span><b>Programma</b><small>Su misura, sui tuoi obiettivi.</small></li>
+              <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-solo"/></svg></span><b>Allenamento</b><small>Una persona, un trainer.</small></li>
+              <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-trend"/></svg></span><b>Progressi</b><small>Il programma si aggiorna settimana dopo settimana.</small></li>
+            </ol>
+            <ul class="tags"><li>Valutazione iniziale</li><li>Programma su misura</li></ul>
+            <p class="group"><span class="dots" aria-hidden="true"><i class="on"></i></span>Una persona, un trainer</p>
+            <div class="c-cta"><a class="more" href="#orari">Vedi gli orari</a></div>
+          </div>
+        </li>
 
-      <article class="course c-pt" id="personal">
-        <figure class="c-photo">
-          <span class="c-clip"><img src="img/corso-pt.jpg" width="900" height="896" loading="lazy" alt="Valerio e una cliente fanno squat con la palla medica davanti alla vetrina dello studio"></span>
-          <span class="c-medal"><svg class="ic" aria-hidden="true"><use href="#i-pt"/></svg></span>
-        </figure>
-        <div class="c-body">
-          <h3>Personal training</h3>
-          <p class="c-lead">Sedute individuali, costruite su di te. Si parte da una valutazione iniziale, poi il programma segue i tuoi obiettivi e si aggiorna settimana dopo settimana.</p>
-          <p class="c-sub">Un percorso, in quattro tappe <span class="lap-ring" aria-hidden="true"></span></p>
-          <ol class="flow">
-            <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg></span><b>Valutazione</b><small>Si parte da dove sei oggi.</small></li>
-            <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-plan"/></svg></span><b>Programma</b><small>Su misura, sui tuoi obiettivi.</small></li>
-            <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-solo"/></svg></span><b>Allenamento</b><small>Una persona, un trainer.</small></li>
-            <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-trend"/></svg></span><b>Progressi</b><small>Il programma si aggiorna settimana dopo settimana.</small></li>
-          </ol>
-          <ul class="tags"><li>Valutazione iniziale</li><li>Programma su misura</li></ul>
-          <p class="group"><span class="dots" aria-hidden="true"><i class="on"></i></span>Una persona, un trainer</p>
-          <div class="c-cta"><a class="btn" href="#prova" data-topic="pt"><span>Prova gratis</span></a><a class="more" href="#orari">Vedi gli orari</a></div>
-        </div>
-      </article>
+        <li class="cx-slide s-group c-flip" id="functional" role="group" aria-roledescription="diapositiva" aria-label="2 di 3: Functional in gruppo">
+          <span class="cx-ghost" aria-hidden="true">Gruppo</span>
+          <figure class="cx-photo">
+            <span class="cx-plate"></span>
+            <span class="cx-clip"><img src="img/corso-functional.jpg" width="760" height="752" decoding="async" alt="Il trainer segue una cliente che fa un esercizio con l'elastico, mentre altri si allenano sullo sfondo"></span>
+            <span class="c-medal"><svg class="ic" aria-hidden="true"><use href="#i-functional"/></svg></span>
+          </figure>
+          <div class="cx-body">
+            <h3>Functional in gruppo</h3>
+            <p class="c-lead">Si allena a circuito, alternando esercizi diversi che coinvolgono tutto il corpo. Il risultato: più forza, più resistenza, più mobilità e coordinazione.</p>
+            <p class="c-sub">Una lezione, in quattro tappe <span class="lap-ring" aria-hidden="true"></span></p>
+            <ol class="flow">
+              <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-flame"/></svg></span><b>Riscaldamento</b><small>Prepari articolazioni e muscoli.</small></li>
+              <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-circuit"/></svg></span><b>Circuito</b><small>Alterni esercizi a tutto corpo, stazione dopo stazione.</small></li>
+              <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-strength"/></svg></span><b>Forza e fiato</b><small>Lavori su forza, resistenza e coordinazione.</small></li>
+              <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-stretch"/></svg></span><b>Defaticamento</b><small>Rientri con calma, allungando.</small></li>
+            </ol>
+            <ul class="tags"><li>Forza</li><li>Resistenza</li><li>Mobilità</li><li>Coordinazione</li></ul>
+            <p class="group"><span class="dots" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>Gruppi da 6/8 persone al massimo</p>
+            <div class="c-cta"><a class="more" href="#orari">Vedi gli orari</a></div>
+          </div>
+        </li>
+
+        <li class="cx-slide s-pilates" id="pilates" role="group" aria-roledescription="diapositiva" aria-label="3 di 3: Pilates">
+          <span class="cx-ghost" aria-hidden="true">Pilates</span>
+          <figure class="cx-photo">
+            <span class="cx-plate"></span>
+            <span class="cx-clip"><img src="img/corso-pilates.jpg" width="900" height="900" decoding="async" alt="Una cliente fa un esercizio per gambe e addome su un attrezzo da Pilates"></span>
+            <span class="c-medal"><svg class="ic" aria-hidden="true"><use href="#i-pilates"/></svg></span>
+          </figure>
+          <div class="cx-body">
+            <h3>Pilates</h3>
+            <p class="c-lead">Esercizi controllati, dosati a poco a poco. Lavori su postura, forza, mobilità, equilibrio e stabilità, con una cura particolare per i muscoli profondi.</p>
+            <p class="c-sub">Una lezione, in quattro tappe <span class="lap-ring" aria-hidden="true"></span></p>
+            <ol class="flow">
+              <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-breath"/></svg></span><b>Respiro</b><small>Si parte da respirazione e postura.</small></li>
+              <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-core"/></svg></span><b>Muscoli profondi</b><small>Attivi il centro del corpo, a piccole dosi.</small></li>
+              <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-control"/></svg></span><b>Controllo</b><small>Movimenti lenti e precisi, anche con gli attrezzi.</small></li>
+              <li><span class="f-ic"><svg class="ic" aria-hidden="true"><use href="#i-stretch"/></svg></span><b>Mobilità</b><small>Chiudi allungando e sciogliendo.</small></li>
+            </ol>
+            <ul class="tags"><li>Postura</li><li>Forza</li><li>Mobilità</li><li>Equilibrio</li><li>Stabilità</li></ul>
+            <p class="group"><span class="dots" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>Piccoli gruppi, metodo controllato e progressivo</p>
+            <div class="c-cta"><a class="more" href="#orari">Vedi gli orari</a></div>
+          </div>
+        </li>
+      </ul>
+
+      <div class="cx-arrows" data-cx-arrows>
+        <button class="cx-arrow" type="button" data-step="-1" aria-label="Corso precedente"><svg class="ic" aria-hidden="true"><use href="#i-prev"/></svg></button>
+        <button class="cx-arrow" type="button" data-step="1" aria-label="Corso successivo"><svg class="ic" aria-hidden="true"><use href="#i-next"/></svg></button>
+      </div>
     </div>
   </section>
 
@@ -248,7 +270,7 @@
     <div class="wrap">
       <header class="sec-head">
         <h2>Orari settimanali</h2>
-        <p>Posti limitati: scegli la lezione e prenota il tuo posto dall'app. Se è piena entri in lista d'attesa e ti avvisiamo se si libera un posto.</p>
+        <p>Il calendario della settimana, dal lunedì al sabato. I corsi di gruppo sono a posti limitati.</p>
       </header>
       <ul class="legend" aria-label="Mostra solo un corso">
         <li class="t-functional"><button type="button" data-type="functional" aria-pressed="false">Functional</button></li>
@@ -314,26 +336,31 @@
       </div>
 <!--/ORARI-->
       <div class="after">
-        <p>Il personal training si prenota negli orari indicati. Per altri orari scrivici su WhatsApp. L'abbonamento lo attivi con noi in studio, poi prenoti dall'app in meno di un minuto.</p>
-        <a class="btn" href="/app/"><span>Prenota nell'app</span></a>
+        <p>Il personal training segue gli orari indicati. Per altre fasce o per qualsiasi domanda scrivici su WhatsApp.</p>
+        <a class="more" href="#contatti">Come contattarci</a>
       </div>
     </div>
   </section>
 
-  <section id="chi-siamo" class="sec orange">
+  <section id="chi-siamo" class="sec orange about-sec" data-about>
+    <div class="ab-bg" aria-hidden="true"><span class="ab-ghost">360°++</span></div>
     <div class="wrap">
       <div class="about">
-        <h2 data-words>Movimento, benessere e performance delle persone.</h2>
-        <div class="about-text">
-          <p>KUKO LAB nasce da un obiettivo preciso: avere uno spazio in cui mettere in pratica un'idea di allenamento e accompagnare ognuno nel proprio percorso.</p>
-          <p>Valerio continua a studiare e ad approfondire: più lavora, più capisce quanto l'allenamento può fare la differenza nella vita di una persona.</p>
+        <h2 data-words>Il movimento si studia, si misura e si costruisce su di te.</h2>
+        <div class="about-text" data-reveal>
+          <p class="ab-lead">KUKO LAB è lo studio di Valerio Cuscianna all'EUR: un posto per allenarti con metodo, in piccoli gruppi o uno a uno.</p>
+          <p>Valerio è laureato in Scienze Motorie, ha un master in Functional Training e lavora nel fitness da oltre quattro anni. Non smette di studiare: più lavora con le persone, più capisce quanto l'allenamento può cambiare la vita di chi si allena.</p>
+          <p>Per questo, accanto ai corsi, trovi un nutrizionista sportivo, un fisioterapista e un osteopata: tutto quello che serve al tuo benessere, nello stesso posto.</p>
         </div>
       </div>
-      <ul class="pillars">
-        <li><b>Attenzione</b><span>A ogni persona, ai suoi obiettivi e ai suoi tempi.</span></li>
-        <li><b>Metodo</b><span>Valutazione iniziale, programma, progressione.</span></li>
-        <li><b>Professionalità</b><span>Studio e aggiornamento che non si fermano.</span></li>
-      </ul>
+      <div class="gauge" data-gauge>
+        <div class="g-rule" aria-hidden="true"><i class="g-needle"></i></div>
+        <ul class="pillars">
+          <li><b>Attenzione</b><span>A ogni persona, ai suoi obiettivi e ai suoi tempi.</span></li>
+          <li><b>Metodo</b><span>Valutazione iniziale, programma, progressione.</span></li>
+          <li><b>Professionalità</b><span>Studio e aggiornamento che non si fermano.</span></li>
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -352,7 +379,6 @@
             <p class="t-role">Fondatore e personal trainer</p>
             <ul class="t-courses" aria-label="Corsi"><li><svg class="ic" aria-hidden="true"><use href="#i-functional"/></svg>Functional</li><li><svg class="ic" aria-hidden="true"><use href="#i-pt"/></svg>Personal training</li></ul>
             <ul class="creds"><li>Laureato in Scienze Motorie</li><li>Master in Functional Training</li><li>Oltre quattro anni nel mondo del fitness</li></ul>
-            <div class="c-cta"><a class="btn btn-sm" href="#prova" data-topic="functional"><span>Prova una lezione</span></a></div>
           </div>
         </li>
 <!--/TRAINERS-->
@@ -383,207 +409,37 @@
           <a href="https://www.instagram.com/dott.calabro_nutrizionista/" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-ig"/></svg>@dott.calabro_nutrizionista</a>
         </p>
 <!--/NUTRI-->
-        <div class="cta">
-          <a class="btn" href="#prova" data-topic="nutrition"><span>Prenota la consulenza gratuita</span></a>
-        </div>
       </div>
     </div>
   </section>
 
-  <section id="abbonamenti" class="sec orange">
+  <section id="professionisti" class="sec orange pros-sec" aria-labelledby="pros-t">
     <div class="wrap">
-      <header class="sec-head pass-head">
-        <h2>Scegli il tuo abbonamento</h2>
-        <p>Pacchetti di lezioni o mensili. Non sai quale ti conviene? Gioca qui sotto: due tocchi e ti diciamo qual è il tuo.</p>
+      <header class="sec-head">
+        <h2 id="pros-t">Fisioterapista e osteopata</h2>
+        <p>Quando serve un aiuto in più, un dolore, un infortunio, un movimento che non gira, in studio puoi contare anche su di loro.</p>
       </header>
-
-      <div class="picker" data-picker hidden>
-        <div class="pk-q">
-          <p class="pk-label" id="pk-q1">Che cosa ti va di fare?</p>
-          <div class="pk-opts" role="radiogroup" aria-labelledby="pk-q1">
-            <label class="pk-opt"><input type="radio" name="pk-topic" value="functional"><span><svg class="ic" aria-hidden="true"><use href="#i-functional"/></svg>Functional</span></label>
-            <label class="pk-opt"><input type="radio" name="pk-topic" value="pilates"><span><svg class="ic" aria-hidden="true"><use href="#i-pilates"/></svg>Pilates</span></label>
-            <label class="pk-opt"><input type="radio" name="pk-topic" value="pt"><span><svg class="ic" aria-hidden="true"><use href="#i-pt"/></svg>Personal training</span></label>
-            <label class="pk-opt"><input type="radio" name="pk-topic" value="all"><span><svg class="ic" aria-hidden="true"><use href="#i-all"/></svg>Un po' di tutto</span></label>
-          </div>
-        </div>
-        <div class="pk-q">
-          <p class="pk-label" id="pk-q2">Quante volte a settimana?</p>
-          <div class="pk-opts pk-freq" role="radiogroup" aria-labelledby="pk-q2">
-            <label class="pk-opt"><input type="radio" name="pk-freq" value="1"><span>1</span></label>
-            <label class="pk-opt"><input type="radio" name="pk-freq" value="2" checked><span>2</span></label>
-            <label class="pk-opt"><input type="radio" name="pk-freq" value="3"><span>3</span></label>
-            <label class="pk-opt"><input type="radio" name="pk-freq" value="4"><span>4 o più</span></label>
-          </div>
-        </div>
-        <div class="pk-res" aria-live="polite"><p class="pk-hint">Scegli che cosa vuoi fare e compare la tessera giusta.</p></div>
-      </div>
-
-<!--PACKSDATA-->
-<script type="application/json" id="packs-data">{"showPrices":true,"packs":[{"id":"pk_single","name":"Lezione singola","kind":"pack","lessons":1,"validityDays":30,"priceCents":1500,"typeIds":["functional","pilates"],"weeklyLimit":null},{"id":"pk_fun10","name":"Functional 10 lezioni","kind":"pack","lessons":10,"validityDays":90,"priceCents":11000,"typeIds":["functional"],"weeklyLimit":null},{"id":"pk_pil8","name":"Pilates 8 lezioni","kind":"pack","lessons":8,"validityDays":60,"priceCents":12000,"typeIds":["pilates"],"weeklyLimit":null},{"id":"pk_pt5","name":"Personal training 5 sedute","kind":"pack","lessons":5,"validityDays":90,"priceCents":24000,"typeIds":["pt"],"weeklyLimit":null},{"id":"pk_mfun","name":"Mensile Functional","kind":"monthly","lessons":null,"validityDays":30,"priceCents":7500,"typeIds":["functional"],"weeklyLimit":3},{"id":"pk_mpil","name":"Mensile Pilates","kind":"monthly","lessons":null,"validityDays":30,"priceCents":9500,"typeIds":["pilates"],"weeklyLimit":2},{"id":"pk_open","name":"Mensile Open","kind":"monthly","lessons":null,"validityDays":30,"priceCents":12900,"typeIds":["functional","pilates"],"weeklyLimit":4}]}</script>
-<!--/PACKSDATA-->
-      <ul class="passes">
-<!--PACKS-->
-        <li class="pass ticket tone-k" id="p-prova">
-          <span class="sticker">Gratis</span>
-          <div class="pass-in">
-            <div class="pass-top"><h3>Prima volta?</h3><span class="gift" aria-hidden="true"><svg class="ic"><use href="#i-gift"/></svg></span></div>
-            <p class="pass-meta">La prima prova è un regalo</p>
-            <p class="pass-blurb">Scegli un corso (o il nutrizionista), compila il modulo: ti chiamiamo noi per fissare l'orario.</p>
-            <a class="pass-cta" href="#prova">Prenota la prova</a>
+      <ul class="pros">
+<!--PROS-->
+        <li class="pro" id="p-fisioterapista">
+          <div class="pro-art" aria-hidden="true"><svg class="ic big"><use href="#i-physio"/></svg></div>
+          <div class="pro-body">
+            <h3>Fisioterapista</h3>
+            <p class="pro-intro">Ti aiuta a recuperare dopo un infortunio, un intervento o un dolore che non passa, e a tornare ad allenarti in sicurezza.</p>
+            <ul class="pro-when" aria-label="Quando può servirti"><li>Dopo un infortunio o un intervento</li><li>Quando un dolore torna sempre</li><li>Per riprendere ad allenarti con fiducia</li></ul>
           </div>
         </li>
-        <li class="pass tone-w" id="p-pk_single" data-pack="pk_single">
-          <span class="fits" aria-hidden="true">Fa per te!</span>
-          <div class="pass-in">
-            <div class="pass-top"><h3>Lezione singola</h3><p class="pass-price" aria-label="15 euro"><span aria-hidden="true">€</span><b aria-hidden="true">15</b></p></div>
-            <span class="punch" aria-hidden="true"><i class="on"></i></span>
-            <p class="pass-meta">1 lezione · valide 30 giorni</p>
-            <p class="pass-meta pass-for"><svg class="ic" aria-hidden="true"><use href="#i-functional"/></svg><svg class="ic" aria-hidden="true"><use href="#i-pilates"/></svg><span>Functional + Pilates</span></p>
-            <p class="pass-blurb">Una lezione di gruppo, nessun impegno. Scegli Functional o Pilates.</p>
-            <a class="pass-cta" href="#prova" data-topic="">Provalo gratis</a>
+        <li class="pro" id="p-osteopata">
+          <div class="pro-art" aria-hidden="true"><svg class="ic big"><use href="#i-osteo"/></svg></div>
+          <div class="pro-body">
+            <h3>Osteopata</h3>
+            <p class="pro-intro">Con un approccio manuale lavora su tensioni, rigidità e mobilità, per aiutarti a muoverti meglio, dentro e fuori dall'allenamento.</p>
+            <ul class="pro-when" aria-label="Quando può servirti"><li>Tensioni a schiena, collo e spalle</li><li>Rigidità e poca mobilità</li><li>Postura e movimenti di ogni giorno</li></ul>
           </div>
         </li>
-        <li class="pass tone-k" id="p-pk_fun10" data-pack="pk_fun10">
-          <span class="sticker">Per cominciare</span>
-          <span class="fits" aria-hidden="true">Fa per te!</span>
-          <div class="pass-in">
-            <div class="pass-top"><h3>Functional 10 lezioni</h3><p class="pass-price" aria-label="110 euro"><span aria-hidden="true">€</span><b aria-hidden="true">110</b></p></div>
-            <span class="punch" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-            <p class="pass-meta">10 lezioni · valide 90 giorni</p>
-            <p class="pass-meta pass-for"><svg class="ic" aria-hidden="true"><use href="#i-functional"/></svg><span>Functional</span></p>
-            <p class="pass-blurb">Dieci lezioni da usare quando vuoi, in tre mesi.</p>
-            <p class="pass-per">Circa €11 a lezione</p>
-            <a class="pass-cta" href="#prova" data-topic="functional">Provalo gratis</a>
-          </div>
-        </li>
-        <li class="pass tone-p" id="p-pk_pil8" data-pack="pk_pil8">
-          <span class="fits" aria-hidden="true">Fa per te!</span>
-          <div class="pass-in">
-            <div class="pass-top"><h3>Pilates 8 lezioni</h3><p class="pass-price" aria-label="120 euro"><span aria-hidden="true">€</span><b aria-hidden="true">120</b></p></div>
-            <span class="punch" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-            <p class="pass-meta">8 lezioni · valide 60 giorni</p>
-            <p class="pass-meta pass-for"><svg class="ic" aria-hidden="true"><use href="#i-pilates"/></svg><span>Pilates</span></p>
-            <p class="pass-blurb">Otto lezioni di Pilates in due mesi.</p>
-            <p class="pass-per">Circa €15 a lezione</p>
-            <a class="pass-cta" href="#prova" data-topic="pilates">Provalo gratis</a>
-          </div>
-        </li>
-        <li class="pass tone-w" id="p-pk_pt5" data-pack="pk_pt5">
-          <span class="fits" aria-hidden="true">Fa per te!</span>
-          <div class="pass-in">
-            <div class="pass-top"><h3>Personal training 5 sedute</h3><p class="pass-price" aria-label="240 euro"><span aria-hidden="true">€</span><b aria-hidden="true">240</b></p></div>
-            <span class="punch" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></span>
-            <p class="pass-meta">5 lezioni · valide 90 giorni</p>
-            <p class="pass-meta pass-for"><svg class="ic" aria-hidden="true"><use href="#i-pt"/></svg><span>Personal training</span></p>
-            <p class="pass-blurb">Cinque sedute tutte per te, con il tuo trainer.</p>
-            <p class="pass-per">Circa €48 a lezione</p>
-            <a class="pass-cta" href="#prova" data-topic="pt">Provalo gratis</a>
-          </div>
-        </li>
-        <li class="pass tone-k" id="p-pk_mfun" data-pack="pk_mfun">
-          <span class="fits" aria-hidden="true">Fa per te!</span>
-          <div class="pass-in">
-            <div class="pass-top"><h3>Mensile Functional</h3><p class="pass-price" aria-label="75 euro al mese"><span aria-hidden="true">€</span><b aria-hidden="true">75</b><small aria-hidden="true">/mese</small></p></div>
-            <span class="punch wk" aria-hidden="true"><i class="on">L</i><i class="on">M</i><i class="on">M</i><i>G</i><i>V</i><i>S</i></span>
-            <p class="pass-meta">Fino a 3 volte a settimana · 30 giorni</p>
-            <p class="pass-meta pass-for"><svg class="ic" aria-hidden="true"><use href="#i-functional"/></svg><span>Functional</span></p>
-            <p class="pass-blurb">Un mese di Functional, fino a 3 volte a settimana.</p>
-            <a class="pass-cta" href="#prova" data-topic="functional">Provalo gratis</a>
-          </div>
-        </li>
-        <li class="pass tone-p" id="p-pk_mpil" data-pack="pk_mpil">
-          <span class="fits" aria-hidden="true">Fa per te!</span>
-          <div class="pass-in">
-            <div class="pass-top"><h3>Mensile Pilates</h3><p class="pass-price" aria-label="95 euro al mese"><span aria-hidden="true">€</span><b aria-hidden="true">95</b><small aria-hidden="true">/mese</small></p></div>
-            <span class="punch wk" aria-hidden="true"><i class="on">L</i><i class="on">M</i><i>M</i><i>G</i><i>V</i><i>S</i></span>
-            <p class="pass-meta">Fino a 2 volte a settimana · 30 giorni</p>
-            <p class="pass-meta pass-for"><svg class="ic" aria-hidden="true"><use href="#i-pilates"/></svg><span>Pilates</span></p>
-            <p class="pass-blurb">Un mese di Pilates, fino a 2 volte a settimana.</p>
-            <a class="pass-cta" href="#prova" data-topic="pilates">Provalo gratis</a>
-          </div>
-        </li>
-        <li class="pass tone-w" id="p-pk_open" data-pack="pk_open">
-          <span class="sticker">Il più completo</span>
-          <span class="fits" aria-hidden="true">Fa per te!</span>
-          <div class="pass-in">
-            <div class="pass-top"><h3>Mensile Open</h3><p class="pass-price" aria-label="129 euro al mese"><span aria-hidden="true">€</span><b aria-hidden="true">129</b><small aria-hidden="true">/mese</small></p></div>
-            <span class="punch wk" aria-hidden="true"><i class="on">L</i><i class="on">M</i><i class="on">M</i><i class="on">G</i><i>V</i><i>S</i></span>
-            <p class="pass-meta">Fino a 4 volte a settimana · 30 giorni</p>
-            <p class="pass-meta pass-for"><svg class="ic" aria-hidden="true"><use href="#i-functional"/></svg><svg class="ic" aria-hidden="true"><use href="#i-pilates"/></svg><span>Functional + Pilates</span></p>
-            <p class="pass-blurb">Functional e Pilates insieme: cambi corso quando ti va.</p>
-            <a class="pass-cta" href="#prova" data-topic="">Provalo gratis</a>
-          </div>
-        </li>
-<!--/PACKS-->
+<!--/PROS-->
       </ul>
-      <p class="pass-note">Abbonamenti e pacchetti si attivano direttamente con noi in studio. Nell'app prenoti le lezioni.</p>
-    </div>
-  </section>
-
-  <section id="prova" class="sec white">
-    <div class="wrap trial">
-      <div class="trial-text">
-        <h2>Prima volta da noi? La prova è gratis.</h2>
-        <p class="intro">Compila il modulo: ti contattiamo noi per scegliere insieme giorno e orario. Nessun impegno, nessun pagamento.</p>
-        <ol class="steps">
-          <li><b>Dicci che cosa vuoi provare</b><span>Un corso, il personal training o la consulenza con il nutrizionista.</span></li>
-          <li><b>Ti chiamiamo noi</b><span>Fissiamo insieme il momento più comodo per te.</span></li>
-          <li><b>Vieni e ti alleni</b><span>Conosci lo studio e il trainer, poi decidi con calma.</span></li>
-        </ol>
-        <div class="gift-chip"><svg class="ic" aria-hidden="true"><use href="#i-gift"/></svg><span>La prima prova è un regalo di KUKO LAB</span></div>
-      </div>
-
-      <div class="trial-card">
-        <form id="trial-form" class="tform" novalidate>
-          <fieldset class="tf-topic">
-            <legend>Che cosa vuoi provare?</legend>
-            <div class="tf-chips">
-              <label class="tf-chip"><input type="radio" name="topic" value="functional"><span><svg class="ic" aria-hidden="true"><use href="#i-functional"/></svg>Functional</span></label>
-              <label class="tf-chip"><input type="radio" name="topic" value="pilates"><span><svg class="ic" aria-hidden="true"><use href="#i-pilates"/></svg>Pilates</span></label>
-              <label class="tf-chip"><input type="radio" name="topic" value="pt"><span><svg class="ic" aria-hidden="true"><use href="#i-pt"/></svg>Personal training</span></label>
-              <label class="tf-chip"><input type="radio" name="topic" value="nutrition"><span><svg class="ic" aria-hidden="true"><use href="#i-leaf"/></svg>Consulenza nutrizionale</span></label>
-            </div>
-            <p class="tf-err" data-err="topic" role="alert" hidden></p>
-          </fieldset>
-
-          <div class="tf-grid">
-            <label class="tf-field"><span>Nome e cognome</span><input name="name" autocomplete="name" autocapitalize="words" enterkeyhint="next" maxlength="80" required><p class="tf-err" data-err="name" role="alert" hidden></p></label>
-            <label class="tf-field"><span>Telefono</span><input name="phone" type="tel" inputmode="tel" autocomplete="tel" enterkeyhint="next" maxlength="30" required><p class="tf-err" data-err="phone" role="alert" hidden></p></label>
-            <label class="tf-field tf-wide"><span>Email <em>(facoltativa)</em></span><input name="email" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" enterkeyhint="next" maxlength="120"><p class="tf-err" data-err="email" role="alert" hidden></p></label>
-          </div>
-
-          <fieldset class="tf-slots">
-            <legend>Quando ti viene comodo? <em>(facoltativo)</em></legend>
-            <div class="tf-chips small">
-              <label class="tf-chip"><input type="checkbox" name="slots" value="mattina"><span>Mattina</span></label>
-              <label class="tf-chip"><input type="checkbox" name="slots" value="pranzo"><span>Pausa pranzo</span></label>
-              <label class="tf-chip"><input type="checkbox" name="slots" value="pomeriggio"><span>Pomeriggio</span></label>
-              <label class="tf-chip"><input type="checkbox" name="slots" value="sera"><span>Sera</span></label>
-              <label class="tf-chip"><input type="checkbox" name="slots" value="sabato"><span>Sabato</span></label>
-            </div>
-          </fieldset>
-
-          <label class="tf-field"><span>Vuoi dirci qualcosa? <em>(facoltativo)</em></span><textarea name="note" rows="3" maxlength="400" placeholder="Il tuo obiettivo, un infortunio, una domanda"></textarea></label>
-
-          <label class="tf-consent"><input type="checkbox" name="consent" required><span>Ho letto <a href="privacy.html" target="_blank" rel="noopener">l'informativa privacy</a> e accetto di essere ricontattato/a per la prova.</span></label>
-          <p class="tf-err" data-err="consent" role="alert" hidden></p>
-
-          <div class="tf-hp" aria-hidden="true"><label>Non compilare questo campo<input name="website" tabindex="-1" autocomplete="off"></label></div>
-
-          <p class="tf-err tf-fail" data-err="form" role="alert" hidden></p>
-          <button class="btn tf-send" type="submit"><span>Richiedi la prova gratuita</span></button>
-          <p class="tf-demo" hidden>Anteprima: la richiesta non parte davvero, resta su questo dispositivo e la trovi nell'area owner dell'app.</p>
-        </form>
-
-        <div class="tf-done" id="trial-done" role="status" tabindex="-1" hidden>
-          <span class="done-mark"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></span>
-          <h3>Richiesta inviata!</h3>
-          <p>Grazie <b class="done-name"></b>. Ti contattiamo noi per scegliere giorno e orario.</p>
-          <p class="tf-demo" hidden>Anteprima: nessuna richiesta è partita davvero.</p>
-          <div class="row-cta"><a class="btn" href="#orari"><span>Guarda gli orari</span></a><button class="more" type="button" id="trial-again">Invia un'altra richiesta</button></div>
-        </div>
-      </div>
+      <p class="pros-note">Per informazioni su disponibilità e orari <a href="#contatti">scrivici su WhatsApp</a>.</p>
     </div>
   </section>
 
@@ -594,10 +450,15 @@
         <p>Vieni a trovarci o scrivici: rispondiamo volentieri.</p>
       </header>
       <div class="contact-grid">
-        <a class="tile" href="https://www.google.com/maps/search/?api=1&amp;query=Via+del+Pianeta+Urano+44+Roma" target="_blank" rel="noopener"><span class="k">Dove siamo</span><span class="v">Via del Pianeta Urano 44, EUR</span><span class="hint">Apri su Google Maps</span></a>
-        <a class="tile" id="wa" href="https://wa.me/393920948122?text=Ciao%20KUKO%20LAB%2C%20vorrei%20avere%20informazioni." target="_blank" rel="noopener"><span class="k">WhatsApp</span><span class="v">392 094 8122</span><span class="hint">Scrivici per informazioni</span></a>
-        <a class="tile" href="https://www.instagram.com/kukolab_performance/" target="_blank" rel="noopener"><span class="k">Instagram</span><span class="v">@kukolab_<wbr>performance</span><span class="hint">Seguici e guarda le storie</span></a>
-        <a class="tile" href="/app/"><span class="k">Prenotazioni</span><span class="v">Accedi all'app</span><span class="hint">Corsi, posti liberi e abbonamento</span></a>
+        <figure class="map">
+          <iframe title="Mappa: KUKO LAB, Via del Pianeta Urano 44, Roma" src="https://www.google.com/maps?q=Via+del+Pianeta+Urano+44+Roma&amp;z=16&amp;hl=it&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+          <figcaption><b>Dove siamo</b><span>Via del Pianeta Urano 44, EUR</span></figcaption>
+        </figure>
+        <div class="c-tiles">
+          <a class="tile" id="wa" href="https://wa.me/393920948122?text=Ciao%20KUKO%20LAB%2C%20vorrei%20avere%20informazioni." target="_blank" rel="noopener"><span class="k">WhatsApp</span><span class="v">392 094 8122</span><span class="hint">Scrivici per informazioni</span></a>
+          <a class="tile" href="https://www.instagram.com/kukolab_performance/" target="_blank" rel="noopener"><span class="k">Instagram</span><span class="v">@kukolab_<wbr>performance</span><span class="hint">Seguici e guarda le storie</span></a>
+          <a class="tile" href="#orari"><span class="k">Orari</span><span class="v">Dal lunedì al sabato</span><span class="hint">Guarda il calendario della settimana</span></a>
+        </div>
       </div>
     </div>
   </section>
@@ -607,7 +468,7 @@
   <div class="wrap">
     <img src="img/logo-kuko.png" width="672" height="243" alt="KUKO LAB">
     <nav aria-label="Piè di pagina">
-      <a href="#corsi">Corsi</a><a href="#orari">Orari</a><a href="#chi-siamo">Chi siamo</a><a href="#trainer">Trainer</a><a href="#nutrizione">Nutrizione</a><a href="#abbonamenti">Abbonamenti</a><a href="#prova">Prova gratuita</a><a href="#contatti">Contatti</a><a href="/">Home</a><a href="/app/">Area prenotazioni</a><a href="privacy.html">Privacy</a>
+      <a href="#corsi">Corsi</a><a href="#orari">Orari</a><a href="#chi-siamo">Chi siamo</a><a href="#trainer">Trainer</a><a href="#nutrizione">Nutrizione</a><a href="#professionisti">Fisio e osteo</a><a href="#contatti">Contatti</a><a href="/">Home</a><a href="privacy.html">Privacy</a>
     </nav>
     <p>© 2026 KUKO LAB Performance studio<br>Via del Pianeta Urano 44, EUR</p>
     <!-- Dati societari obbligatori (ragione sociale, P. IVA, sede): da inserire quando il cliente li comunica. L'informativa privacy (privacy.html) è una bozza da far rivedere. -->
@@ -615,12 +476,9 @@
 </footer>
 
 <div class="dock" id="dock">
-  <a class="btn btn-sm" href="#prova"><span>Prova gratuita</span></a>
-  <a class="btn btn-sm btn-line" href="/app/"><span>Prenota</span></a>
-  <a class="btn btn-sm btn-line dock-wa" href="https://wa.me/393920948122?text=Ciao%20KUKO%20LAB%2C%20vorrei%20avere%20informazioni." target="_blank" rel="noopener" aria-label="Scrivici su WhatsApp"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg><span>WhatsApp</span></a>
+  <a class="btn btn-sm dock-wa" href="https://wa.me/393920948122?text=Ciao%20KUKO%20LAB%2C%20vorrei%20avere%20informazioni." target="_blank" rel="noopener" aria-label="Scrivici su WhatsApp"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg><span>WhatsApp</span></a>
 </div>
 
-<script src="site-config.js"></script>
 <script src="site.js"></script>
 <script src="fx.js" defer></script>
 </body>
