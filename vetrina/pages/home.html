@@ -1,0 +1,75 @@
+<!--
+{
+  "file": "sito",
+  "title": "KUKO LAB | Performance studio",
+  "description": "KUKO LAB, performance studio all'EUR di Roma: personal training, functional e Pilates in piccoli gruppi. Il tuo benessere a 360°.",
+  "preload": [
+    { "href": "img/studio-forza.jpg", "media": "(max-width: 799px)" },
+    { "href": "img/studio-forza-wide.jpg", "media": "(min-width: 800px)" }
+  ]
+}
+-->
+  <section class="hero">
+    <picture>
+      <source media="(min-width: 800px)" srcset="img/studio-forza-wide.jpg">
+      <img src="img/studio-forza.jpg" width="1000" height="1334" alt="La sala di KUKO LAB, con i rack, i pesi e il banco con il logo">
+    </picture>
+    <div class="in">
+      <h1>Il tuo benessere a 360°.</h1>
+      <p>Personal training, functional e Pilates in piccoli gruppi. Studio all'EUR, Roma.</p>
+      <a class="btn" href="{{wa}}" target="_blank" rel="noopener">Scrivici su WhatsApp</a>
+    </div>
+  </section>
+
+  <section class="corsi" aria-label="Corsi">
+    <a class="corso" href="/corsi#personal">
+      <img src="img/corso-pt.jpg" width="900" height="1125" loading="lazy" alt="Personal training: un allenamento a coppie con la palla medica, davanti alla vetrata dello studio">
+      <div>
+        <h2>Personal training</h2>
+        <p>Sedute individuali. Si parte da una valutazione, poi il programma è tuo.</p>
+        <span class="more">Scopri il corso</span>
+      </div>
+    </a>
+    <a class="corso" href="/corsi#functional">
+      <img src="img/corso-functional.jpg" width="900" height="1125" loading="lazy" alt="Functional: allenamento di gruppo sui tappetini, addominali a terra">
+      <div>
+        <h2>Functional</h2>
+        <p>Allenamento di gruppo, in pochi. Forza, resistenza e mobilità.</p>
+        <span class="more">Scopri il corso</span>
+      </div>
+    </a>
+    <a class="corso" href="/corsi#pilates">
+      <img src="img/corso-pilates.jpg" width="900" height="1125" loading="lazy" alt="Pilates: Chiara con la pallina, accanto al reformer">
+      <div>
+        <h2>Pilates</h2>
+        <p>Con gli attrezzi, in piccoli gruppi, con Chiara.</p>
+        <span class="more">Scopri il corso</span>
+      </div>
+    </a>
+  </section>
+
+  <section class="chi" aria-labelledby="chi-t">
+    <img src="img/valerio-banco.jpg" width="891" height="1766" loading="lazy" alt="Valerio Cuscianna, fondatore di KUKO LAB, al banco dello studio con il logo">
+    <div>
+      <h2 id="chi-t">Valerio Cuscianna, fondatore.</h2>
+      <p>Laureato in Scienze Motorie, con un master in Functional Training e oltre quattro anni nel mondo del fitness. Ha aperto KUKO LAB per allenare con metodo, in piccoli gruppi o uno a uno.</p>
+      <p>Nello stesso posto, Chiara per il Pilates e un nutrizionista, un fisioterapista e un osteopata.</p>
+      <a class="btn btn-line" href="/chi-siamo">Conosci il team</a>
+    </div>
+  </section>
+
+  <section class="ig" aria-labelledby="ig-t">
+    <div class="in">
+      <div class="ig-head">
+        <h2 id="ig-t">Su Instagram.</h2>
+        <p>Allenamenti, lezioni e vita di studio su @{{igname}}.</p>
+        <a class="btn btn-line" href="{{ig}}" target="_blank" rel="noopener">Seguici su Instagram</a>
+      </div>
+      <ul class="reels">
+        <li><a href="{{ig}}reels/" target="_blank" rel="noopener"><img src="img/reel-benvenuto.jpg" width="760" height="1231" loading="lazy" alt="Reel «Benvenuto da KUKOLAB»: Valerio presenta lo studio">{{play}}</a></li>
+        <li><a href="{{ig}}reels/" target="_blank" rel="noopener"><img src="img/reel-halloween.jpg" width="760" height="1314" loading="lazy" alt="Reel «Promo Halloween Pilates reformer»">{{play}}</a></li>
+      </ul>
+    </div>
+  </section>
+
+{{contatti}}

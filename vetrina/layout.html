@@ -1,0 +1,58 @@
+<!doctype html>
+<!-- Generato da «npm run site» a partire da vetrina/ (layout.html, pages/, site.json, partials.json): non modificare a mano questo file. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{title}}</title>
+<meta name="description" content="{{description}}">
+<meta name="theme-color" content="#000000">
+<!-- Finché il sito non ha il dominio definitivo resta fuori da Google: togliere noindex e robots.txt al go-live. -->
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="{{title}}">
+<meta property="og:description" content="{{description}}">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="it_IT">
+<link rel="icon" href="img/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="preload" href="fonts/bigshoulders-bold.woff" as="font" type="font/woff" crossorigin>
+<link rel="preload" href="fonts/instrumentsans-regular.woff" as="font" type="font/woff" crossorigin>
+{{preload}}
+<link rel="stylesheet" href="sito.css">
+</head>
+<body>
+<a class="skip" href="#main">Vai al contenuto</a>
+
+<header class="head" id="top">
+  <div class="bar">
+    <a class="logo" href="/sito" aria-label="KUKO LAB, home"><img src="img/logo-kuko.png" width="672" height="243" alt="KUKO LAB"></a>
+    <nav class="nav" aria-label="Principale">
+{{nav}}
+    </nav>
+    <a class="btn btn-sm" href="{{wa}}" target="_blank" rel="noopener">WhatsApp</a>
+    <a class="menu-btn" href="#menu" aria-label="Apri il menu"><i></i><i></i></a>
+  </div>
+</header>
+
+<!-- Menu da telefono: si apre con :target (#menu) e si chiude da solo quando si segue un collegamento o si tocca la X. Niente JavaScript. -->
+<span id="chiudi"></span>
+<nav class="menu" id="menu" aria-label="Menu">
+  <a class="menu-x" href="#chiudi" aria-label="Chiudi il menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></a>
+{{menu}}
+  <a class="btn" href="{{wa}}" target="_blank" rel="noopener">Scrivici su WhatsApp</a>
+  <a class="menu-ig" href="{{ig}}" target="_blank" rel="noopener">Instagram @{{igname}}</a>
+</nav>
+
+<main id="main">
+{{content}}
+</main>
+
+<footer class="foot">
+  <div>
+    <p>© 2026 KUKO LAB Performance studio · {{address}}</p>
+    <p><a href="/corsi">Corsi</a> <a href="/chi-siamo">Chi siamo</a> <a href="privacy.html">Privacy</a></p>
+  </div>
+  <!-- Dati societari obbligatori (ragione sociale, P. IVA, sede): da inserire quando il cliente li comunica. L'informativa privacy (privacy.html) è una bozza da far rivedere. -->
+</footer>
+</body>
+</html>

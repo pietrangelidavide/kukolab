@@ -25,6 +25,7 @@ BASE = '777463f'  # ultimo commit con le foto non ritoccate
 NUOVE = {
     'valerio.jpg':          ('8450e6a0-image.png', (215, 400, 855, 1040), 720),   # ritratto al banco: quadrato per il quadrante del titolo
     'trainer-valerio.jpg':  ('8450e6a0-image.png', (0, 281, 891, 1766), 960),     # stesso ritratto, 3:5, fino in fondo: con il desk bianco e il logo
+    'valerio-banco.jpg':    ('8450e6a0-image.png', None, 891),                    # il ritratto intero, com'è: Valerio al banco con il logo (usato nella vetrina)
     # personal training
     'corso-pt-2.jpg':       ('6302d0eb-image.jpg', None, 760),                    # stacco con il trap bar
     'corso-pt-3.jpg':       ('79178007-image.jpg', None, 760),                    # wall ball con Valerio

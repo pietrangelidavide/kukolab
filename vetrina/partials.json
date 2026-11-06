@@ -1,0 +1,5 @@
+{
+  "note": "Pezzi riusati dalle pagine (macro {{nome}}). {{contatti}} chiude ogni pagina ed è la destinazione di «Contatti» nel menu.",
+  "play": "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"11\"/><path d=\"M10 8l6 4-6 4z\"/></svg>",
+  "contatti": "  <section class=\"dove\" id=\"contatti\" aria-labelledby=\"dove-t\">\n    <div class=\"in\">\n      <h2 id=\"dove-t\">Vieni a trovarci.</h2>\n      <p class=\"addr\">{{address}}</p>\n      <p class=\"note\">Per orari e disponibilità scrivici su WhatsApp.</p>\n      <a class=\"btn\" href=\"{{wa}}\" target=\"_blank\" rel=\"noopener\">Scrivici su WhatsApp</a>\n      <ul class=\"links\">\n        <li><a href=\"tel:{{tel}}\">{{telShow}}</a></li>\n        <li><a href=\"{{ig}}\" target=\"_blank\" rel=\"noopener\">@{{igname}}</a></li>\n        <li><a href=\"{{maps}}\" target=\"_blank\" rel=\"noopener\">Apri su Maps</a></li>\n      </ul>\n    </div>\n  </section>"
+}
