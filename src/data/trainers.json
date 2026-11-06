@@ -30,7 +30,8 @@
       "courses": [
         "pilates"
       ],
-      "creds": []
+      "creds": [],
+      "ratio": "3 / 5"
     }
   ]
 }
