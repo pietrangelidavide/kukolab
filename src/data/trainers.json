@@ -1,5 +1,5 @@
 {
-  "note": "Trainer mostrati nella vetrina (sezione \"Chi ti segue\", generata da npm run site), uno sotto l'altro. Ogni scheda ha una foto (\"photo\") e, se si vuole, una seconda (\"photo2\") sovrapposta; senza il file della foto la scheda non compare. Foto verticali 3:4, almeno 800 px di larghezza. \"intro\" e \"creds\" sono facoltativi.",
+  "note": "Trainer mostrati nella vetrina (sezione \"Chi ti segue\", generata da npm run site), uno sotto l'altro. Ogni scheda ha una foto (\"photo\") e, se si vuole, una seconda (\"photo2\") sovrapposta; senza il file della foto la scheda non compare. Foto verticali, di solito 3:4 (per un'altra proporzione si indica \"ratio\", per esempio \"3 / 5\"), almeno 800 px di larghezza. \"intro\" e \"creds\" sono facoltativi.",
   "trainers": [
     {
       "id": "valerio",
@@ -15,7 +15,8 @@
         "Laureato in Scienze Motorie",
         "Master in Functional Training",
         "Oltre quattro anni nel mondo del fitness"
-      ]
+      ],
+      "ratio": "3 / 5"
     },
     {
       "id": "chiara",
@@ -23,8 +24,8 @@
       "role": "Maestra di Pilates",
       "photo": "img/trainer-chiara.jpg",
       "photo2": "img/trainer-chiara-2.jpg",
-      "alt": "Chiara, maestra di Pilates di KUKO LAB, seduta sul reformer",
-      "alt2": "Chiara con una pallina da Pilates nella sala del reformer",
+      "alt": "Chiara, maestra di Pilates di KUKO LAB, con una pallina da Pilates",
+      "alt2": "Chiara, seduta sul reformer nella sala di Pilates",
       "intro": "Segue le lezioni di Pilates dello studio: esercizi controllati e progressivi, in piccoli gruppi.",
       "courses": [
         "pilates"

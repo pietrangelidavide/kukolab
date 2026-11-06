@@ -108,6 +108,8 @@ a { color: inherit; }
 .hero h1 { font: 700 clamp(3.9rem, 9.6vw, 8.6rem)/.85 var(--display); text-transform: uppercase; letter-spacing: -.005em; }
 .hero h1 .ln { display: block; overflow: hidden; padding: .07em .03em; margin: -.07em -.03em; }
 .hero h1 .ln > span { display: block; }
+@media (max-width: 560px) { .hero h1 { font-size: min(3.9rem, 13.2vw); } .hero h1 .ln:nth-child(-n+2) { display: inline-block; } } /* "Il tuo benessere" su una riga, "a 360°++" sulla seconda */
+.lead strong { font-weight: 700; color: var(--white); }
 .lead { max-width: 30ch; font-size: clamp(1.15rem, 2.2vw, 1.45rem); line-height: 1.45; color: var(--on-dark); }
 .cta { display: flex; flex-wrap: wrap; gap: 1rem 1.6rem; align-items: center; }
 .next { font-weight: 700; color: var(--orange); }
@@ -238,9 +240,13 @@ a { color: inherit; }
 .after { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.2rem 2rem; margin-top: 2rem; }
 .after p { max-width: 52ch; color: var(--mute-dark); }
 @media (max-width: 1000px) { .week { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 620px) {
-  .week { grid-template-columns: minmax(0, 1fr); }
-  .slots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* telefono: i giorni stanno in fila e si scorrono di lato, uno alla volta, con i vicini che si intravedono */
+@media (max-width: 760px) {
+  .week { --cw: min(78vw, 18rem); position: relative; display: flex; gap: .7rem; margin-inline: calc(-1 * var(--gut)); padding: .2rem calc((100vw - var(--cw)) / 2) .8rem; border: 0; background: none; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+  .week::-webkit-scrollbar { display: none; }
+  .week:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
+  .day { flex: 0 0 var(--cw); scroll-snap-align: center; scroll-snap-stop: always; border: 1px solid var(--line-dark); padding: 1.5rem 1rem 1.2rem; }
+  .day.is-today { border-color: transparent; }
 }
 
 /* ---------------------------------------------------------------- chi siamo (arancio): titolo che si accende, testo che si scopre, righello con i tre punti fermi */
@@ -361,7 +367,7 @@ button.btn { border: 0; background: none; appearance: none; }
 .trainer:nth-child(even) .t-photo > img { clip-path: polygon(0 0, 92% 0, 100% 100%, 8% 100%); }
 .t-photo { position: relative; isolation: isolate; margin: 0; }
 .t-photo::before { content: ""; position: absolute; inset: .9rem -.9rem -.9rem .9rem; z-index: -1; background: var(--orange); clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%); }
-.t-photo img, .t-ph { display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; background: var(--coal); clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%); }
+.t-photo img, .t-ph { display: block; width: 100%; aspect-ratio: var(--ar, 3 / 4); object-fit: cover; background: var(--coal); clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%); }
 .t-ph { display: grid; place-content: center; justify-items: center; gap: .7rem; color: var(--orange); }
 .t-ph .ic { width: 3.4rem; height: 3.4rem; stroke-width: 1.3; }
 .t-ph small { font-size: .88rem; font-weight: 700; color: var(--mute-dark); }
@@ -383,7 +389,7 @@ button.btn { border: 0; background: none; appearance: none; }
 
 /* ================================================================ nutrizionista */
 .nutri { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 2.5rem clamp(2rem, 6vw, 5rem); align-items: center; }
-.n-photo { position: relative; isolation: isolate; margin: 0; width: min(100%, 27rem); justify-self: center; }
+.n-photo { position: relative; isolation: isolate; margin: 0; width: min(100%, 20rem); justify-self: center; }
 .n-photo img { width: 100%; height: auto; aspect-ratio: 600 / 921; object-fit: cover; background: #000; clip-path: polygon(0 0, 100% 0, 100% 93%, 86% 100%, 0 100%); }
 .n-photo::before { content: ""; position: absolute; inset: 1rem -1rem -1rem 1rem; z-index: -1; border: 3px solid var(--orange); clip-path: polygon(0 0, 100% 0, 100% 93%, 86% 100%, 0 100%); }
 .n-photo figcaption { position: absolute; left: -1rem; bottom: 1.8rem; isolation: isolate; display: grid; padding: .7rem 1.6rem .8rem 1.4rem; color: var(--ink); }
@@ -402,7 +408,8 @@ button.btn { border: 0; background: none; appearance: none; }
 .n-contacts { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; }
 .n-contacts a { display: inline-flex; align-items: center; gap: .5rem; font-weight: 700; text-decoration: none; overflow-wrap: anywhere; }
 .n-contacts a:hover { color: var(--orange); }
-@media (max-width: 960px) { .nutri { grid-template-columns: minmax(0, 1fr); } .n-photo { justify-self: start; width: min(100%, 22rem); } }
+@media (max-width: 960px) { .nutri { grid-template-columns: minmax(0, 1fr); } .n-photo { justify-self: start; width: min(100%, 17rem); } }
+@media (max-width: 480px) { .n-photo { width: min(82%, 15rem); } .n-photo figcaption { left: -.6rem; right: -2.2rem; padding: .55rem 1rem .6rem 1rem; } .n-photo figcaption b { font-size: 1.25rem; } .n-photo figcaption span { font-size: .8rem; } }
 @media (max-width: 640px) { .benefits { grid-template-columns: minmax(0, 1fr); } }
 
 /* ================================================================ corsi: carosello a tutta pagina
@@ -496,7 +503,7 @@ button.btn { border: 0; background: none; appearance: none; }
   .cx-arrows { display: none; }
   .cx .c-medal, .c-flip .c-medal { left: auto; right: .6rem; bottom: -1.3rem; width: 3.6rem; height: 3.6rem; }
   .cx .c-medal .ic { width: 1.8rem; height: 1.8rem; }
-  .cx-top { padding-top: 1.2rem; }
+  .cx-top { padding-top: 3.6rem; } /* la fascia bianca è inclinata: il suo angolo basso scende sul titolo, serve aria */
 }
 @media (max-width: 640px) {
   .cx-tabs { width: 100%; }
@@ -639,24 +646,19 @@ html.fx .fig-dial { translate: 0 calc(var(--hp, 0) * 44px); }
 .fold-head .lbl { min-width: 0; }
 .fold-head + .fold > .fold-in > .benefits { margin-top: 0; border-top: 0; }
 
-/* titoli che diventano interruttori: riga "Una lezione, in quattro tappe" e giorni degli orari */
+/* titoli che diventano interruttori: riga "Una lezione, in quattro tappe" */
 .c-sub.is-tgl { width: 100%; margin-top: .3rem; border-block: 1.5px solid var(--fold-line); }
 .cx-body .fold-in { display: grid; gap: 1.1rem; justify-items: start; }
 .cx-body > .fold:not(.open) + .c-cta { margin-top: -.6rem; } /* chiusa, la riga vuota non deve aggiungere altro spazio */
 .c-cta { transition: margin-top .5s var(--ease); }
 
-.day h3.is-tgl { margin-bottom: 0; transition: margin .5s var(--ease); }
-.day h3.is-tgl.is-open { margin-bottom: 1rem; }
-.day h3.is-tgl .fold-tgl { min-height: 3rem; padding-block: 0; }
-.day h3.is-tgl .cnt { margin-top: .2rem; }
-html.has-folds .day { padding-block: 1.5rem 1rem; }
 
 /* chiusura in fondo a una lista lunga */
 .fold-close { display: block; width: 100%; margin: 1.4rem 0 .4rem; padding: .9rem 1rem; border: 1.5px solid currentColor; background: none; color: inherit; font: 700 1rem/1 var(--text); cursor: pointer; }
 .fold-close:active { background: rgba(128, 128, 128, .22); }
 
 @media (prefers-reduced-motion: reduce) {
-  .fold, .fold-in, .fold-tgl .chev, .day h3.is-tgl { transition: none !important; }
+  .fold, .fold-in, .fold-tgl .chev { transition: none !important; }
 }
 
 /* ---------------------------------------------------------------- pagina privacy */

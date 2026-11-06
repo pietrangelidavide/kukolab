@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Prepara le foto del sito (ritagli, ritocco, peso) e le scrive in public/img.
-Uso: python3 scripts/photos.py CARTELLA_FOTO_NUOVE      (le foto arrivate il 6 novembre 2026; i nomi dei file sono in NUOVE)
+Uso: python3 scripts/photos.py CARTELLA_FOTO_NUOVE [nome.jpg ...]   (le foto arrivate il 6 novembre 2026; i nomi dei file sono in NUOVE;
+                                                                      se si indicano dei nomi, si rifanno solo quelli)
      python3 scripts/photos.py --retouch               (ritocca le foto già pubblicate, partendo dalla versione del commit BASE)
 
 Gli originali non stanno nel repository: restano in public/img solo i ritagli già pronti. Il ritocco (pulizia, luci, nitidezza)
@@ -23,7 +24,7 @@ BASE = '777463f'  # ultimo commit con le foto non ritoccate
 # foto del 6 novembre 2026: nome in uscita: (file consegnato, riquadro (sinistra, alto, destra, basso) o None, larghezza in uscita)
 NUOVE = {
     'valerio.jpg':          ('8450e6a0-image.png', (215, 400, 855, 1040), 720),   # ritratto al banco: quadrato per il quadrante del titolo
-    'trainer-valerio.jpg':  ('8450e6a0-image.png', (0, 140, 891, 1328), 960),     # stesso ritratto, 3:4, per la scheda del trainer
+    'trainer-valerio.jpg':  ('8450e6a0-image.png', (0, 281, 891, 1766), 960),     # stesso ritratto, 3:5, fino in fondo: con il desk bianco e il logo
     # personal training
     'corso-pt-2.jpg':       ('6302d0eb-image.jpg', None, 760),                    # stacco con il trap bar
     'corso-pt-3.jpg':       ('79178007-image.jpg', None, 760),                    # wall ball con Valerio
@@ -36,9 +37,9 @@ NUOVE = {
     'corso-pilates-2.jpg':  ('d14dc3e4-image.jpg', None, 760),                    # sul reformer, in piedi sul box
     'corso-pilates-3.jpg':  ('c4a6a2ca-image.jpg', None, 760),                    # tre allieve sui reformer
     'corso-pilates-4.jpg':  ('2c558f46-image.jpg', None, 760),                    # ponte sui reformer
-    # Chiara, maestra di Pilates (3:4)
-    'trainer-chiara.jpg':   ('7e01eb73-image.png', (0, 380, 892, 1569), 900),
-    'trainer-chiara-2.jpg': ('2e2483f1-image.png', (0, 330, 919, 1555), 900),
+    # Chiara, maestra di Pilates (3:4): la prima è la foto grande, la seconda quella piccola sovrapposta
+    'trainer-chiara.jpg':   ('2e2483f1-image.png', (0, 330, 919, 1555), 900),     # con la pallina rossa
+    'trainer-chiara-2.jpg': ('7e01eb73-image.png', (0, 380, 892, 1569), 900),     # seduta sul reformer
 }
 
 # foto già pubblicate, da ritoccare: nome: (larghezza in uscita, forza del ritocco) (la foto di partenza è quella del commit BASE)
@@ -50,8 +51,10 @@ RITOCCO = {
 }
 
 
-def run_new(src_dir):
+def run_new(src_dir, only=()):
     for name, (f, box, w) in NUOVE.items():
+        if only and name not in only:
+            continue
         im = ImageOps.exif_transpose(Image.open(src_dir / f)).convert('RGB')
         if box:
             im = im.crop(box)
@@ -72,4 +75,4 @@ if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == '--retouch':
         run_retouch()
     else:
-        run_new(Path(sys.argv[1]) if len(sys.argv) > 1 else Path('.'))
+        run_new(Path(sys.argv[1]) if len(sys.argv) > 1 else Path('.'), tuple(sys.argv[2:]))

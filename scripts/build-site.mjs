@@ -96,7 +96,7 @@ const trainersHtml = trainers.map((t) => {
   const intro = t.intro ? `\n            <p class="t-intro">${esc(t.intro)}</p>` : '';
   const creds = t.creds.length ? `\n            <ul class="creds">${t.creds.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : '';
   return `        <li class="trainer" id="t-${esc(t.id)}">
-          <figure class="t-photo${second ? ' has-2' : ''}">${photo}</figure>
+          <figure class="t-photo${second ? ' has-2' : ''}"${t.ratio ? ` style="--ar:${esc(t.ratio)}"` : ''}>${photo}</figure>
           <div class="t-body">
             <h3>${esc(label)}</h3>${t.name ? `\n            <p class="t-role">${esc(t.role)}</p>` : ''}${intro}
             <ul class="t-courses" aria-label="Corsi">${courses}</ul>${creds}
