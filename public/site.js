@@ -313,7 +313,7 @@
 })();
 
 // ------------------------------------------------------------------ sezioni espandibili (solo telefono, fino a 760 px)
-// Le parti più lunghe (tappe dei corsi, nutrizione) si aprono a un tocco: meno scorrimento. Gli orari, invece, scorrono di lato.
+// Le parti più lunghe (le tappe dei corsi) si aprono a un tocco: meno scorrimento. Orari e fisio/osteo, invece, scorrono di lato; la nutrizione sta in una schermata.
 // I contenitori si creano solo sotto i 760 px e si tolgono sopra: sul desktop la pagina è identica a prima. Senza JS tutto resta aperto.
 (function () {
   var mq = window.matchMedia && window.matchMedia('(max-width: 760px)');
@@ -396,19 +396,18 @@
     Fold({ head: function () { return one('.c-sub', c); }, items: function () { return ['.flow', '.tags', '.group'].map(function (s) { return one(s, c); }).filter(Boolean); } });
   });
 
-  // nutrizione
-  var ben = one('.benefits');
-  if (ben) Fold({ label: 'Cosa include la consulenza', labelOpen: 'Nascondi i dettagli', count: ben.children.length + ' punti', items: function () { return [ben]; } });
-
-  // orari: su telefono i giorni scorrono di lato (lo fa il CSS); qui si porta in vista quello di oggi, o il primo, e la fascia si può usare anche da tastiera
-  var week = one('.week');
+  // orari, fisioterapista e osteopata: su telefono le schede scorrono di lato (lo fa il CSS); qui si porta in vista il giorno di oggi (o il primo), e la fascia si può usare anche da tastiera
+  var strips = [{ el: one('.week'), label: 'Giorni della settimana: scorri di lato', item: '.day.is-today' }, { el: one('.pros'), label: 'Fisioterapista e osteopata: scorri di lato' }];
   var place = function () {
-    if (!week) return;
-    if (mq.matches) {
-      week.tabIndex = 0; week.setAttribute('role', 'group'); week.setAttribute('aria-label', 'Giorni della settimana: scorri di lato');
-      var d = one('.day.is-today', week) || one('.day', week);
-      if (d) week.scrollLeft = d.offsetLeft - (week.clientWidth - d.offsetWidth) / 2;
-    } else { week.removeAttribute('tabindex'); week.removeAttribute('role'); week.removeAttribute('aria-label'); week.scrollLeft = 0; }
+    strips.forEach(function (st) {
+      var week = st.el;
+      if (!week) return;
+      if (mq.matches) {
+        week.tabIndex = 0; week.setAttribute('role', 'group'); week.setAttribute('aria-label', st.label);
+        var d = (st.item && one(st.item, week)) || week.firstElementChild;
+        if (d) week.scrollLeft = d.offsetLeft - (week.clientWidth - d.offsetWidth) / 2;
+      } else { week.removeAttribute('tabindex'); week.removeAttribute('role'); week.removeAttribute('aria-label'); week.scrollLeft = 0; }
+    });
   };
 
   var sync = function () { folds.forEach(function (f) { if (mq.matches) f.mount(); else f.unmount(); }); document.documentElement.classList.toggle('has-folds', mq.matches); place(); };

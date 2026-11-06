@@ -119,7 +119,7 @@ a { color: inherit; }
 .fig-dial { position: relative; touch-action: pan-y; }
 .face { position: absolute; left: 16%; top: 16%; width: 68%; height: 68%; border-radius: 50%; object-fit: cover; object-position: 50% 42%; border: 2px solid rgba(255, 255, 255, .16); background: var(--coal); filter: brightness(1.04) contrast(1.04); translate: calc(var(--px, 0) * 12px) calc(var(--py, 0) * 12px); }
 .fig figcaption { display: grid; margin-top: 1.3rem; }
-.name { font: 700 clamp(2.3rem, 4.18vw, 3.2rem)/.95 var(--display); text-transform: uppercase; }
+.name { font: 700 clamp(1.95rem, 3.55vw, 2.72rem)/.95 var(--display); text-transform: uppercase; }
 .role { margin-top: .4rem; font-weight: 700; color: var(--orange); }
 .creds { margin-top: .9rem; border-top: 1px solid var(--line-dark); }
 .creds li { position: relative; padding: .6rem 0 .6rem 1.5rem; border-bottom: 1px solid var(--line-dark); font-weight: 700; font-size: 1.02rem; }
@@ -173,7 +173,7 @@ a { color: inherit; }
 
 .today { position: relative; background: var(--coal) var(--grain); border-top: 1px solid var(--line-dark); padding-block: 1.1rem calc(1.9rem + var(--cut)); }
 .today-in { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem 1.6rem; }
-.today h2 { display: flex; align-items: center; gap: .6rem; font: 700 2rem/1 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--orange); }
+.today h2 { display: flex; align-items: center; gap: .6rem; font: 700 1.7rem/1 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--orange); }
 .today h2::before { content: ""; width: .6rem; height: .6rem; border-radius: 50%; background: var(--orange); animation: ping 1.8s infinite; }
 @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(232, 96, 40, .6); } 70%, 100% { box-shadow: 0 0 0 .7rem rgba(232, 96, 40, 0); } }
 .eta { font-weight: 400; color: var(--on-dark); }
@@ -194,7 +194,7 @@ a { color: inherit; }
 .white { background: var(--white); color: var(--on-light); --focus: var(--ink); }
 .coal { background: var(--coal) var(--grain); color: var(--on-dark); }
 .orange { background: var(--orange); color: var(--ink); --focus: var(--ink); }
-.sec h2 { font: 700 clamp(2.78rem, 7.03vw, 5.64rem)/.9 var(--display); text-transform: uppercase; text-wrap: balance; }
+.sec h2 { font: 700 clamp(2.36rem, 5.98vw, 4.79rem)/.9 var(--display); text-transform: uppercase; text-wrap: balance; }
 .sec-head { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1rem clamp(2rem, 6vw, 5rem); align-items: end; }
 .sec-head p { max-width: 38ch; color: var(--mute-light); font-size: 1.12rem; }
 .coal .sec-head p { color: var(--mute-dark); }
@@ -226,7 +226,7 @@ a { color: inherit; }
 .t-pt { --c: #7f828a; }
 .week { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1px; background: var(--line-dark); border: 1px solid var(--line-dark); }
 .day { position: relative; background: var(--coal); padding: 1.6rem 1rem 1.3rem; }
-.day h3 { display: block; margin-bottom: 1rem; font: 700 2rem/1 var(--display); letter-spacing: .03em; text-transform: uppercase; }
+.day h3 { display: block; margin-bottom: 1rem; font: 700 1.7rem/1 var(--display); letter-spacing: .03em; text-transform: uppercase; }
 .slots { display: grid; gap: .5rem; }
 .slot { position: relative; display: grid; gap: .15rem; padding: .55rem .7rem .6rem .85rem; background: var(--coal-2); border-left: 5px solid var(--c, var(--line-dark)); transition: opacity .3s, filter .3s; }
 .slot.is-past { opacity: .42; }
@@ -254,7 +254,7 @@ a { color: inherit; }
 .ab-bg { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
 .ab-ghost { position: absolute; right: -3vw; bottom: -.1em; font: 700 clamp(10rem, 27vw, 27rem)/.8 var(--display); letter-spacing: .01em; white-space: nowrap; color: transparent; -webkit-text-stroke: 2px rgba(10, 10, 11, .16); translate: calc(var(--ab, 0) * 9vw) 0; }
 .about { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.6rem clamp(2rem, 6vw, 5rem); align-items: start; }
-.about h2 { font-size: clamp(2.78rem, 6.27vw, 5.26rem); }
+.about h2 { font-size: clamp(2.36rem, 5.33vw, 4.47rem); }
 .about-text { position: relative; display: grid; gap: 1.1rem; padding-left: clamp(1.1rem, 2vw, 1.8rem); }
 .about-text::before { content: ""; position: absolute; left: 0; top: .3rem; bottom: .3rem; width: 4px; background: var(--ink); transform-origin: 50% 0; }
 .about-text p { max-width: 46ch; font-size: 1.14rem; }
@@ -267,7 +267,7 @@ a { color: inherit; }
 .pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .pillars li { padding: 1.3rem 1.4rem 0 0; }
 .pillars li + li { padding-left: 1.4rem; border-left: 1px solid rgba(10, 10, 11, .4); }
-.pillars b { display: block; font: 700 clamp(2.11rem, 3.8vw, 3.29rem)/.95 var(--display); text-transform: uppercase; }
+.pillars b { display: block; font: 700 clamp(1.86rem, 3.34vw, 2.9rem)/.95 var(--display); text-transform: uppercase; }
 .pillars span { display: block; margin-top: .6rem; max-width: 28ch; }
 @media (max-width: 900px) { .about { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 700px) {
@@ -331,7 +331,7 @@ button.btn { border: 0; background: none; appearance: none; }
 .f-ic { display: grid; place-items: center; width: 3.2rem; height: 3.1rem; background: var(--ink); color: var(--orange); transform: skewX(-14deg); transition: background .15s, color .15s; }
 .f-ic .ic { transform: skewX(14deg); }
 .flow li:hover .f-ic { background: var(--orange); color: var(--ink); }
-.flow b { margin-top: .35rem; font: 700 1.3rem/1 var(--display); letter-spacing: .03em; text-transform: uppercase; }
+.flow b { margin-top: .35rem; font: 700 1.2rem/1 var(--display); letter-spacing: .03em; text-transform: uppercase; }
 .flow small { font-size: .9rem; line-height: 1.35; color: var(--mute-light); }
 .group { display: flex; align-items: center; gap: .9rem; font-weight: 700; }
 .dots { display: inline-flex; gap: .3rem; flex: none; }
@@ -369,7 +369,7 @@ button.btn { border: 0; background: none; appearance: none; }
 .t-ph .ic { width: 3.4rem; height: 3.4rem; stroke-width: 1.3; }
 .t-ph small { font-size: .88rem; font-weight: 700; color: var(--mute-dark); }
 .t-body { display: grid; gap: .7rem; justify-items: start; min-width: 0; }
-.t-body h3 { font: 700 clamp(1.9rem, 2.7vw, 2.5rem)/.92 var(--display); text-transform: uppercase; text-wrap: balance; }
+.t-body h3 { font: 700 clamp(1.67rem, 2.38vw, 2.2rem)/.92 var(--display); text-transform: uppercase; text-wrap: balance; }
 .t-role { font-weight: 700; color: var(--mute-light); }
 .t-courses { display: flex; flex-wrap: wrap; gap: .4rem; }
 .t-courses li { display: inline-flex; align-items: center; gap: .4rem; padding: .2rem .7rem .22rem .5rem; background: var(--ink); color: var(--white); font-size: .84rem; font-weight: 700; }
@@ -389,7 +389,7 @@ button.btn { border: 0; background: none; appearance: none; }
   .t-photo { margin: 0 .55rem .55rem 0; }
   .t-photo::before { inset: .55rem -.55rem -.55rem .55rem; }
   .t-body { gap: .55rem; }
-  .t-body h3 { font-size: 1.75rem; }
+  .t-body h3 { font-size: 1.5rem; }
   .t-photo.has-2 { margin-bottom: 1.4rem; }
   .t-photo-2 { right: -.9rem; bottom: -1.3rem; width: 48%; padding: 3px; }
   .trainer .creds li { font-size: .86rem; padding-block: .35rem; }
@@ -406,19 +406,39 @@ button.btn { border: 0; background: none; appearance: none; }
 .n-photo figcaption b { font: 700 clamp(1.44rem, 2.85vw, 1.88rem)/1 var(--display); letter-spacing: .03em; text-transform: uppercase; }
 .n-photo figcaption span { font-size: .9rem; font-weight: 700; }
 .n-body { display: grid; gap: 1.2rem; justify-items: start; min-width: 0; }
-.nutri h2 { font-size: clamp(2.59rem, 5.32vw, 4.51rem); }
+.nutri h2 { font-size: clamp(2.2rem, 4.52vw, 3.83rem); }
 .n-lead { max-width: 48ch; font-size: 1.12rem; color: var(--mute-dark); }
 .benefits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1.8rem; width: 100%; margin-block: .6rem 0; border-top: 1px solid var(--line-dark); }
 .benefits li { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 1rem; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--line-dark); }
 .benefits li:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .benefits .f-ic { grid-row: span 2; }
-.benefits b { font: 700 1.5rem/1 var(--display); letter-spacing: .03em; text-transform: uppercase; }
+.benefits b { font: 700 1.3rem/1 var(--display); letter-spacing: .03em; text-transform: uppercase; }
 .benefits small { margin-top: .25rem; font-size: .95rem; line-height: 1.4; color: var(--mute-dark); }
 .n-contacts { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; }
 .n-contacts a { display: inline-flex; align-items: center; gap: .5rem; font-weight: 700; text-decoration: none; overflow-wrap: anywhere; }
 .n-contacts a:hover { color: var(--orange); }
 @media (max-width: 960px) { .nutri { grid-template-columns: minmax(0, 1fr); } .n-photo { justify-self: start; width: min(100%, 17rem); } }
-@media (max-width: 480px) { .n-photo { width: min(82%, 15rem); } .n-photo figcaption { left: -.6rem; right: -2.2rem; padding: .55rem 1rem .6rem 1rem; } .n-photo figcaption b { font-size: 1.25rem; } .n-photo figcaption span { font-size: .8rem; } }
+/* telefono: la nutrizione sta in una sola schermata. Titolo, poi foto piccola con il testo accanto, i cinque punti in due colonne, i contatti */
+@media (max-width: 560px) {
+  #nutrizione { padding-block: 2.2rem calc(var(--cut) + 1.2rem); }
+  .nutri { grid-template-columns: 8.4rem minmax(0, 1fr); gap: 1rem 1.1rem; align-items: start; }
+  .n-body { display: contents; }
+  .nutri h2 { order: 1; grid-column: 1 / -1; }
+  .n-photo { order: 2; width: 100%; justify-self: stretch; }
+  .n-photo::before { inset: .5rem -.5rem -.5rem .5rem; border-width: 2px; }
+  .n-photo figcaption { left: -.4rem; right: -.4rem; bottom: .7rem; padding: .35rem .6rem .4rem .7rem; }
+  .n-photo figcaption b { font-size: .98rem; line-height: 1.05; }
+  .n-photo figcaption span { font-size: .7rem; line-height: 1.2; }
+  .n-lead { order: 3; font-size: .92rem; line-height: 1.5; }
+  .nutri .benefits { order: 4; grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1rem; margin-block: .2rem 0; }
+  .benefits li { position: relative; grid-template-columns: auto minmax(0, 1fr); column-gap: .6rem; padding: .55rem 0; }
+  .benefits li:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .benefits .f-ic { width: 2rem; height: 2rem; grid-row: auto; }
+  .benefits .f-ic .ic { width: 1.05rem; height: 1.05rem; }
+  .benefits b { font-size: 1.05rem; line-height: 1.05; }
+  .benefits small { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } /* le descrizioni restano per chi usa uno screen reader */
+  .n-contacts { order: 5; grid-column: 1 / -1; display: grid; gap: .35rem; font-size: .88rem; }
+}
 @media (max-width: 640px) { .benefits { grid-template-columns: minmax(0, 1fr); } }
 
 /* ================================================================ corsi: carosello a tutta pagina
@@ -435,7 +455,7 @@ button.btn { border: 0; background: none; appearance: none; }
 .cdial .arc { fill: none; stroke: rgba(232, 96, 40, .34); stroke-width: 4; stroke-dasharray: 100 100; stroke-dashoffset: 70; }
 
 .cx-top { position: relative; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .9rem 2rem; padding: clamp(2.8rem, 5.4vw, 4rem) var(--cxp) 0; }
-.cx-top h2 { font-size: clamp(2.11rem, 3.99vw, 3.2rem); }
+.cx-top h2 { font-size: clamp(1.79rem, 3.39vw, 2.72rem); }
 .cx-tabs { display: flex; gap: .3rem; }
 .cx-tab { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: .6rem 1.1rem .8rem; border: 0; background: none; color: var(--mute-dark); font: 700 1.2rem/1 var(--display); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: color .25s; }
 .cx-tab::before, .cx-tab::after { content: ""; position: absolute; left: .3rem; right: .3rem; bottom: 0; height: 3px; }
@@ -483,7 +503,7 @@ button.btn { border: 0; background: none; appearance: none; }
 .c-flip .c-medal { left: auto; right: -.9rem; }
 
 .cx-body { position: relative; z-index: 1; display: grid; gap: 1.1rem; justify-items: start; min-width: 0; translate: calc(var(--o, 0) * 3vw) 0; opacity: calc(1 - var(--a, 0) * 1.15); }
-.cx-body h3 { font: 700 clamp(2.88rem, 5.89vw, 5.26rem)/.88 var(--display); text-transform: uppercase; text-wrap: balance; }
+.cx-body h3 { font: 700 clamp(2.45rem, 5.01vw, 4.47rem)/.88 var(--display); text-transform: uppercase; text-wrap: balance; }
 .cx .c-lead { max-width: 46ch; color: var(--mute-dark); }
 .cx .lap-ring { background: conic-gradient(var(--orange) calc(var(--q) * 25%), rgba(255, 255, 255, .18) 0); }
 .cx .flow li:not(:last-child)::after { border-top-color: rgba(255, 255, 255, .3); }
@@ -530,7 +550,7 @@ button.btn { border: 0; background: none; appearance: none; }
 .pro-art.has-photo::before { display: none; }
 .pro-art img { width: 100%; height: 100%; object-fit: cover; clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%); }
 .pro-body { display: grid; gap: .8rem; justify-items: start; min-width: 0; }
-.pro-body h3 { font: 700 clamp(2.11rem, 3.23vw, 2.82rem)/.92 var(--display); text-transform: uppercase; text-wrap: balance; overflow-wrap: anywhere; }
+.pro-body h3 { font: 700 clamp(1.79rem, 2.75vw, 2.4rem)/.92 var(--display); text-transform: uppercase; text-wrap: balance; overflow-wrap: anywhere; }
 .pro-role { font-weight: 700; color: var(--orange); }
 .pro-intro { color: var(--mute-dark); }
 .pro-when { width: 100%; border-top: 1px solid var(--line-dark); }
@@ -544,6 +564,16 @@ button.btn { border: 0; background: none; appearance: none; }
 .pros-note a:hover { text-decoration-color: var(--orange); }
 @media (max-width: 1000px) { .pros { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 520px) { .pro { grid-template-columns: minmax(0, 1fr); } .pro-art { width: 8.5rem; } .pro-art.has-photo { width: min(100%, 15rem); } }
+/* telefono: fisioterapista e osteopata sono due schede affiancate, in una sola pagina, da scorrere di lato (con quella accanto che si intravede) */
+@media (max-width: 760px) {
+  .pros { --cw: min(84vw, 21rem); position: relative; display: flex; gap: .8rem; margin: 1.6rem calc(-1 * var(--gut)) 0; padding: .2rem calc((100vw - var(--cw)) / 2) .8rem; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+  .pros::-webkit-scrollbar { display: none; }
+  .pros:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+  .pro { flex: 0 0 var(--cw); align-content: start; gap: 1rem; padding: 1.3rem 1.2rem 1.8rem; scroll-snap-align: center; scroll-snap-stop: always; }
+  .pro-art { width: 5.6rem; }
+  .pro-art::before { inset: -.5rem; }
+  .pros-note { margin-top: .6rem; }
+}
 
 /* ================================================================ effetti (fx.js). Tutto ciò che nasconde qualcosa sta dietro html.fx. */
 /* barra rapida su telefono */
@@ -675,7 +705,7 @@ html.fx .fig-dial { translate: 0 calc(var(--hp, 0) * 44px); }
 .legal-page .bar .back { margin-left: auto; }
 .legal { padding-block: clamp(2.5rem, 6vw, 4.5rem) calc(var(--cut) + 2.5rem); }
 .legal .wrap { display: grid; gap: 1.1rem; max-width: 46rem; }
-.legal h1 { font: 700 clamp(3.07rem, 7.6vw, 5.08rem)/.9 var(--display); text-transform: uppercase; }
+.legal h1 { font: 700 clamp(2.7rem, 6.69vw, 4.47rem)/.9 var(--display); text-transform: uppercase; }
 .legal h2 { margin-top: 1.4rem; font: 700 clamp(1.9rem, 4vw, 2.4rem)/1 var(--display); letter-spacing: .02em; text-transform: uppercase; }
 .legal section { display: grid; gap: .8rem; }
 .legal p, .legal li { line-height: 1.6; }

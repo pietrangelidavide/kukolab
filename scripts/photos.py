@@ -38,7 +38,7 @@ NUOVE = {
     'corso-pilates-3.jpg':  ('c4a6a2ca-image.jpg', None, 760),                    # tre allieve sui reformer
     'corso-pilates-4.jpg':  ('2c558f46-image.jpg', None, 760),                    # ponte sui reformer
     # Chiara, maestra di Pilates (3:4): la prima è la foto grande, la seconda quella piccola sovrapposta
-    'trainer-chiara.jpg':   ('2e2483f1-image.png', (0, 330, 919, 1555), 900),     # con la pallina rossa
+    'trainer-chiara.jpg':   ('2e2483f1-image.png', (0, 360, 604, 1367), 720),     # con la pallina rossa, 3:5, il corpo (spalle-gomito) al centro
     'trainer-chiara-2.jpg': ('7e01eb73-image.png', (0, 380, 892, 1569), 900),     # seduta sul reformer
 }
 
