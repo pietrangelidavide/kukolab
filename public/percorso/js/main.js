@@ -132,7 +132,7 @@ async function start() {
     get pos() { return cur; }, // per le prove
     scene,
   };
-  // arrivando da un'altra pagina con un'ancora (es. /percorso/#pilates) la scena parte già nella sala giusta
+  // arrivando da un'altra pagina con un'ancora (es. /#pilates) la scena parte già nella sala giusta
   const hashGo = location.hash ? $$('[data-go]').find((x) => x.getAttribute('href') === location.hash) : null;
   if (hashGo) { scrollTo(0, Math.round(scrollFor(+hashGo.dataset.go))); measure(); cur = target; vel = 0; }
   // pronto: tolgo il caricamento e faccio entrare il cliente dalla porta

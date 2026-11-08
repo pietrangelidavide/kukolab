@@ -1,4 +1,4 @@
-// Genera le pagine della vetrina in public/ a partire da vetrina/:
+// Genera le pagine dei corsi (personal-training, functional, pilates) in public/ a partire da vetrina/. La pagina principale (public/index.html, il percorso 3D) è scritta a mano.
 //   vetrina/site.json      dati comuni (WhatsApp, telefono, Instagram, indirizzo, Maps)
 //   vetrina/partials.json  pezzi riusati ({{contatti}}, {{play}})
 //   vetrina/layout.html    testata con menu, piede, meta tag (uguali per tutte le pagine)
@@ -36,11 +36,13 @@ const vars = {
 
 // voci del menu: key = pagina corrente (aria-current)
 const NAV = [
-  { key: 'corsi', label: 'Corsi', href: '/corsi' },
-  { key: 'chi-siamo', label: 'Chi siamo', href: '/chi-siamo' },
+  { key: 'personal-training', label: 'Personal training', href: '/personal-training' },
+  { key: 'functional', label: 'Functional', href: '/functional' },
+  { key: 'pilates', label: 'Pilates', href: '/pilates' },
   { key: 'contatti', label: 'Contatti', href: '#contatti' },
 ];
-const MENU = [{ key: 'home', label: 'Home', href: '/sito' }, ...NAV];
+// «Il percorso» (la pagina principale, public/index.html) è solo nel menu da telefono: sul computer c'è il logo
+const MENU = [{ key: 'home', label: 'Il percorso', href: '/' }, ...NAV];
 
 // misure di un JPEG (legge il marcatore SOF)
 const jpegSize = (file) => {
@@ -106,6 +108,7 @@ for (const f of files) {
 // controlli
 const idsOf = (html) => new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((x) => x[1]));
 const byFile = Object.fromEntries(built.map((b) => [b.file, b]));
+const home = readFileSync(pub('index.html'), 'utf8');
 const problems = [];
 for (const b of built) {
   const h1 = (b.page.match(/<h1[\s>]/g) || []).length;
@@ -122,7 +125,11 @@ for (const b of built) {
     const h = href.replace(/&amp;/g, '&');
     if (h.startsWith('#')) {
       if (h.length > 1 && !ids.has(h.slice(1))) problems.push(`${b.name}: àncora ${h} senza destinazione`);
-    } else if (/^\/(sito|corsi|chi-siamo|personal-training|functional|pilates)(#.*)?$/.test(h)) {
+    } else if (h === '/' || /^\/#/.test(h)) {
+      // la pagina principale (il percorso 3D) è scritta a mano in public/index.html
+      const hash = h.slice(2);
+      if (hash && !idsOf(home).has(hash)) problems.push(`${b.name}: ${h} senza destinazione`);
+    } else if (/^\/(personal-training|functional|pilates)(#.*)?$/.test(h)) {
       const [path, hash] = h.split('#');
       const target = byFile[path.slice(1)];
       if (!target) problems.push(`${b.name}: pagina ${path} inesistente`);

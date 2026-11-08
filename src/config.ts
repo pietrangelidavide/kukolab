@@ -21,7 +21,7 @@ export const passwordLogin = (): boolean => !!assets().password;
 export const entryOf = (role: Role): Entry => (role === 'client' ? 'client' : 'staff');
 
 /** Indirizzi per i collegamenti tra le pagine. Nelle anteprime pubblicate a parte possono essere cambiati o tolti (stringa vuota: il link sparisce). */
-export const siteHref = (): string => assets().site ?? '/sito';
+export const siteHref = (): string => assets().site ?? '/';
 export const appHref = (): string => assets().app ?? '/app/';
 export const staffHref = (): string => assets().staff ?? '/gestionale/';
 export const homeHref = (): string => assets().home ?? '/';

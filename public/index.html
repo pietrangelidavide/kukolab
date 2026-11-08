@@ -3,189 +3,161 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>KUKO LAB | Sito e app</title>
-<meta name="description" content="KUKO LAB, performance studio all'EUR. Scopri lo studio sul sito oppure prenota le lezioni con l'app.">
-<meta name="theme-color" content="#0a0a0b">
+<title>KUKO LAB | Il tuo benessere a 360°</title>
+<meta name="description" content="KUKO LAB, il tuo benessere a 360°. Tre discipline, un unico percorso: allenamento personale, Pilates e allenamento funzionale a EUR, Roma, con nutrizionista, osteopata e fisioterapista. Entra nello studio e segui un cliente dall'ingresso alla fine dell'allenamento.">
+<meta name="theme-color" content="#000000">
 <!-- Finché il sito non ha il dominio definitivo resta fuori da Google: togliere noindex e robots.txt al go-live. -->
 <meta name="robots" content="noindex, nofollow">
-<meta property="og:title" content="KUKO LAB | Sito e app">
-<meta property="og:description" content="Scopri lo studio sul sito o prenota le lezioni con l'app. Il tuo benessere a 360°++.">
-<meta property="og:type" content="website">
-<meta property="og:locale" content="it_IT">
-<link rel="icon" href="img/favicon.png" type="image/png">
-<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
-<link rel="preload" href="fonts/bigshoulders-bold.woff" as="font" type="font/woff" crossorigin>
-<link rel="preload" href="fonts/instrumentsans-regular.woff" as="font" type="font/woff" crossorigin>
-<link rel="stylesheet" href="landing.css">
+<link rel="icon" href="/img/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="preload" href="/fonts/bigshoulders-bold.woff" as="font" type="font/woff" crossorigin>
+<link rel="stylesheet" href="/percorso/percorso.css">
+<noscript><style>.loader,.scrim,#gl{display:none!important}</style></noscript>
+<meta property="og:title" content="KUKO LAB | Il tuo benessere a 360°. Un percorso completo.">
+<meta property="og:description" content="Il tuo benessere a 360°. Allenamento personale, Pilates e allenamento funzionale: tre discipline, un unico percorso, costruito intorno a te.">
+<meta property="og:image" content="https://kukolab.it/img/studio-forza-wide.jpg">
 </head>
-<body>
-<a class="skip" href="#scegli">Vai alla scelta</a>
+<body class="is-loading">
 
-<header class="wrap l-head">
-  <a class="l-brand" href="/" aria-label="KUKO LAB, pagina iniziale"><img src="img/logo-cerchio.png" alt="" width="46" height="46"><span>KUKO LAB</span></a>
-  <nav class="l-links" aria-label="Sezioni">
-    <a href="/sito">Il sito</a>
-    <a href="/app/">L'app</a>
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="scrim" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="brand" href="#inizio" data-go="0" aria-label="KUKO LAB, torna all'inizio"><img src="/img/logo-kuko.png" width="672" height="243" alt=""><span>KUKO LAB</span></a>
+  <nav class="top-links" aria-label="Collegamenti">
+    <a class="pill" href="#contatti" data-go="6"><span class="d">Prenota una prova</span><span class="m">Prenota</span></a>
   </nav>
 </header>
 
-<main id="scegli">
-  <section class="wrap l-hero" aria-labelledby="h-scegli">
-    <p class="l-kicker">Performance studio, EUR Roma</p>
-    <h1 id="h-scegli">Da dove vuoi partire?</h1>
-    <p class="l-lead">Il sito per conoscerci, l'app per prenotare. Due ingressi, un solo studio.</p>
+<!-- Avanzamento: tre tappe unite da una linea che si riempie mentre scorri; alla fine sono tutte accese -->
+<nav class="rail" aria-label="Il percorso: Personale, Pilates, Funzionale">
+  <ol>
+    <li><a href="#personale" data-go="1" data-stage="0"><i></i><span>Personale</span></a></li>
+    <li><a href="#pilates" data-go="3" data-stage="1"><i></i><span>Pilates</span></a></li>
+    <li><a href="#funzionale" data-go="5" data-stage="2"><i></i><span>Funzionale</span></a></li>
+  </ol>
+  <b class="rail-line" aria-hidden="true"><u></u></b>
+</nav>
+
+<main id="percorso">
+  <span id="inizio"></span>
+
+  <section class="phase" id="hero" data-a="-1" data-b="0.62" aria-labelledby="h-hero">
+    <div class="copy">
+      <h1 id="h-hero">Il tuo benessere a 360°<br><em>Un percorso completo.</em></h1>
+      <p class="lead">Tre discipline, un unico percorso. Costruito intorno a te.</p>
+      <p class="hint" aria-hidden="true"><span></span>Scorri per entrare</p>
+    </div>
+    <img class="still" src="/img/studio-forza-wide.jpg" width="1600" height="900" alt="La sala di KUKO LAB, con i rack, i pesi e il banco con il logo">
   </section>
 
-  <div class="deck" data-deck>
-    <div class="wrap deck-bar" data-deck-ui hidden>
-      <div class="deck-pick" role="group" aria-label="Scegli: sito o app">
-        <button type="button" class="pick on" data-go="0" aria-current="true">Il sito</button>
-        <button type="button" class="pick" data-go="1">L'app</button>
-      </div>
-      <div class="deck-arrows">
-        <button type="button" class="arrow" data-step="-1" aria-label="Pannello precedente" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12H5M11 6l-6 6 6 6"/></svg></button>
-        <button type="button" class="arrow" data-step="1" aria-label="Pannello successivo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
-      </div>
+  <section class="phase has-cut" id="personale" data-a="0.66" data-b="1.36" aria-labelledby="h-pers">
+    <div class="copy">
+      <p class="label">Allenamento personale</p>
+      <h2 id="h-pers">Un percorso costruito su di te.</h2>
+      <p class="lead">Allenamenti individuali, obiettivi personalizzati e un professionista al tuo fianco per accompagnarti in ogni progresso.</p>
+      <p class="who">Con Valerio Cuscianna, fondatore di KUKO LAB</p>
+      <p class="more"><a class="btn ghost" href="/personal-training">Scopri di più<span class="sr"> sul personal training</span></a></p>
     </div>
-    <div class="deck-track" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Il sito e l'app: scorri in orizzontale">
-    <section class="door door-site" role="group" aria-roledescription="slide" aria-label="1 di 2" aria-labelledby="h-sito">
-      <div class="door-photo"><img src="img/studio-forza-wide.jpg" alt="" width="1000" height="715" fetchpriority="high"></div>
-      <p class="door-tag"><span>Per conoscerci</span></p>
-      <h2 id="h-sito">Il sito</h2>
-      <p class="door-lead">Lo studio, i corsi e le persone che ti seguono. Tutto quello che serve per scegliere da dove cominciare.</p>
-      <ul class="pts">
-        <li><b>Corsi e orari</b><span>Functional, Pilates e personal training in piccoli gruppi, da lunedì a sabato.</span></li>
-        <li><b>Trainer e nutrizione</b><span>Chi ti allena e chi ti segue a tavola.</span></li>
-        <li><b>Prova gratuita</b><span>La prima lezione è un regalo: ti chiamiamo noi.</span></li>
-      </ul>
-      <a class="door-link" href="/sito" aria-label="Vai al sito"><span class="btn">Vai al sito<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></a>
-    </section>
+    <img class="cut cut-valerio" src="/percorso/img/ritaglio-valerio.webp" width="563" height="626" alt="" decoding="async">
+    <img class="still" src="/img/corso-pt.jpg" width="900" height="1125" loading="lazy" alt="Allenamento personale: un allenamento a coppie con la palla medica, davanti alla vetrata dello studio">
+  </section>
 
-    <section class="door door-app" role="group" aria-roledescription="slide" aria-label="2 di 2" aria-labelledby="h-app">
-      <div class="phone-wrap" aria-hidden="true">
-        <div class="phone">
-          <div class="phone-in">
-            <div class="m-top"><img src="img/logo-cerchio.png" alt="" width="30" height="30"><b>Prenota</b></div>
-<!--MOCK-->
-          <div class="m-days"><span class="on">Lun</span><span>Mar</span><span>Mer</span><span>Gio</span><span>Ven</span><span>Sab</span></div>
-          <ul class="m-list">
-            <li class="m-row t-pilates"><time>10:00</time><b>Pilates</b><i>Prenota</i></li>
-            <li class="m-row t-pt"><time>17:00</time><b>Personal training</b><i>Prenota</i></li>
-            <li class="m-row t-functional"><time>18:30</time><b>Functional</b><i>Prenota</i></li>
-            <li class="m-row t-pilates"><time>20:30</time><b>Pilates</b><i>Prenota</i></li>
-          </ul>
-<!--/MOCK-->
-          </div>
-        </div>
-      </div>
-      <div class="door-body">
-        <p class="door-tag"><span>Per prenotare</span></p>
-        <h2 id="h-app">L'app</h2>
-        <p class="door-lead">Scegli la lezione e prenota in due tocchi, anche dal telefono.</p>
-        <ul class="pts">
-          <li><b>Prenota e disdici</b><span>Giorno, orario, corso: un tocco e il posto è tuo.</span></li>
-          <li><b>Il tuo abbonamento</b><span>Lezioni rimaste e scadenza sempre sott'occhio.</span></li>
-          <li><b>Lista d'attesa</b><span>Se è pieno, entri tu appena si libera un posto.</span></li>
-        </ul>
-        <a class="door-link" href="/app/" aria-label="Apri l'app"><span class="btn">Apri l'app<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span></a>
-      </div>
-    </section>
+  <section class="phase has-cut" id="pilates" data-a="2.68" data-b="3.34" aria-labelledby="h-pil">
+    <div class="copy">
+      <p class="label">Pilates</p>
+      <h2 id="h-pil">Ritrova il tuo equilibrio.</h2>
+      <p class="lead">Controllo, forza e mobilità. Un lavoro profondo sul corpo per migliorare il modo in cui ti muovi ogni giorno.</p>
+      <p class="who">Con Chiara, istruttrice Pilates</p>
+      <p class="more"><a class="btn ghost" href="/pilates">Scopri di più<span class="sr"> sul Pilates</span></a></p>
     </div>
-  </div>
+    <img class="cut cut-chiara" src="/percorso/img/ritaglio-chiara.webp" width="676" height="1100" alt="" decoding="async">
+    <img class="still" src="/img/corso-pilates.jpg" width="900" height="1125" loading="lazy" alt="Pilates: Chiara con la pallina, accanto al reformer">
+  </section>
+
+  <section class="phase" id="funzionale" data-a="4.66" data-b="5.28" aria-labelledby="h-fun">
+    <div class="copy">
+      <p class="label">Allenamento funzionale</p>
+      <h2 id="h-fun">Più energia. Più movimento. Insieme.</h2>
+      <p class="lead">Allenarsi in gruppo, superare i propri limiti e trovare la motivazione nella condivisione.</p>
+      <p class="more"><a class="btn ghost" href="/functional">Scopri di più<span class="sr"> sull'allenamento funzionale</span></a></p>
+    </div>
+    <img class="still" src="/img/corso-functional.jpg" width="900" height="1125" loading="lazy" alt="Allenamento funzionale: allenamento di gruppo sui tappetini, addominali a terra">
+  </section>
+
+  <section class="phase finale" id="contatti" data-a="5.86" data-b="9" aria-labelledby="h-fin">
+    <div class="copy">
+      <h2 id="h-fin">Un corpo.<br>Tre discipline.<br><em>Un percorso completo.</em></h2>
+      <p class="lead"><strong class="motto">Il tuo benessere a 360°.</strong> Il tuo percorso inizia qui.</p>
+      <div class="cta">
+        <a class="btn" data-wa="prova" href="https://wa.me/393920948122?text=Ciao%20KUKO%20LAB%2C%20vorrei%20prenotare%20una%20prova.">Entra nel tuo percorso</a>
+        <a class="btn ghost" data-wa="info" href="https://wa.me/393920948122?text=Ciao%20KUKO%20LAB%2C%20vorrei%20avere%20informazioni.">Chiedi informazioni</a>
+      </div>
+      <p class="where">Via del Pianeta Urano 44, EUR, Roma · <a href="tel:+393920948122">392 094 8122</a> · <a href="https://www.instagram.com/kukolab_performance/" rel="noopener">@kukolab_performance</a></p>
+    </div>
+  </section>
 </main>
 
-<footer class="wrap l-foot">
-  <nav aria-label="Link utili">
-    <a href="/sito">Il sito</a>
-    <a href="/app/">L'app</a>
-    <a href="installa.html">Installa sul telefono</a>
-    <a href="privacy.html">Privacy</a>
-  </nav>
-  <!-- Dati societari (ragione sociale, P. IVA, sede): da inserire anche qui quando il cliente li comunica, come in sito.html. -->
-  <p>KUKO LAB · Performance studio · Via del Pianeta Urano 44, Roma EUR</p>
-</footer>
+<!-- Dopo il finale la scena finisce: prima il benessere a 360° (nutrizionista, osteopata, fisioterapista), poi Instagram. Coprono il 3D scorrendo -->
+<section class="team" id="benessere" aria-labelledby="team-t">
+  <div class="in">
+    <div class="team-head">
+      <h2 id="team-t">Non solo allenamento.</h2>
+      <p class="lead"><strong class="motto">Il tuo benessere a 360°.</strong> Conta anche ciò che mangi e come recuperi. Accanto ai trainer trovi un nutrizionista, un osteopata e un fisioterapista.</p>
+    </div>
+    <ol class="pros" aria-label="Nutrizionista, osteopata e fisioterapista">
+      <li class="pro" style="--ih:919">
+        <div class="pro-fig"><img src="/percorso/img/pro-nutrizionista.webp" width="434" height="919" alt="" loading="lazy" decoding="async"></div>
+        <div class="pro-node" aria-hidden="true"><i></i><u></u></div>
+        <h3>Nutrizionista</h3>
+        <p class="pro-hook">Mangi per il tuo obiettivo.</p>
+        <p class="pro-text">Un piano alimentare su misura per te: cosa mangiare prima, durante e dopo l'allenamento perché renda di più.</p>
+        <p class="pro-name">Con il Dott. Maurizio Calabrò, nutrizionista sportivo</p>
+      </li>
+      <li class="pro" style="--ih:986">
+        <div class="pro-fig"><img src="/percorso/img/pro-osteopata.webp" width="392" height="986" alt="" loading="lazy" decoding="async"></div>
+        <div class="pro-node" aria-hidden="true"><i></i><u></u></div>
+        <h3>Osteopata</h3>
+        <p class="pro-hook">Ti muovi con più libertà.</p>
+        <p class="pro-text">Con un approccio manuale lavora su tensioni, rigidità e mobilità, per aiutarti a muoverti meglio, dentro e fuori dall'allenamento.</p>
+      </li>
+      <li class="pro" style="--ih:893">
+        <div class="pro-fig"><img src="/percorso/img/pro-fisioterapista.webp" width="440" height="893" alt="" loading="lazy" decoding="async"></div>
+        <div class="pro-node" aria-hidden="true"><i></i><u></u></div>
+        <h3>Fisioterapista</h3>
+        <p class="pro-hook">Torni ad allenarti con fiducia.</p>
+        <p class="pro-text">Ti aiuta a recuperare dopo un infortunio, un intervento o un dolore che non passa, e a riprendere con serenità.</p>
+      </li>
+    </ol>
+    <div class="pros-dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
+    <div class="team-cta">
+      <p>Raccontaci il tuo obiettivo: ti rispondiamo su WhatsApp.</p>
+      <a class="btn" data-wa="team" href="https://wa.me/393920948122?text=Ciao%20KUKO%20LAB%2C%20vorrei%20informazioni%20su%20nutrizionista%2C%20osteopata%20e%20fisioterapista.">Scrivici su WhatsApp</a>
+    </div>
+  </div>
+</section>
 
-<script>
-/* Sito e app come pannelli da sfogliare in orizzontale. I pannelli scorrono anche senza questo script (scroll-snap):
-   qui si aggiungono indicatori, frecce, tastiera, trascinamento col mouse e il pannello attivo in evidenza. */
-(function () {
-  var deck = document.querySelector('[data-deck]');
-  if (!deck) return;
-  var track = deck.querySelector('.deck-track');
-  var slides = [].slice.call(track.children);
-  var ui = deck.querySelector('[data-deck-ui]');
-  var picks = [].slice.call(deck.querySelectorAll('[data-go]'));
-  var prev = deck.querySelector('[data-step="-1"]');
-  var next = deck.querySelector('[data-step="1"]');
-  var still = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
-  var cur = 0, raf = 0, drag = null, noClick = false;
+<!-- Instagram (copre il 3D scorrendo) -->
+<section class="ig" id="instagram" aria-labelledby="ig-t">
+  <div class="in">
+    <div class="ig-head">
+      <h2 id="ig-t">Su Instagram.</h2>
+      <p>Allenamenti, lezioni e vita di studio su @kukolab_performance.</p>
+      <a class="btn ghost" href="https://www.instagram.com/kukolab_performance/" target="_blank" rel="noopener">Seguici su Instagram</a>
+    </div>
+    <ul class="reels">
+      <li><a href="https://www.instagram.com/kukolab_performance/reels/" target="_blank" rel="noopener"><img src="/img/reel-benvenuto.jpg" width="760" height="1231" loading="lazy" alt="Video «Benvenuto da KUKOLAB»: Valerio presenta lo studio"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11"/><path d="M10 8l6 4-6 4z"/></svg></a></li>
+      <li><a href="https://www.instagram.com/kukolab_performance/reels/" target="_blank" rel="noopener"><img src="/img/reel-halloween.jpg" width="760" height="1314" loading="lazy" alt="Video «Promo Halloween Pilates reformer»"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11"/><path d="M10 8l6 4-6 4z"/></svg></a></li>
+    </ul>
+  </div>
+  <footer class="foot">
+    <p>© 2026 KUKO LAB Performance studio · Via del Pianeta Urano 44, EUR, Roma</p>
+    <p><a href="/personal-training">Personal training</a> <a href="/functional">Functional</a> <a href="/pilates">Pilates</a> <a href="/privacy">Privacy</a></p>
+  </footer>
+</section>
 
-  var pad = function () { return parseFloat(getComputedStyle(track).paddingLeft) || 0; };
-  var at = function (i) { return Math.max(0, Math.min(track.scrollWidth - track.clientWidth, slides[i].offsetLeft - pad())); };
-  var clamp = function (i) { return Math.max(0, Math.min(slides.length - 1, i)); };
-  var go = function (i) { track.scrollTo({ left: at(clamp(i)), behavior: still.matches ? 'auto' : 'smooth' }); };
+<div class="loader" aria-hidden="true"><img src="/img/logo-kuko.png" alt=""><i></i></div>
 
-  function update() {
-    raf = 0;
-    var x = track.scrollLeft, best = 0, d = Infinity;
-    for (var i = 0; i < slides.length; i++) { var t = Math.abs(at(i) - x); if (t < d) { d = t; best = i; } }
-    cur = best;
-    slides.forEach(function (s, i) { s.classList.toggle('is-on', i === cur); });
-    picks.forEach(function (b, i) { b.classList.toggle('on', i === cur); if (i === cur) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
-    prev.disabled = cur === 0;
-    next.disabled = cur === slides.length - 1;
-  }
-  var soon = function () { if (!raf) raf = requestAnimationFrame(update); };
-
-  picks.forEach(function (b) { b.addEventListener('click', function () { go(+b.getAttribute('data-go')); }); });
-  prev.addEventListener('click', function () { go(cur - 1); });
-  next.addEventListener('click', function () { go(cur + 1); });
-  track.addEventListener('scroll', soon, { passive: true });
-  window.addEventListener('resize', soon);
-
-  // tastiera: frecce, Home e Fine con il carosello a fuoco
-  track.addEventListener('keydown', function (e) {
-    if (e.target !== track) return;
-    var k = e.key, to = k === 'ArrowRight' ? cur + 1 : k === 'ArrowLeft' ? cur - 1 : k === 'Home' ? 0 : k === 'End' ? slides.length - 1 : null;
-    if (to === null) return;
-    e.preventDefault();
-    go(to);
-  });
-
-  // mouse: si trascina come col dito. Il tocco scorre già da solo.
-  track.addEventListener('pointerdown', function (e) {
-    if (e.pointerType !== 'mouse' || e.button !== 0) return;
-    drag = { x: e.clientX, left: track.scrollLeft, from: cur, moved: false };
-  });
-  window.addEventListener('pointermove', function (e) {
-    if (!drag) return;
-    var dx = e.clientX - drag.x;
-    if (!drag.moved && Math.abs(dx) > 6) { drag.moved = true; track.classList.add('is-drag'); }
-    if (drag.moved) track.scrollLeft = drag.left - dx;
-  });
-  function release(e) {
-    if (!drag) return;
-    var d = drag, dx = e.clientX - d.x;
-    drag = null;
-    if (!d.moved) return;
-    track.classList.remove('is-drag');
-    noClick = true; setTimeout(function () { noClick = false; }, 0);
-    go(Math.abs(dx) > 60 ? d.from + (dx < 0 ? 1 : -1) : d.from);
-  }
-  window.addEventListener('pointerup', release);
-  window.addEventListener('pointercancel', release);
-
-  // un clic sul pannello accanto lo porta in primo piano, senza aprire il link; dopo un trascinamento non apre niente
-  track.addEventListener('click', function (e) {
-    var s = e.target.closest ? e.target.closest('.door') : null;
-    var i = s ? slides.indexOf(s) : -1;
-    if (noClick || (i > -1 && i !== cur)) { e.preventDefault(); e.stopPropagation(); if (!noClick) go(i); }
-  }, true);
-
-  deck.classList.add('is-live');
-  ui.hidden = false;
-  update();
-})();
-</script>
+<script type="module" src="/percorso/js/main.js"></script>
 </body>
 </html>

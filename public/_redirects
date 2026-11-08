@@ -1,0 +1,11 @@
+# Vecchi indirizzi: la pagina principale è ora il percorso (/) e restano le tre pagine dei corsi.
+# 302 e non 301 finché il sito non ha il dominio definitivo: i browser non tengono in memoria il rinvio.
+/percorso / 302
+/percorso/ / 302
+/percorso/index.html / 302
+/sito / 302
+/sito.html / 302
+/corsi / 302
+/corsi.html / 302
+/chi-siamo / 302
+/chi-siamo.html / 302

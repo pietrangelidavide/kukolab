@@ -1,8 +1,8 @@
 // Anteprima senza server, con font e immagini incorporati. L'app è sempre in modalità demo (dati nel browser).
 // Crea in .tmp/preview/:
-//   ingresso.html, sito.html, corsi.html, chi-siamo.html, app.html, gestionale.html   pagine separate (collegamenti: KUKO_APP_URL per "Prenota"/"Apri l'app", KUKO_STAFF_URL per il gestionale (non è collegato dall'ingresso: si apre dal suo indirizzo), KUKO_SITE_URL per "Il sito" e "Torna al sito")
-//   multi/index.html (ingresso), multi/sito.html, multi/corsi.html, multi/chi-siamo.html, multi/app.html, multi/gestionale.html, multi/privacy.html   le stesse pagine da pubblicare insieme sotto un unico indirizzo: così stanno
-//                              nella stessa origine (la vetrina non ha più il modulo della prova gratuita: vedi README)
+//   personal-training.html, functional.html, pilates.html, app.html, gestionale.html   pagine separate (collegamenti: KUKO_APP_URL per "Apri l'app", KUKO_STAFF_URL per il gestionale (non è collegato dal sito: si apre dal suo indirizzo), KUKO_SITE_URL per "Torna al sito")
+//   multi/personal-training.html, multi/functional.html, multi/pilates.html, multi/app.html, multi/gestionale.html, multi/privacy.html   le stesse pagine da pubblicare insieme sotto un unico indirizzo
+//   La pagina principale (il percorso 3D, public/index.html) usa WebGL e più file: non è qui, si prova con «npm run dev» o sul sito pubblicato.
 // Uso: npm run preview:build
 import { build } from 'esbuild';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -44,7 +44,7 @@ const appPage = (mode, links) => `<title>${ENTRIES[mode].name}</title>
 const soloLinks = { site: process.env.KUKO_SITE_URL ?? '', app: process.env.KUKO_APP_URL ?? '', staff: process.env.KUKO_STAFF_URL ?? '', home: '' };
 const multi = join(out, 'multi');
 mkdirSync(multi, { recursive: true });
-const multiLinks = { site: 'sito.html', app: 'app.html', staff: 'gestionale.html', home: 'index.html' };
+const multiLinks = { site: '', app: 'app.html', staff: 'gestionale.html', home: '' }; // il percorso 3D (la home) non è nell'anteprima
 for (const [mode, file] of [['client', 'app'], ['staff', 'gestionale']]) {
   const fragment = appPage(mode, soloLinks);
   writeFileSync(join(out, `${file}.html`), fragment);
@@ -67,42 +67,28 @@ const titleOf = (html) => html.match(/<title>([^<]+)<\/title>/)[1];
 const relink = (b, map) => map.reduce((acc, [re, to]) => acc.replace(re, to), b);
 const ext = (url) => `href="${url}"${url === '#' ? '' : ' target="_blank" rel="noopener"'}`;
 
-// vetrina (sito, corsi, chi-siamo): solo HTML e CSS
+// pagine dei corsi (personal-training, functional, pilates): solo HTML e CSS
 const siteStyle = withData(readFileSync(pub('sito.css'), 'utf8'));
-const SITE_PAGES = ['sito', 'corsi', 'chi-siamo'];
-let siteTitle = '';
+const SITE_PAGES = ['personal-training', 'functional', 'pilates'];
 for (const name of SITE_PAGES) {
   const html = readFileSync(pub(`${name}.html`), 'utf8');
   const title = titleOf(html);
-  if (name === 'sito') siteTitle = title;
   const raw = inline(bodyOf(html));
-  // da sola: le uscite vanno a KUKO_APP_URL (o restano "#"); le altre pagine del sito non ci sono, quindi anche quei link restano "#"
-  const solo = relink(raw, [[/href="\/app\/"/g, ext(appUrl)], [/href="\/(?:sito|corsi|chi-siamo)(#[^"]*)?"/g, (_m, h) => `href="${h || '#'}"`], [/href="\/"/g, 'href="#"']]);
+  // da sola: le uscite vanno a KUKO_APP_URL / KUKO_SITE_URL (o restano "#"); le altre pagine non ci sono, quindi anche quei link restano "#"
+  const solo = relink(raw, [[/href="\/app\/"/g, ext(appUrl)], [/href="\/(?:personal-training|functional|pilates)(#[^"]*)?"/g, (_m, h) => `href="${h || '#'}"`], [/href="\/(#[^"]*)?"/g, (_m, h) => `href="${siteUrl === '#' ? (h || '#') : siteUrl + (h || '')}"`]]);
   const fragment = `<title>${title}</title>\n<style>${siteStyle}</style>\n${solo}`;
   writeFileSync(join(out, `${name}.html`), fragment);
   writeFileSync(join(out, `${name}-page.html`), frame(title, fragment));
-  // insieme alle altre: le pagine si chiamano per nome file
-  const together = relink(raw, [[/href="\/app\/"/g, 'href="app.html"'], [/href="\/(sito|corsi|chi-siamo)(#[^"]*)?"/g, (_m, n, h) => `href="${n}.html${h || ''}"`], [/href="\/"/g, 'href="index.html"']]);
+  // insieme alle altre: le pagine si chiamano per nome file; la home (percorso 3D) non c'è
+  const together = relink(raw, [[/href="\/app\/"/g, 'href="app.html"'], [/href="\/(personal-training|functional|pilates)(#[^"]*)?"/g, (_m, n, h) => `href="${n}.html${h || ''}"`], [/href="\/(#[^"]*)?"/g, (_m, h) => `href="${h || '#'}"`]]);
   writeFileSync(join(multi, `${name}.html`), frame(title, `<title>${title}</title>\n<style>${siteStyle}</style>\n${together}`));
 }
 
-// pagina di ingresso (index.html): in "multi" è la pagina principale, senza cornice (la mette chi pubblica)
-const landStyle = withData(readFileSync(pub('landing.css'), 'utf8'));
-const landHtml = readFileSync(pub('index.html'), 'utf8');
-const landTitle = titleOf(landHtml);
-const landRaw = inline(bodyOf(landHtml));
-const landSolo = relink(landRaw, [[/href="\/app\/"/g, ext(appUrl)], [/href="\/sito"/g, ext(siteUrl)], [/href="\/"/g, 'href="#"']]);
-const landFragment = `<title>${landTitle}</title>\n<style>${landStyle}</style>\n${landSolo}`;
-writeFileSync(join(out, 'ingresso.html'), landFragment);
-writeFileSync(join(out, 'ingresso-page.html'), frame(landTitle, landFragment));
-const landMulti = relink(landRaw, [[/href="\/app\/"/g, 'href="app.html"'], [/href="\/sito"/g, 'href="sito.html"'], [/href="\/"/g, 'href="index.html"'], [/href="installa\.html"/g, 'href="app.html"']]);
-writeFileSync(join(multi, 'index.html'), `<title>${landTitle}</title>\n<style>${landStyle}</style>\n${landMulti}`);
-
 // pagina privacy: documento completo, con gli stessi font e stili
 const priv = readFileSync(pub('privacy.html'), 'utf8');
-const privBody = priv.slice(priv.indexOf('<body'), priv.indexOf('</body>')).replace(/href="\/sito"/g, 'href="sito.html"');
+const privBody = priv.slice(priv.indexOf('<body'), priv.indexOf('</body>')).replace(/href="\/"/g, 'href="#"');
 const privHead = `<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${priv.match(/<title>([^<]+)<\/title>/)[1]}</title><meta name="robots" content="noindex, nofollow"><style>${siteStyle}</style></head>`;
 writeFileSync(join(multi, 'privacy.html'), `${privHead}${privBody.replace(/(src|href)="(img\/[^"]+)"/g, (_m, a, p) => `${a}="${dataUri(p)}"`).replace(/<body[^>]*>/, '<body class="legal-page">')}</body></html>`);
 
 const kb = (f) => `${Math.round(readFileSync(join(out, f)).length / 1024)} KB`;
-console.log(`Anteprime in .tmp/preview: ingresso.html (${kb('ingresso.html')}), sito.html (${kb('sito.html')}), corsi.html (${kb('corsi.html')}), chi-siamo.html (${kb('chi-siamo.html')}), app.html (${kb('app.html')}), gestionale.html (${kb('gestionale.html')}); *-page.html = con la cornice del visualizzatore; multi/ = index (ingresso), sito, app, gestionale e privacy da pubblicare insieme (${kb('multi/index.html')} + ${kb('multi/sito.html')} + ${kb('multi/app.html')} + ${kb('multi/gestionale.html')} + ${kb('multi/privacy.html')})`);
+console.log(`Anteprime in .tmp/preview: ${SITE_PAGES.map((n) => `${n}.html (${kb(n + '.html')})`).join(', ')}, app.html (${kb('app.html')}), gestionale.html (${kb('gestionale.html')}); *-page.html = con la cornice del visualizzatore; multi/ = le stesse pagine da pubblicare insieme.`);
