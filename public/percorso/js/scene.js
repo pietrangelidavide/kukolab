@@ -196,8 +196,10 @@ export async function createScene(canvas, { base = '' } = {}) {
     const yaw = yaw0 + ptrS[0] * 0.05 + Math.sin(t * 0.33) * 0.008;
     const shx = S.mobile ? 0 : shx0 * cl((S.asp - 1.1) / 0.5);
     const ty = S.mobile ? -tyf * Hv : 0;
-    const tgt = [c.x + ox - Math.cos(yaw) * shx * Wv, oy + ty + ptrS[1] * -0.1, oz + Math.sin(yaw) * shx * Wv];
-    eye = [tgt[0] + Math.sin(yaw) * dist * Math.cos(el), tgt[1] + Math.sin(el) * dist, tgt[2] + Math.cos(yaw) * dist * Math.cos(el)];
+    // su telefono la scena sale inclinando lo sguardo (non abbassando l'occhio): da lontano l'occhio non finisce sotto il pavimento
+    const ty0 = oy + ptrS[1] * -0.1;
+    const tgt = [c.x + ox - Math.cos(yaw) * shx * Wv, ty0 + ty, oz + Math.sin(yaw) * shx * Wv];
+    eye = [tgt[0] + Math.sin(yaw) * dist * Math.cos(el), Math.max(1.6, ty0 + Math.sin(el) * dist), tgt[2] + Math.cos(yaw) * dist * Math.cos(el)];
     if (camOv) { eye = camOv.slice(0, 3); tgt[0] = camOv[3]; tgt[1] = camOv[4]; tgt[2] = camOv[5]; }
     vp.set(M.mul(M.persp(FOV, S.asp, 0.5, 170), M.look(eye, tgt)));
     const R = { Wv, Hv, ty, dist, intro, fx: c.x, tgt };
