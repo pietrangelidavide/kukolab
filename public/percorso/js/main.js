@@ -70,7 +70,9 @@ async function start() {
     };
     requestAnimationFrame(step);
   }
-  $$('[data-go]').forEach((a) => a.addEventListener('click', (e) => { if (!body.classList.contains('is-live')) return; e.preventDefault(); goTo(+a.dataset.go); }));
+  // «Prenota» (data-jump) porta subito alla sezione, senza far scorrere la scena attraverso le sale: la scena è una funzione della posizione, quindi basta saltare
+  function jumpTo(p) { stopTween(); scrollTo({ top: Math.round(scrollFor(p)), behavior: 'auto' }); measure(); cur = target; vel = 0; }
+  $$('[data-go]').forEach((a) => a.addEventListener('click', (e) => { if (!body.classList.contains('is-live')) return; e.preventDefault(); if (a.hasAttribute('data-jump')) jumpTo(+a.dataset.go); else goTo(+a.dataset.go); }));
   // se un link in una fase non visibile riceve il focus da tastiera, porto lì la scena
   phases.forEach((p) => p.addEventListener('focusin', () => { const a = +p.dataset.a, b = +p.dataset.b; if (cur < a || cur > b) scrollTo({ top: scrollFor(Math.max(0, (a + Math.min(b, a + 0.7)) / 2)), behavior: 'auto' }); }));
 

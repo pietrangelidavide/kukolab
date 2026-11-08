@@ -77,7 +77,8 @@ em { font-style: normal; }
 .is-live .phase { position: fixed; inset: 0; display: flex; align-items: center; padding: 6.5rem var(--gut) 3rem; opacity: 0; visibility: hidden; pointer-events: none; }
 .is-live .phase.is-on { visibility: visible; }
 .copy { max-width: 35rem; }
-.label { font: 700 1.2rem/1 var(--display); letter-spacing: .2em; text-transform: uppercase; color: var(--orange); margin-bottom: 1.1rem; }
+/* etichetta della sala: piena arancio con testo nero, leggibile su qualsiasi sfondo della scena */
+.label { display: inline-block; padding: .5rem .85rem .42rem; background: var(--orange); font: 700 1.35rem/1 var(--display); letter-spacing: .14em; text-transform: uppercase; color: #000; margin-bottom: 1.2rem; }
 h1, h2 { font: 700 clamp(2.9rem, 6.2vw, 6.4rem)/.9 var(--display); letter-spacing: .005em; text-transform: uppercase; text-wrap: balance; }
 h2 { font-size: clamp(2.6rem, 5vw, 5.2rem); }
 h1 em, .finale h2 em { color: var(--orange); }
@@ -199,7 +200,7 @@ body:not(.is-live) .top { position: absolute; }
   h2 { font-size: clamp(2.2rem, 11vw, 3.3rem); }
   .finale h2 { font-size: clamp(1.9rem, 9.4vw, 2.8rem); }
   .lead { margin-top: .9rem; font-size: 1rem; }
-  .label { margin-bottom: .7rem; font-size: 1.05rem; }
+  .label { margin-bottom: .8rem; padding: .42rem .7rem .36rem; font-size: 1.15rem; }
   .who { margin-top: 1rem; }
   .more { margin-top: 1.1rem; }
   .more .btn { min-height: 2.9rem; padding: 0 1.2rem; }
