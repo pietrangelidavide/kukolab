@@ -61,7 +61,7 @@ a { color: inherit; }
 body:has(.menu:target) { overflow: hidden; }
 .menu-x { position: absolute; top: calc(.7rem + env(safe-area-inset-top)); right: calc(var(--gut) - .7rem); display: grid; place-items: center; width: 2.9rem; height: 2.9rem; }
 .menu-x svg { width: 1.6rem; height: 1.6rem; fill: none; stroke: var(--fg); stroke-width: 2; }
-.menu-link { padding: .35rem 0; border-bottom: 1px solid var(--line); font: 700 clamp(3.2rem, 16vw, 5rem)/1 var(--display); text-transform: uppercase; text-decoration: none; }
+.menu-link { padding: .7rem 0; border-bottom: 1px solid var(--line); font: 700 clamp(1.9rem, 9.5vw, 2.8rem)/1 var(--display); text-transform: uppercase; text-decoration: none; }
 .menu-link[aria-current] { color: var(--orange); }
 .menu .btn { align-self: flex-start; margin-top: 2rem; }
 .menu-ig { margin-top: 1.2rem; color: var(--mute); }
