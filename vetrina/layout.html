@@ -34,13 +34,16 @@
   </div>
 </header>
 
-<!-- Menu da telefono: si apre con :target (#menu) e si chiude da solo quando si segue un collegamento o si tocca la X. Niente JavaScript. -->
+<!-- Menu da telefono: un pannello che scende dall'alto, si apre con :target (#menu) e si chiude da solo quando si segue un collegamento, si tocca la X o si tocca fuori dal pannello. Niente JavaScript. -->
 <span id="chiudi"></span>
 <nav class="menu" id="menu" aria-label="Menu">
-  <a class="menu-x" href="#chiudi" aria-label="Chiudi il menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></a>
+  <a class="menu-bg" href="#chiudi" tabindex="-1" aria-hidden="true"></a>
+  <div class="menu-panel">
+    <a class="menu-x" href="#chiudi" aria-label="Chiudi il menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></a>
 {{menu}}
-  <a class="btn" href="{{wa}}" target="_blank" rel="noopener">Scrivici su WhatsApp</a>
-  <a class="menu-ig" href="{{ig}}" target="_blank" rel="noopener">Instagram @{{igname}}</a>
+    <a class="btn btn-sm" href="{{wa}}" target="_blank" rel="noopener">Scrivici su WhatsApp</a>
+    <a class="menu-ig" href="{{ig}}" target="_blank" rel="noopener">Instagram @{{igname}}</a>
+  </div>
 </nav>
 
 <main id="main">

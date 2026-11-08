@@ -37,17 +37,20 @@
   </div>
 </header>
 
-<!-- Menu da telefono: si apre con :target (#menu) e si chiude da solo quando si segue un collegamento o si tocca la X. Niente JavaScript. -->
+<!-- Menu da telefono: un pannello che scende dall'alto, si apre con :target (#menu) e si chiude da solo quando si segue un collegamento, si tocca la X o si tocca fuori dal pannello. Niente JavaScript. -->
 <span id="chiudi"></span>
 <nav class="menu" id="menu" aria-label="Menu">
-  <a class="menu-x" href="#chiudi" aria-label="Chiudi il menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></a>
+  <a class="menu-bg" href="#chiudi" tabindex="-1" aria-hidden="true"></a>
+  <div class="menu-panel">
+    <a class="menu-x" href="#chiudi" aria-label="Chiudi il menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></a>
       <a href="/" class="menu-link">Il percorso</a>
       <a href="/personal-training" aria-current="page" class="menu-link">Personal training</a>
       <a href="/functional" class="menu-link">Functional</a>
       <a href="/pilates" class="menu-link">Pilates</a>
       <a href="#contatti" class="menu-link">Contatti</a>
-  <a class="btn" href="https://wa.me/393920948122?text=Ciao%20KUKO%20LAB%2C%20vorrei%20avere%20informazioni." target="_blank" rel="noopener">Scrivici su WhatsApp</a>
-  <a class="menu-ig" href="https://www.instagram.com/kukolab_performance/" target="_blank" rel="noopener">Instagram @kukolab_performance</a>
+    <a class="btn btn-sm" href="https://wa.me/393920948122?text=Ciao%20KUKO%20LAB%2C%20vorrei%20avere%20informazioni." target="_blank" rel="noopener">Scrivici su WhatsApp</a>
+    <a class="menu-ig" href="https://www.instagram.com/kukolab_performance/" target="_blank" rel="noopener">Instagram @kukolab_performance</a>
+  </div>
 </nav>
 
 <main id="main">

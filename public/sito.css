@@ -56,15 +56,18 @@ a { color: inherit; }
 
 /* menu da telefono: si apre con :target (#menu), niente JavaScript */
 #chiudi { position: fixed; top: 0; left: 0; width: 0; height: 0; }
-.menu { display: none; position: fixed; inset: 0; z-index: 60; flex-direction: column; justify-content: center; padding: calc(5rem + env(safe-area-inset-top)) var(--gut) calc(2rem + env(safe-area-inset-bottom)); background: #000; overflow-y: auto; }
-.menu:target { display: flex; }
+.menu { display: none; position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, .62); }
+.menu:target { display: block; }
 body:has(.menu:target) { overflow: hidden; }
-.menu-x { position: absolute; top: calc(.7rem + env(safe-area-inset-top)); right: calc(var(--gut) - .7rem); display: grid; place-items: center; width: 2.9rem; height: 2.9rem; }
-.menu-x svg { width: 1.6rem; height: 1.6rem; fill: none; stroke: var(--fg); stroke-width: 2; }
-.menu-link { padding: .7rem 0; border-bottom: 1px solid var(--line); font: 700 clamp(1.9rem, 9.5vw, 2.8rem)/1 var(--display); text-transform: uppercase; text-decoration: none; }
+.menu-bg { position: absolute; inset: 0; }
+/* pannello compatto che scende dall'alto: occupa quanto serve, il resto della pagina resta (oscurato) sotto */
+.menu-panel { position: relative; display: flex; flex-direction: column; max-height: 100%; overflow-y: auto; padding: calc(3rem + env(safe-area-inset-top)) var(--gut) 1.1rem; background: #000; border-bottom: 1px solid var(--line); }
+.menu-x { position: absolute; top: calc(.5rem + env(safe-area-inset-top)); right: calc(var(--gut) - .7rem); display: grid; place-items: center; width: 2.9rem; height: 2.9rem; }
+.menu-x svg { width: 1.5rem; height: 1.5rem; fill: none; stroke: var(--fg); stroke-width: 2; }
+.menu-link { padding: .5rem 0; border-bottom: 1px solid var(--line); font: 700 clamp(1.2rem, 5.6vw, 1.5rem)/1.1 var(--display); text-transform: uppercase; text-decoration: none; }
 .menu-link[aria-current] { color: var(--orange); }
-.menu .btn { align-self: flex-start; margin-top: 2rem; }
-.menu-ig { margin-top: 1.2rem; color: var(--mute); }
+.menu .btn { align-self: flex-start; margin-top: .95rem; }
+.menu-ig { margin-top: .7rem; color: var(--mute); font-size: .9rem; }
 @media (min-width: 900px) { .menu:target { display: none; } body:has(.menu:target) { overflow: auto; } }
 
 /* ---------------------------------------------------------------- apertura: una foto, il brand, un invito */
