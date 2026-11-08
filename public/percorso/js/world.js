@@ -115,36 +115,38 @@ export async function addWorld(X) {
   const SPOT = { pt: [19.4, 0.5], pil: [42.4, 1.7], fun: [69.4, 1.1], fin: [94, 0.9] };
   // tratti: [pos0, pos1, da, a]
   const SEGS = [
-    [0.1, 0.3, [0, -4.2], [0, -0.4], 0.25], [0.3, 0.62, [0, -0.4], SPOT.pt, 0.55],
-    [1.38, 2.62, SPOT.pt, SPOT.pil, 0.55], [3.38, 4.62, SPOT.pil, SPOT.fun, 0.55], [5.3, 5.8, SPOT.fun, SPOT.fin, 0.5],
+    [0.1, 0.3, [0, -4.2], [0, -0.4], 1], [0.3, 0.62, [0, -0.4], SPOT.pt, 1],
+    [1.38, 2.62, SPOT.pt, SPOT.pil, 1], [3.38, 4.62, SPOT.pil, SPOT.fun, 1], [5.3, 5.8, SPOT.fun, SPOT.fin, 1],
   ];
   const easeW = (u, k) => lerp(u, u * u * (3 - 2 * u), k);
+  // ampiezza del passo: segue la velocita' (derivata della curva), cosi' il cliente accelera camminando e si ferma senza congelarsi a meta' passo
+  const strideAmt = (u, k) => { const sp = lerp(1, 6 * u * (1 - u), k); return cl(sp / 0.7, 0, 1); };
   function cpath(pos) {
-    let x = 0, z = -4.2, d = 0, yaw = 0, moving = 0;
+    let x = 0, z = -4.2, d = 0, yaw = 0, moving = 0, amt = 0;
     let acc = 0;
     for (const [p0, p1, A, B, k] of SEGS) {
       const len = Math.hypot(B[0] - A[0], B[1] - A[1]);
       if (pos >= p1) { acc += len; x = B[0]; z = B[1]; continue; }
-      if (pos > p0) { const u = easeW((pos - p0) / (p1 - p0), k); x = lerp(A[0], B[0], u); z = lerp(A[1], B[1], u); acc += len * u; moving = 1; yaw = Math.atan2(B[0] - A[0], B[1] - A[1]); }
+      if (pos > p0) { const u0 = (pos - p0) / (p1 - p0), u = easeW(u0, k); x = lerp(A[0], B[0], u); z = lerp(A[1], B[1], u); acc += len * u; moving = 1; amt = strideAmt(u0, k); yaw = Math.atan2(B[0] - A[0], B[1] - A[1]); }
       else if (pos <= p0) { x = A[0]; z = A[1]; }
       break;
     }
     d = acc;
     // direzione: davanti (verso la camera) nel primo tratto, poi gira verso la sala successiva
     const heading = (p0, p1, yA, yB, pos2) => lerp(yA, yB, sm(p0, p1, pos2));
-    if (pos < 0.3) yaw = 0; else if (pos < 0.62) yaw = heading(0.3, 0.4, 0, Math.PI / 2, pos);
+    if (pos < 0.3) yaw = 0; else if (pos < 0.62) yaw = lerp(heading(0.3, 0.4, 0, Math.PI / 2, pos), 0.62, sm(0.5, 0.62, pos));   // arrivando si gira verso Valerio, senza scatto
     else if (pos < 1.38) yaw = 0.62;                                                      // verso Valerio, di tre quarti
     else if (pos < 1.5) yaw = heading(1.38, 1.5, 0.62, Math.PI / 2, pos);
     else if (pos < 2.62) yaw = Math.PI / 2;
     else if (pos < 3.38) yaw = Math.PI / 2;
     else if (pos < 3.5) yaw = Math.PI / 2;
-    else if (pos < 4.62) yaw = Math.PI / 2;
-    else if (pos < 5.3) yaw = 0.0;
+    else if (pos < 4.5) yaw = Math.PI / 2;
+    else if (pos < 5.3) yaw = lerp(Math.PI / 2, 0.0, sm(4.5, 4.66, pos));
     else if (pos < 5.65) yaw = heading(5.3, 5.4, 0, Math.PI / 2, pos);
     else yaw = heading(5.65, 5.85, Math.PI / 2, 0, pos);
     const walking = SEGS.some(([p0, p1]) => pos > p0 && pos < p1) ? 1 : 0;
     // al primo avvio: il cliente entra dalla porta (tempo)
-    return { x, z, d, yaw, walking, moving };
+    return { x, z, d, yaw, walking, moving, amt };
   }
   const ptStand = (pos) => sm(0.56, 0.64, pos) * (1 - sm(1.36, 1.44, pos));
   void ptStand;
@@ -235,35 +237,47 @@ export async function addWorld(X) {
     const c = cpath(pos), O = outfitAt(pos);
     const ph0 = pos * 7;
     /* ---- cliente ---- */
-    let CP; let held = null;
-    const walkAmt = c.walking;
-    // entrata dalla porta (tempo): il cliente arriva da fuori fino al punto 0
-    const introU = pos < 0.1 ? 1 - intro : 0;
+    // la camminata e' sempre la posa di base; gli esercizi ci si fondono sopra con finestre morbide (nessuno scatto tra una sala e l'altra)
+    let held = null;
+    const ip = pos < 0.1 ? 1 - intro : 0, introU = ip * ip;   // entrata: frena arrivando, senza fermarsi a meta' passo
     const pz = c.z - introU * 5.2;
     const a = { x: c.x, z: pz, yaw: c.yaw };
-    if (pos < 0.1 && introU > 0) {
-      CP = walk(a, 9 - introU * 5.2, 1, t);
-    } else if (walkAmt > 0.5 || (pos > 0.1 && pos < 0.62) || (pos > 1.38 && pos < 2.62) || (pos > 3.38 && pos < 4.62) || (pos > 5.3 && pos < 5.8)) {
-      // camminata, con l'arrivo che rallenta
-      CP = walk(a, c.d, walkAmt, t);
-    } else if (pos >= 0.62 && pos <= 1.38) { // Personal: goblet squat con manubrio guidato da Valerio
-      const rep = 0.5 - 0.5 * Math.cos(t * 2.1); const hold = 1 - sm(1.24, 1.34, pos); const prep = sm(0.62, 0.7, pos);
-      CP = squat(a, rep * hold, {}); CP.head = [-0.35, CP.head[1], 0];
-      if (hold < 0.999) { // posa il manubrio: abbassa le mani lungo il corpo
-        const d = Wp(a, [0.0, 0.85, 0.45]); CP.hR = v.mix(CP.hR, [d[0] - 0.4, 0.4, d[2]], 1 - hold); CP.hL = v.mix(CP.hL, [d[0] + 0.4, 0.4, d[2]], 1 - hold);
-      }
-      void prep; held = { kind: 'db', hold };
-    } else if (pos > 2.62 && pos < 3.38) { // Pilates: dal bordo del reformer si sdraia e fa il footwork
+    let CP;
+    if (pos < 0.1 && introU > 0) CP = walk(a, 9 - introU * 5.2, sm(0, 0.45, ip), t);
+    else CP = walk(a, c.d, c.amt, t);
+    // Personal: goblet squat con manubrio guidato da Valerio; le prime ripetizioni partono piano, poi posa il manubrio
+    const kP = sm(0.58, 0.68, pos) * (1 - sm(1.30, 1.42, pos));
+    if (kP > 0) {
+      const hold = 1 - sm(1.24, 1.34, pos), ramp = sm(0.64, 0.84, pos);
+      const rep = (0.5 - 0.5 * Math.cos(t * 2.1)) * hold * ramp;
+      const SQ = squat(a, rep, {}); SQ.head = [-0.35, SQ.head[1], 0];
+      if (hold < 0.999) { const d = Wp(a, [0.0, 0.85, 0.45]); SQ.hR = v.mix(SQ.hR, [d[0] - 0.4, 0.4, d[2]], 1 - hold); SQ.hL = v.mix(SQ.hL, [d[0] + 0.4, 0.4, d[2]], 1 - hold); }
+      CP = blendP(CP, SQ, kP); held = { kind: 'db', hold, k: sm(0.6, 0.68, pos) };
+    }
+    // Pilates: dal bordo del reformer si sdraia e fa il footwork
+    const kL = sm(2.56, 2.68, pos) * (1 - sm(3.32, 3.44, pos));
+    if (kL > 0) {
       const st = standIdle({ x: SPOT.pil[0], z: SPOT.pil[1], yaw: Math.PI / 2 }, t);
       const L = lying(t, pos);
       const lie = sm(2.74, 2.98, pos) * (1 - sm(3.18, 3.3, pos));
-      CP = blendP(st, L, lie); if (lie > 0.02 && lie < 0.98) { CP.hip[1] += Math.sin(Math.PI * lie) * 0.5; }
-      CP.root = [lerp(st.root[0], L.root[0], lie), lerp(st.root[1], L.root[1], lie)];
-    } else if (pos >= 4.62 && pos <= 5.3) { // Functional: kettlebell swing con il gruppo
-      const u = 0.5 - 0.5 * Math.cos(t * 3.2 + 0.3); CP = swing(a, u); CP.head = [0, CP.head[1], 0]; held = { kind: 'kb', pos: CP.bell, hold: 1 };
-    } else if (pos > 5.8) { // finale: pugni al cielo
-      CP = standIdle(a, t); const up = sm(5.9, 5.98, pos); CP.hR = Wp(a, [-0.5, lerp(1.1, 3.9, up), 0.1]); CP.hL = Wp(a, [0.5, lerp(1.1, 3.9, up), 0.1]); CP.eR = rot(a, [-1, 0.2, -0.2]); CP.eL = rot(a, [1, 0.2, -0.2]); handsGrip(CP, 0.9);
-    } else { CP = standIdle(a, t); }
+      const PL = blendP(st, L, lie); if (lie > 0.02 && lie < 0.98) { PL.hip[1] += Math.sin(Math.PI * lie) * 0.5; }
+      PL.root = [lerp(st.root[0], L.root[0], lie), lerp(st.root[1], L.root[1], lie)];
+      CP = blendP(CP, PL, kL);
+    }
+    // Functional: kettlebell swing con il gruppo; parte dalla posizione alta e prende ritmo
+    const kS = sm(4.56, 4.70, pos) * (1 - sm(5.24, 5.38, pos));
+    if (kS > 0) {
+      const u0 = 0.5 - 0.5 * Math.cos(t * 3.2 + 0.3), amp = sm(4.7, 5.0, pos) * (1 - sm(5.16, 5.26, pos));
+      const SW = swing(a, lerp(1, u0, amp)); SW.head = [0, SW.head[1], 0];
+      CP = blendP(CP, SW, kS); held = { kind: 'kb', pos: SW.bell, hold: 1, k: kS };
+    }
+    // finale: pugni al cielo
+    const kF = sm(5.74, 5.88, pos);
+    if (kF > 0) {
+      const F = standIdle(a, t); const up = sm(5.9, 5.98, pos);
+      F.hR = Wp(a, [-0.5, lerp(1.1, 3.9, up), 0.1]); F.hL = Wp(a, [0.5, lerp(1.1, 3.9, up), 0.1]); F.eR = rot(a, [-1, 0.2, -0.2]); F.eL = rot(a, [1, 0.2, -0.2]); handsGrip(F, 0.9);
+      CP = blendP(CP, F, kF);
+    }
     // posa del cliente: dopo il Pilates si rialza e cammina
     list.push({ p: client, P: CP, out: O, lod: 0, held });
     void ph0;
@@ -318,7 +332,8 @@ export async function addWorld(X) {
         const x = tx + (1 - arr) * fromDx, a2 = { x, z: tz, yaw: lerp(-Math.PI / 2, yaw, sm(0.78, 1, arr)) };
         const wk = (1 - sm(0.86, 1, arr)) * (arr > 0.001 ? 1 : 0);
         let Q = wk > 0.02 ? walk(a2, (1 - arr) * fromDx * -1 + ph, wk, t) : standIdle(a2, t, { ph });
-        if (arr > 0.99 || pos > 5.9) { const up = sm(5.92, 6.0, pos); const wv = Math.sin(t * 6 + ph) * 0.15; Q.hR = Wp(a2, [lerp(-0.55, -1.0, up), lerp(1.1, 4.3, up) + wv * up, 0.1]); Q.hL = Wp(a2, [lerp(0.55, 1.0, up), lerp(1.1, 4.3, up) - wv * up, 0.1]); Q.eR = rot(a2, [-1, 0.3, -0.2]); Q.eL = rot(a2, [1, 0.3, -0.2]); handsGrip(Q, 0.5); }
+        const up = sm(5.84, 5.99, pos);
+        if (up > 0) { const F = standIdle(a2, t, { ph }); const wv = Math.sin(t * 6 + ph) * 0.15; F.hR = Wp(a2, [-1.0, 4.3 + wv, 0.1]); F.hL = Wp(a2, [1.0, 4.3 - wv, 0.1]); F.eR = rot(a2, [-1, 0.3, -0.2]); F.eL = rot(a2, [1, 0.3, -0.2]); handsGrip(F, 0.5); Q = blendP(Q, F, up); }
         list.push({ p, P: Q, out: null, lod, idx });
       };
       place(valerio[1], 97.3, 0.3, -0.15, 16, 0, 0);
@@ -727,8 +742,9 @@ export async function addWorld(X) {
       const o = a.out ? a.out : null;
       const J = a.p.draw(a.P, t, { lod: a.lod, outfit: o || undefined, face: a.lod === 1 });
       if (a.stop) P.stopwatch(M.mul(M.T(a.stop[0], a.stop[1], a.stop[2]), M.chain(M.Rx(-0.2), M.S(0.7))));
-      if (a.held && a.held.kind === 'db') { const h = J.hands; const mid = v.mix(h.R, h.L, 0.5); P.hexDumbbell(M.chain(M.T(mid[0], mid[1] - 0.05, mid[2] + 0.02), M.Ry(0), M.Rz(0), M.S(0.9)), K.black); }
-      if (a.held && a.held.kind === 'kb') { const h = J.hands; const mid = v.mix(h.R, h.L, 0.5); P.kettlebell(M.mul(M.T(mid[0], mid[1] - 1.0, mid[2]), M.S(0.9)), K.black, 1); }
+      // gli attrezzi del cliente compaiono e spariscono crescendo tra le mani (nessun comparire di colpo); dal momento in cui il manubrio viene posato lo disegna il blocco sotto
+      if (a.held && a.held.kind === 'db' && pos < 1.22 && a.held.k > 0.02) { const h = J.hands; const mid = v.mix(h.R, h.L, 0.5); P.hexDumbbell(M.chain(M.T(mid[0], mid[1] - 0.05, mid[2] + 0.02), M.Ry(0), M.Rz(0), M.S(0.9 * a.held.k)), K.black); }
+      if (a.held && a.held.kind === 'kb' && a.held.k > 0.02) { const h = J.hands; const mid = v.mix(h.R, h.L, 0.5); P.kettlebell(M.mul(M.T(mid[0], mid[1] - 1.0, mid[2]), M.S(0.9 * a.held.k)), K.black, 1); }
       if (a.bell) { const h = J.hands; const mid = v.mix(h.R, h.L, 0.5); P.kettlebell(M.mul(M.T(mid[0], mid[1] - 0.95, mid[2]), M.S(0.8)), K.black, 1); }
       if (a.rope) { const h = J.hands; ropeHand.on = true; ropeHand.L = h.R; ropeHand.R = h.L; }
     }
@@ -738,7 +754,7 @@ export async function addWorld(X) {
       const a0 = acts[0].P, mid = v.mix(a0.hR, a0.hL, 0.5), k = 1 - hold;
       void c2;
       const p = [lerp(mid[0], h[0], eo(k)), lerp(mid[1], 0, eo(k)), lerp(mid[2], h[1], eo(k))];
-      P.hexDumbbell(M.chain(M.T(p[0], p[1] + 0.2, p[2]), M.S(1.3)), K.black);
+      P.hexDumbbell(M.chain(M.T(p[0], p[1] + lerp(-0.05, 0.2, eo(k)), p[2]), M.S(lerp(0.9, 1.3, eo(k)))), K.black);
     }
   });
   return { cpath, ZX, GATE, actors, clientX, SPOT, REF, refSlide, OUT, outfitAt, SLOTS };

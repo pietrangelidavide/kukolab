@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Volti per i personaggi 3D del percorso (public/percorso/).
 
-- Valerio e Chiara: il volto viene dalle loro foto del sito (public/img/trainer-valerio.jpg, trainer-chiara.jpg),
-  portato in piano (occhi allineati), scalato sulla testa 3D e sfumato sul colore della pelle.
-  Se arrivano foto migliori (frontali, luce morbida) basta sostituirle e rilanciare lo script.
-- Cliente e gruppo: volti disegnati, uno per ogni persona (pelle, occhi, sopracciglia diversi).
+- Tutti i volti sono disegnati con lo stesso linguaggio (stilizzati ma curati): niente foto sui personaggi 3D.
+  Valerio, Chiara e il nutrizionista Calabrò mantengono i loro tratti (colore di pelle e occhi, sopracciglia, labbra,
+  naso, barba, sorriso) ma sono resi come gli altri personaggi: una sola mano, un solo stile.
 
 Uso: python3 scripts/percorso-visi.py   (serve opencv-python, pillow, numpy)
 Esce in public/percorso/img/viso-*.webp e public/percorso/img/visi.json (colore della pelle di ognuno).
@@ -20,55 +19,6 @@ OUT = os.path.join(ROOT, 'public', 'percorso', 'img')
 os.makedirs(OUT, exist_ok=True)
 W, H = 576, 768
 META = {}
-
-# ---------------------------------------------------------------- dalle foto
-def from_photo(name, src, pupils, mouth_y, skin_box, flip=False, skin_fix=None):
-    """pupils = ((x,y) occhio sinistro in foto, (x,y) occhio destro); mouth_y = riga della bocca in foto."""
-    im = cv2.cvtColor(cv2.imread(os.path.join(IMG, src)), cv2.COLOR_BGR2RGB).astype(np.float32) / 255
-    (lx, ly), (rx, ry) = pupils
-    ex, ey = (lx + rx) / 2, (ly + ry) / 2
-    ang = math.atan2(ry - ly, rx - lx)
-    ipd = math.hypot(rx - lx, ry - ly)
-    sx = 0.264 / ipd                       # unità di testa per pixel, in orizzontale
-    sy = 0.291 / (mouth_y - ey)            # in verticale: occhi→bocca nella testa 3D
-    # foto → testa: traslo sul centro degli occhi, tolgo l'inclinazione, scalo; poi testa → pixel dell'immagine finale
-    c, s = math.cos(-ang), math.sin(-ang)
-    k = W / 0.6
-    A = np.array([
-        [k * sx * c, -k * sx * s, 0],
-        [k * sy * s * 0.0 + (H / 0.8) * sy * s, (H / 0.8) * sy * c, 0],
-    ], np.float32)
-    # x_d = (hx+0.30)*k ; y_d = (0.40-hy)*H/0.8 con hx = sx*(c*dx - s*dy), hy = 0.037 - sy*(s*dx + c*dy)
-    A[0] = [k * sx * c, -k * sx * s, 0]
-    A[1] = [(H / 0.8) * sy * s, (H / 0.8) * sy * c, 0]
-    dx0 = -(A[0, 0] * ex + A[0, 1] * ey) + 0.30 * k
-    dy0 = -(A[1, 0] * ex + A[1, 1] * ey) + (0.40 - 0.037) * H / 0.8
-    A[0, 2], A[1, 2] = dx0, dy0
-    # riflessi: comprimo le luci sopra 0,86 (fronte e zigomi lucidi)
-    Y = im @ np.array([0.299, 0.587, 0.114], np.float32)
-    lim = 0.86
-    Yn = np.where(Y > lim, lim + (Y - lim) * 0.4, Y)
-    im2 = im * (Yn / np.maximum(Y, 1e-4))[..., None]
-    out = cv2.warpAffine(im2, A, (W, H), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
-    # colore della pelle: mediana di guance e fronte (coordinate della testa), un po' meno satura
-    def at(hx, hy, r=10):
-        u, v = int((hx + 0.30) * W / 0.6), int((0.40 - hy) * H / 0.8)
-        return out[v - r:v + r, u - r:u + r].reshape(-1, 3)
-    pts = np.concatenate([at(-0.19, -0.06), at(0.19, -0.06), at(0.0, 0.22), at(-0.12, 0.17), at(0.12, 0.17)])
-    skin = np.median(pts, axis=0)
-    g = float(skin @ np.array([0.299, 0.587, 0.114])); skin = np.clip(g + (skin - g) * 0.92, 0, 1)
-    if skin_fix is not None: skin = np.array(skin_fix, np.float32)   # foto con luce molto contrastata: il colore della pelle si dà a mano
-    out = cv2.bilateralFilter(out, 5, 0.05, 4)
-    # maschera ovale: il bordo si fonde sul colore della pelle della testa
-    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
-    d = np.sqrt(((xx - W / 2) / (W * 0.465)) ** 2 + ((yy - H * 0.52) / (H * 0.50)) ** 2)   # un po' più stretta: il bordo della foto (orecchio, capelli, sfondo) non deve vedersi
-    m = np.clip((1.0 - d) / 0.27, 0, 1); m = m * m * (3 - 2 * m)
-    top = np.clip((yy - H * 0.06) / (H * 0.10), 0, 1); m = m * (top * top * (3 - 2 * top))   # la fronte alta (capelli) sfuma: ci pensa la calotta
-    m = cv2.GaussianBlur(m, (0, 0), 5)[..., None]
-    res = out * m + np.array(skin, np.float32) * (1 - m)
-    Image.fromarray(np.clip(res * 255 + 0.5, 0, 255).astype(np.uint8)).save(os.path.join(OUT, f'viso-{name}.webp'), quality=90, method=6)
-    META[name] = {'skin': [round(float(v), 4) for v in skin]}
-    print(name, 'pelle', META[name]['skin'], 'angolo', round(math.degrees(ang), 1))
 
 # ------------------------------------------------------------ volti disegnati
 SS = 2; CW, CH = W * SS, H * SS
@@ -94,16 +44,29 @@ def stroke(d, pts, w, fill):
 def disc(d, c, r, fill):
     x, y = px(*c); rr = r * FS * CW / 0.6; d.ellipse([x - rr, y - rr, x + rr, y + rr], fill=fill)
 
-def illus(name, skin, iris, brow, lip, freckles=0, smile=0.022, brow_w=0.0016, stubble=0.0, eye_open=1.0, seed=7):
+def illus(name, skin, iris, brow, lip, freckles=0, smile=0.022, brow_w=0.0016, stubble=0.0, eye_open=1.0, seed=7,
+          brow_t=1.0, brow_y=0.0, brow_a=0.0, brow_in=0.0, lipf=1.0, nose=1.0, jaw=0.0, cheek=1.0, lash=1.0, eye_s=1.0, teeth=0.0, cheek_stubble=0.0, stub_col=(0.16, 0.12, 0.11), lip_w=0.082, bridge=0.0, stub_s=1.0):
+    """Parametri fisionomici (tutti opzionali, con 1.0 / 0.0 il volto resta quello base):
+    brow_t spessore sopracciglia, brow_y altezza, brow_a arco, brow_in angolo interno (+ alza il lato interno);
+    lipf pienezza delle labbra, lip_w larghezza della bocca, smile curva del sorriso, teeth sorriso con i denti (0..1);
+    nose forza di ombre del naso, bridge ombra sul dorso del naso; jaw mascella marcata (ombra ai lati del mento);
+    cheek zigomi/guance (colore e luce); lash ciglia; eye_s dimensione degli occhi;
+    stubble barba (puntini) e cheek_stubble barba che sale sulle guance."""
     img = Image.new('RGBA', (CW, CH), col(skin))
     sh = layer(); d = ImageDraw.Draw(sh)
     warm = (min(1, skin[0] + 0.06), skin[1] * 0.78, skin[2] * 0.78)
     for sd in (-1, 1):
-        disc(d, (sd * 0.165, -0.085), 0.07, col(warm, 0.30))
-        disc(d, (sd * 0.055, -0.055), 0.016, col(tuple(c * 0.8 for c in skin), 0.35))
+        disc(d, (sd * 0.165, -0.085), 0.07, col(warm, min(1.0, 0.30 * cheek)))
+        disc(d, (sd * 0.055, -0.055), 0.016 * nose, col(tuple(c * 0.8 for c in skin), min(1.0, 0.35 * nose)))
+        if jaw:   # mascella: ombra leggera all'angolo e sotto lo zigomo
+            disc(d, (sd * 0.215, -0.215), 0.075, col(tuple(c * 0.62 for c in skin), 0.30 * jaw))
+            disc(d, (sd * 0.14, -0.33), 0.07, col(tuple(c * 0.66 for c in skin), 0.24 * jaw))
+            disc(d, (sd * 0.215, -0.02), 0.06, col(tuple(c * 0.7 for c in skin), 0.16 * jaw))
+    if jaw: disc(d, (0, -0.385), 0.09, col(tuple(c * 0.68 for c in skin), 0.22 * jaw))
     img = over(img, blur(sh, 0.045))
     hl = layer(); d = ImageDraw.Draw(hl)
     disc(d, (0, 0.20), 0.09, col((1, 0.97, 0.93), 0.12)); disc(d, (0.004, -0.046), 0.011, col((1, 0.96, 0.92), 0.28))
+    for sd in (-1, 1): disc(d, (sd * 0.175, -0.015), 0.05, col((1, 0.97, 0.93), min(1.0, 0.08 * cheek)))   # luce sullo zigomo
     img = over(img, blur(hl, 0.05))
     rnd = random.Random(seed)
     if freckles:
@@ -118,21 +81,36 @@ def illus(name, skin, iris, brow, lip, freckles=0, smile=0.022, brow_w=0.0016, s
         img = over(img, blur(fr, 0.0008))
     if stubble:
         st = layer(); d = ImageDraw.Draw(st)
-        for _ in range(int(2600 * stubble)):
+        for _ in range(int(2600 * stubble * (1.0 if stub_s >= 1 else 1.0 / stub_s ** 1.6))):
             x = rnd.uniform(-0.25, 0.25); y = rnd.uniform(-0.40, -0.03)
             edge = 0.24 - 0.30 * max(0, (-0.03 - y)) ** 1.6   # più stretta verso il mento
             if abs(x) > max(0.07, 0.27 + y * 0.28): continue
             if y > -0.14 and abs(x) < 0.17: continue          # baffi: solo sopra la bocca
             if -0.20 < y < -0.12 and abs(x) < 0.1: continue      # non sulla bocca
-            disc(d, (x, y), rnd.uniform(0.0012, 0.0024), col((0.16, 0.12, 0.11), rnd.uniform(0.2, 0.5)))
+            disc(d, (x, y), rnd.uniform(0.0012, 0.0024) * stub_s, col(stub_col, rnd.uniform(0.2, 0.5)))
+        img = over(img, blur(st, 0.0007))
+    if cheek_stubble:   # la barba sale sulle guance e sopra il labbro (sfuma verso lo zigomo)
+        st = layer(); d = ImageDraw.Draw(st)
+        for _ in range(int(2600 * cheek_stubble * (1.0 if stub_s >= 1 else 1.0 / stub_s ** 1.6))):
+            x = rnd.uniform(-0.24, 0.24); y = rnd.uniform(-0.28, -0.02)
+            if abs(x) > 0.27 + y * 0.30: continue
+            if abs(x) < 0.05 and y > -0.115: continue            # sotto il naso c'e' il baffo, non il filtro
+            if -0.20 < y < -0.165 and abs(x) < 0.1: continue     # non sulla bocca
+            if y > -0.11 and abs(x) < 0.11: continue             # non sul naso
+            fade = min(1.0, (-0.02 - y) / 0.10) * (0.35 + 0.65 * min(1.0, abs(x) / 0.12 + (-0.12 - y) * 2.2))
+            if rnd.random() > fade: continue
+            disc(d, (x, y), rnd.uniform(0.0011, 0.0022) * stub_s, col(stub_col, rnd.uniform(0.16, 0.42)))
         img = over(img, blur(st, 0.0007))
     no = layer(); d = ImageDraw.Draw(no)
-    stroke(d, curve((-0.024, -0.083), (0.002, -0.097), (0.026, -0.083)), 0.007, col(tuple(c * 0.78 for c in skin), 0.45))
-    stroke(d, curve((-0.030, 0.02), (-0.036, -0.03), (-0.03, -0.065)), 0.006, col(tuple(c * 0.85 for c in skin), 0.2))
+    stroke(d, curve((-0.024 * nose ** 0.5, -0.083), (0.002, -0.097), (0.026 * nose ** 0.5, -0.083)), 0.007, col(tuple(c * 0.78 for c in skin), min(1.0, 0.45 * nose)))
+    stroke(d, curve((-0.030, 0.02), (-0.036, -0.03), (-0.03, -0.065)), 0.006, col(tuple(c * 0.85 for c in skin), min(1.0, 0.2 * nose)))
+    if bridge:   # dorso del naso: ombra sul lato in ombra e luce sul lato opposto
+        stroke(d, curve((-0.034, 0.045), (-0.040, -0.01), (-0.034, -0.07)), 0.008, col(tuple(c * 0.74 for c in skin), min(1.0, 0.28 * bridge)))
+        stroke(d, curve((0.012, 0.03), (0.016, -0.02), (0.012, -0.07)), 0.006, col((1, 0.97, 0.92), min(1.0, 0.16 * bridge)))
     img = over(img, blur(no, 0.004))
     def eye(sd):
         cx, cy = sd * 0.108, 0.05
-        E = lambda u, v: (cx + sd * u, cy + v * eye_open)
+        E = lambda u, v: (cx + sd * u * eye_s, cy + v * eye_open * eye_s)
         top = curve(E(-0.052, -0.002), E(0.004, 0.062), E(0.058, 0.004)); bot = curve(E(0.058, 0.004), E(0.004, -0.04), E(-0.052, -0.002))
         sc = layer(); d = ImageDraw.Draw(sc); poly(d, top + bot, col((0.97, 0.95, 0.93)))
         mk = layer(); dm = ImageDraw.Draw(mk); poly(dm, top + bot, (255, 255, 255, 255))
@@ -146,25 +124,33 @@ def illus(name, skin, iris, brow, lip, freckles=0, smile=0.022, brow_w=0.0016, s
         ln = layer(); d = ImageDraw.Draw(ln)
         stroke(d, curve(E(-0.044, 0.016), E(0.004, 0.078), E(0.064, 0.022)), 0.0028, col(tuple(c * 0.8 for c in skin), 0.8))
         dark = (0.2, 0.15, 0.12)
-        stroke(d, curve(E(-0.052, -0.002), E(0.004, 0.062), E(0.058, 0.004)), 0.0062, col(dark))
-        stroke(d, curve(E(0.012, 0.050), E(0.040, 0.054), E(0.060, 0.012)), 0.0074, col(dark))
+        stroke(d, curve(E(-0.052, -0.002), E(0.004, 0.062), E(0.058, 0.004)), 0.0062 * lash, col(dark))
+        stroke(d, curve(E(0.012, 0.050), E(0.040, 0.054), E(0.060, 0.012)), 0.0074 * lash, col(dark))
         stroke(d, bot[4:-2], 0.0022, col((0.5, 0.36, 0.32), 0.7))
         return out, ln
     for sd in (-1, 1):
         e, ln = eye(sd); img = over(img, e); img = over(img, blur(ln, 0.0003))
     bw = layer(); d = ImageDraw.Draw(bw)
     for sd in (-1, 1):
-        up = curve((sd * 0.040, 0.126), (sd * 0.105, 0.164), (sd * 0.172, 0.118)); lo = curve((sd * 0.172, 0.118), (sd * 0.105, 0.141), (sd * 0.040, 0.110))
+        th = brow_t - 1.0; by = brow_y
+        up = curve((sd * 0.040, 0.126 + by + brow_in + th * 0.007), (sd * 0.105, 0.164 + by + brow_a + th * 0.016), (sd * 0.172, 0.118 + by + th * 0.006))
+        lo = curve((sd * 0.172, 0.118 + by - th * 0.004), (sd * 0.105, 0.141 + by + brow_a - th * 0.008), (sd * 0.040, 0.110 + by + brow_in - th * 0.007))
         poly(d, up + lo, col(brow, 0.92))
     img = over(img, blur(bw, brow_w))
     mo = layer(); d = ImageDraw.Draw(mo)
-    lw, y0 = 0.082, -0.188
+    lw, y0 = lip_w, -0.188
     cl, cr = (-lw, y0 + smile), (lw, y0 + smile)
-    line = curve(cl, (0, y0 - 0.012), cr, 30)
-    top = curve((-lw + 0.006, y0 + smile + 0.005), (0, y0 + smile + 0.01), (lw - 0.006, y0 + smile + 0.005), 30)
-    poly(d, top + line[::-1][1:-1], col(lip[0]))
-    low = curve(cr, (0, y0 - 0.066), cl, 30)
+    line = curve(cl, (0, y0 - 0.012 - 0.012 * teeth), cr, 30)
+    top = curve((-lw + 0.006, y0 + smile + 0.005 * lipf), (0, y0 + smile + 0.010 * lipf + 0.002 * (lipf - 1)), (lw - 0.006, y0 + smile + 0.005 * lipf), 30)
+    low = curve(cr, (0, y0 - 0.066 * lipf - 0.010 * teeth), cl, 30)
     poly(d, line + low[1:-1], col(lip[1]))
+    if teeth:   # sorriso aperto: bocca scura con i denti superiori; il labbro inferiore resta sottile
+        op = curve(cr, (0, y0 - 0.022 - 0.060 * teeth), cl, 30)
+        poly(d, line + op[1:-1], col((0.42, 0.16, 0.16)))
+        tl = curve((lw - 0.012, y0 + smile - 0.006), (0, y0 - 0.034 - 0.020 * teeth), (-lw + 0.012, y0 + smile - 0.006), 30)
+        poly(d, line[2:-2] + tl[1:-1], col((0.96, 0.94, 0.90)))
+        stroke(d, curve((0, y0 - 0.010 - 0.012 * teeth), (0, y0 - 0.022 - 0.012 * teeth), (0, y0 - 0.028 - 0.012 * teeth)), 0.0014, col((0.78, 0.74, 0.70), 0.7))
+    poly(d, top + line[::-1][1:-1], col(lip[0]))
     stroke(d, line, 0.0040, col(tuple(c * 0.6 for c in lip[0]), 0.95))
     hh = layer(); dh = ImageDraw.Draw(hh); disc(dh, (0.0, y0 - 0.030), 0.011, col((1, 0.93, 0.93), 0.3))
     img = over(img, blur(mo, 0.0007)); img = over(img, blur(hh, 0.006))
@@ -180,9 +166,11 @@ if __name__ == '__main__':
     if solo and os.path.exists(jp): META.update(json.load(open(jp)))
     def run(name, fn, *a, **k):
         if not solo or name in solo: fn(name, *a, **k)
-    # Valerio: occhi (518,392) e (588,384) nella foto, bocca a y=473; Chiara: (240,217), (312,222), bocca y=292
-    run('valerio', from_photo, 'trainer-valerio.jpg', ((518, 392), (588, 384)), 473, None)
-    run('chiara', from_photo, 'trainer-chiara.jpg', ((240, 217), (312, 222)), 292, None)
+    # Valerio: pelle olivastra, occhi marroni scuri un po' pesanti, sopracciglia folte e dritte, naso marcato, labbra sottili, barba corta che sale sulle guance, mascella forte
+    run('valerio', illus, (0.8835, 0.6019, 0.4832), (0.20, 0.12, 0.08), (0.13, 0.09, 0.07), ((0.55, 0.30, 0.27), (0.62, 0.36, 0.32)), smile=0.012, stubble=0.95, cheek_stubble=0.7, stub_s=0.62,
+        stub_col=(0.10, 0.08, 0.07), brow_t=1.7, brow_y=-0.006, brow_a=-0.010, brow_in=0.004, eye_open=0.86, lash=1.1, nose=1.45, bridge=1.0, jaw=1.0, lipf=0.8, lip_w=0.08, cheek=0.8, seed=71)
+    # Chiara: pelle ambrata, occhi nocciola, sopracciglia folte e arcuate, naso piccolo, labbra piene rosate, sorriso dolce, viso ovale
+    run('chiara', illus, (0.91, 0.68, 0.545), (0.34, 0.21, 0.12), (0.20, 0.12, 0.08), ((0.74, 0.40, 0.38), (0.82, 0.48, 0.45)), smile=0.030, brow_t=1.45, brow_y=0.004, brow_a=0.010, brow_in=-0.002, eye_open=1.0, lash=1.45, eye_s=1.04, nose=0.8, bridge=0.5, lipf=1.4, lip_w=0.078, cheek=1.1, seed=72)
     # cliente (la persona che attraversa il percorso): carnagione chiara, occhi nocciola
     run('cliente', illus, (0.93, 0.76, 0.66), (0.42, 0.30, 0.18), (0.20, 0.14, 0.11), ((0.78, 0.42, 0.42), (0.84, 0.50, 0.48)), freckles=40, seed=3)
     # gruppo
@@ -191,8 +179,9 @@ if __name__ == '__main__':
     run('g3', illus, (0.45, 0.30, 0.22), (0.14, 0.09, 0.07), (0.07, 0.05, 0.05), ((0.52, 0.26, 0.26), (0.60, 0.34, 0.32)), stubble=0.5, seed=21)
     run('g4', illus, (0.88, 0.68, 0.56), (0.28, 0.20, 0.13), (0.16, 0.11, 0.09), ((0.74, 0.40, 0.40), (0.82, 0.48, 0.46)), stubble=0.7, seed=31)
     run('g5', illus, (0.78, 0.58, 0.45), (0.18, 0.12, 0.09), (0.12, 0.08, 0.07), ((0.70, 0.36, 0.36), (0.78, 0.44, 0.42)), seed=41)
-    # professionisti della sezione "Benessere a 360" (public/percorso/): il nutrizionista dalla sua foto del sito (occhi (430,243) e (556,249), bocca a y=368); osteopata e fisioterapista, senza foto, sono volti disegnati
-    run('calabro', from_photo, 'nutrizionista.jpg', ((430, 243), (556, 249)), 368, None, skin_fix=(0.80, 0.62, 0.53))
+    # professionisti della sezione "Benessere a 360" (public/percorso/): Calabrò (pelle olivastra chiara, occhi scuri, sopracciglia folte, barba leggera, grande sorriso con i denti); osteopata e fisioterapista inventati
+    run('calabro', illus, (0.80, 0.62, 0.53), (0.18, 0.11, 0.07), (0.15, 0.10, 0.08), ((0.62, 0.34, 0.31), (0.70, 0.42, 0.38)), smile=0.040, teeth=1.0, stubble=0.6, cheek_stubble=0.3, stub_s=0.62,
+        stub_col=(0.12, 0.09, 0.08), brow_t=1.55, brow_y=-0.002, brow_a=0.002, brow_in=0.006, eye_open=0.92, lash=1.2, nose=1.1, bridge=0.7, jaw=0.8, lipf=0.9, lip_w=0.09, cheek=1.1, seed=73)
     run('osteo', illus, (0.86, 0.66, 0.54), (0.20, 0.30, 0.22), (0.13, 0.10, 0.09), ((0.70, 0.38, 0.36), (0.78, 0.46, 0.43)), stubble=0.55, smile=0.026, seed=51)
     run('fisio', illus, (0.94, 0.75, 0.64), (0.30, 0.42, 0.52), (0.30, 0.20, 0.13), ((0.80, 0.44, 0.44), (0.88, 0.52, 0.50)), freckles=36, smile=0.028, seed=61)
     json.dump(META, open(jp, 'w'))

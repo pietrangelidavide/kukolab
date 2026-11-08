@@ -221,6 +221,24 @@ body:has(.menu:target) { overflow: hidden; }
   .duo { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* ---------------------------------------------------------------- pagina dedicata a un corso (Personal training, Functional, Pilates) */
+.crumb { display: inline-block; margin-bottom: 1.6rem; font-size: .95rem; color: var(--mute); text-decoration: none; }
+.crumb::before { content: "\2190"; margin-right: .55rem; color: var(--orange); }
+.crumb:hover { color: var(--fg); }
+.phead .role { margin: 0 0 .9rem; max-width: none; font: 700 1.4rem/1 var(--display); letter-spacing: .07em; text-transform: uppercase; color: var(--orange); }
+.cx.deep { margin-top: 0; border-top: 1px solid var(--line); }
+.mini { font: 700 1.4rem/1 var(--display); letter-spacing: .07em; text-transform: uppercase; color: var(--orange); }
+.cx.deep .benefits { margin-top: 1.4rem; }
+.cx.deep .when { margin-top: 1rem; max-width: 32rem; }
+.cx.deep .note a { text-decoration-color: var(--orange); text-decoration-thickness: 2px; text-underline-offset: .2em; }
+.cx-side .btn + .btn { margin-left: .7rem; }
+.others .lead { margin-top: 1rem; max-width: 34rem; font-size: 1.3rem; line-height: 1.4; color: var(--mute); }
+.others .pro-card .line { margin-top: 1.2rem; }
+@media (max-width: 520px) {
+  .cx-side .btn { display: flex; }
+  .cx-side .btn + .btn { margin-left: 0; margin-top: .7rem; }
+}
+
 /* ---------------------------------------------------------------- informativa privacy (stessa testata e stesso piede) */
 .legal { max-width: 46rem; margin-inline: auto; padding: clamp(3rem, 8vw, 6rem) var(--gut); }
 .legal-in { display: grid; gap: 1.1rem; }

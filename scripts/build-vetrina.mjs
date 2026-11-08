@@ -122,7 +122,7 @@ for (const b of built) {
     const h = href.replace(/&amp;/g, '&');
     if (h.startsWith('#')) {
       if (h.length > 1 && !ids.has(h.slice(1))) problems.push(`${b.name}: àncora ${h} senza destinazione`);
-    } else if (/^\/(sito|corsi|chi-siamo)(#.*)?$/.test(h)) {
+    } else if (/^\/(sito|corsi|chi-siamo|personal-training|functional|pilates)(#.*)?$/.test(h)) {
       const [path, hash] = h.split('#');
       const target = byFile[path.slice(1)];
       if (!target) problems.push(`${b.name}: pagina ${path} inesistente`);
