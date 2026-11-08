@@ -34,6 +34,8 @@ em { font-style: normal; }
 /* ---------- testata ---------- */
 .top { position: fixed; z-index: 30; inset: 0 0 auto 0; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: max(1rem, env(safe-area-inset-top)) var(--gut) 1rem; pointer-events: none;  background: linear-gradient(to bottom, rgba(0, 0, 0, .62), rgba(0, 0, 0, 0)); }
 .top > * { pointer-events: auto; }
+/* sopra il blocco Instagram la testata prende un fondo pieno, così il testo che scorre sotto non la attraversa */
+.is-after .top { background: rgba(5, 5, 6, .94); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 .brand { display: flex; align-items: center; gap: .7rem; text-decoration: none; }
 .brand img { height: 2.1rem; width: auto; }
 .brand span { font: 700 1.5rem/1 var(--display); letter-spacing: .12em; text-transform: uppercase; }
@@ -45,7 +47,7 @@ em { font-style: normal; }
 .top-links .pill:hover { background: #fff; text-decoration: none; }
 
 /* ---------- avanzamento: tre tappe unite da una linea ---------- */
-.rail { position: fixed; z-index: 25; right: var(--gut); top: 50%; transform: translateY(-50%); display: none; }
+.rail { position: fixed; z-index: 25; right: var(--gut); top: 7.6rem; display: none; }
 .is-live .rail { display: block; }
 /* un fondo scuro e morbido dietro all'avanzamento: resta leggibile anche nella sala chiara del Pilates */
 .rail::before { content: ""; position: absolute; z-index: -1; inset: -1.5rem -1.2rem -1.5rem -1.7rem; border-radius: 14px; background: rgba(8, 8, 9, .52); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); pointer-events: none; }
@@ -73,6 +75,7 @@ h1, h2 { font: 700 clamp(2.9rem, 6.2vw, 6.4rem)/.9 var(--display); letter-spacin
 h2 { font-size: clamp(2.6rem, 5vw, 5.2rem); }
 h1 em, .finale h2 em { color: var(--orange); }
 .lead { margin-top: 1.4rem; max-width: 30rem; text-wrap: balance; font-size: clamp(1.05rem, 1.35vw, 1.3rem); line-height: 1.5; color: rgba(245, 245, 243, .9); }
+.motto { display: block; margin-bottom: .55rem; font: 700 clamp(1.45rem, 1.9vw, 1.85rem)/1.05 var(--display); letter-spacing: .07em; text-transform: uppercase; color: var(--fg); }
 .who { margin-top: 1.6rem; font-size: .95rem; color: var(--mute); }
 .hint { margin-top: 2.6rem; display: flex; align-items: center; gap: .9rem; font-size: .9rem; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
 .hint span { width: 1.5px; height: 2.6rem; background: linear-gradient(var(--orange), transparent); animation: hint 2.2s ease-in-out infinite; transform-origin: top; }
@@ -87,6 +90,29 @@ h1 em, .finale h2 em { color: var(--orange); }
 .where a { text-decoration-thickness: 1px; text-underline-offset: .25em; }
 .finale .copy { max-width: 40rem; }
 .is-live .finale { align-items: flex-end; padding-bottom: 4rem; }
+
+/* ---------- ritagli di Valerio e Chiara: in basso a destra, escono dal bordo dello schermo ---------- */
+.cut { display: none; }
+.is-live .cut { display: block; position: absolute; right: calc(var(--gut) - .4rem); bottom: 0; width: auto; height: var(--h, 42vh); max-width: 32vw; object-fit: contain; object-position: bottom right; pointer-events: none;
+  transform: translate3d(0, calc((1 - var(--v, 1)) * 16%), 0); filter: drop-shadow(0 0 1.6rem rgba(232, 96, 40, .5)) drop-shadow(0 .6rem 1.4rem rgba(0, 0, 0, .5)); will-change: transform; }
+.cut-valerio { --h: 38vh; }
+.cut-chiara { --h: 52vh; }
+
+/* ---------- Instagram: dopo il finale, copre la scena scorrendo ---------- */
+.ig { position: relative; z-index: 28; background: var(--bg); border-top: 1px solid var(--line); }
+.ig .in { display: grid; gap: 2.4rem; max-width: 76rem; margin-inline: auto; padding: clamp(4rem, 10vw, 8rem) var(--gut); }
+.ig h2 { font-size: clamp(2.8rem, 8vw, 5rem); line-height: .92; }
+.ig-head p { margin-top: .9rem; max-width: 28rem; color: var(--mute); }
+.ig-head .btn { margin-top: 1.8rem; }
+.reels { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-width: 32rem; }
+.reels a { position: relative; display: block; aspect-ratio: 9 / 16; overflow: hidden; background: #111; }
+.reels img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+.reels svg { position: absolute; right: .7rem; bottom: .7rem; width: 2.4rem; height: 2.4rem; }
+.reels circle { fill: rgba(0, 0, 0, .55); }
+.reels path { fill: #fff; }
+.foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem 2rem; padding: 1.6rem var(--gut) calc(2rem + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); font-size: .88rem; color: var(--mute); }
+.foot a { margin-right: 1.2rem; text-underline-offset: .25em; }
+@media (min-width: 900px) { .ig .in { grid-template-columns: 1fr minmax(0, 32rem); align-items: center; gap: 5rem; } }
 
 /* ---------- caricamento ---------- */
 .loader { position: fixed; inset: 0; z-index: 60; display: none; place-items: center; align-content: center; gap: 1.6rem; background: #000; transition: opacity .7s ease, visibility .7s; }
@@ -116,7 +142,7 @@ body:not(.is-live) .top { position: absolute; }
   .top-links a:not(.pill) { display: none; }
   .top-links .pill { min-height: 2.25rem; padding: 0 .9rem; font-size: 1.05rem; }
   /* su telefono la figura sta in alto e il testo sotto; la barra delle tappe corre in orizzontale sotto la testata */
-  .rail { right: auto; left: var(--gut); top: calc(max(1rem, env(safe-area-inset-top)) + 3.2rem); transform: none; width: calc(100% - 2 * var(--gut)); }
+  .rail { right: auto; left: var(--gut); top: calc(max(1rem, env(safe-area-inset-top)) + 3.2rem); width: calc(100% - 2 * var(--gut)); }
   .rail ol { flex-direction: row; justify-content: space-between; gap: 0; }
   .rail a { flex-direction: column-reverse; align-items: center; gap: .45rem; font-size: .85rem; letter-spacing: .14em; }
   .rail li:first-child a { align-items: flex-start; }
@@ -133,6 +159,11 @@ body:not(.is-live) .top { position: absolute; }
   .lead { margin-top: .9rem; font-size: 1rem; }
   .label { margin-bottom: .7rem; font-size: 1.05rem; }
   .who { margin-top: 1rem; }
+  .is-live .cut { right: .5rem; height: var(--hm, 25vh); max-width: 46vw; }
+  .cut-valerio { --hm: 24vh; }
+  .cut-chiara { --hm: 30vh; }
+  .has-cut .lead, .has-cut .who { max-width: 58%; }
+  .motto { font-size: 1.3rem; }
   .hint { margin-top: 1.4rem; }
   .hint span { height: 1.8rem; }
   .cta { margin-top: 1.3rem; gap: .6rem; }

@@ -40,6 +40,7 @@ async function start() {
   function measure() {
     const r = story.getBoundingClientRect(), total = r.height - innerHeight;
     target = cl(-r.top / Math.max(1, total), 0, 1) * STEPS;
+    body.classList.toggle('is-after', r.bottom < innerHeight * 0.5); // la scena è finita: sotto c'è Instagram
   }
   addEventListener('scroll', measure, { passive: true }); addEventListener('resize', measure); measure();
   addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') { ptr[0] = e.clientX / innerWidth * 2 - 1; ptr[1] = e.clientY / innerHeight * 2 - 1; } }, { passive: true });
@@ -60,6 +61,7 @@ async function start() {
       vmax = Math.max(vmax, v);
       p.style.opacity = v.toFixed(3);
       p.classList.toggle('is-on', v > 0.02);
+      p.style.setProperty('--v', v.toFixed(3));
       const c = $('.copy', p);
       const dir = cur < a ? 1 : -1;
       c.style.transform = `translate3d(0, ${(dir * (1 - v) * 30).toFixed(1)}px, 0)`;
@@ -105,6 +107,7 @@ async function start() {
     cam(a) { scene.setCam(a); },
     freeze() { frozen = true; }, // per le prove con un disegno solo
     stats() { return scene.stats ? scene.stats() : null; },
+    get pos() { return cur; }, // per le prove
     scene,
   };
   // pronto: tolgo il caricamento e faccio entrare il cliente dalla porta

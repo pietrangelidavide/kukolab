@@ -195,7 +195,9 @@ export async function createScene(canvas, { base = '' } = {}) {
     const Hv = TANH * dist, Wv = Hv * S.asp;
     const yaw = yaw0 + ptrS[0] * 0.05 + Math.sin(t * 0.33) * 0.008;
     const shx = S.mobile ? 0 : shx0 * cl((S.asp - 1.1) / 0.5);
-    const ty = S.mobile ? -tyf * Hv : 0;
+    // su computer, nella sala Personal la scena sale un po': sotto a destra c'è il ritaglio di Valerio e non deve coprire i piedi dei personaggi
+    const dsh = S.mobile ? 0 : 0.17 * (sm(0.5, 0.7, pos) - sm(1.3, 1.5, pos));
+    const ty = S.mobile ? -tyf * Hv : -dsh * Hv;
     // su telefono la scena sale inclinando lo sguardo (non abbassando l'occhio): da lontano l'occhio non finisce sotto il pavimento
     const ty0 = oy + ptrS[1] * -0.1;
     const tgt = [c.x + ox - Math.cos(yaw) * shx * Wv, ty0 + ty, oz + Math.sin(yaw) * shx * Wv];
