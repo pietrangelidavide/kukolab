@@ -4,7 +4,7 @@ import { createScene, STEPS } from './scene.js';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const body = document.body, story = $('#percorso'), canvas = $('#gl'), rail = $('.rail');
-const phases = $$('.phase'), stages = $$('.rail a'), hint = $('.hint');
+const phases = $$('.phase'), stages = $$('.rail a'), rooms = $$('.top-links .room'), hint = $('.hint');
 const params = new URLSearchParams(location.search);
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const saveData = !!(navigator.connection && navigator.connection.saveData);
@@ -98,6 +98,7 @@ async function start() {
       a.classList.toggle('on', cur >= ENTER[i] || cur >= 5.85);
       if (i === inRoom) a.setAttribute('aria-current', 'step'); else a.removeAttribute('aria-current');
     });
+    rooms.forEach((a) => a.classList.toggle('now', +a.dataset.room === inRoom));
     rail.classList.toggle('done', cur >= 5.85);
     if (hint) hint.style.opacity = String(1 - sm(0.02, 0.16, cur));
   }

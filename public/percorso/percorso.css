@@ -41,6 +41,12 @@ em { font-style: normal; }
 .brand span { font: 700 1.5rem/1 var(--display); letter-spacing: .12em; text-transform: uppercase; }
 .top-links { display: flex; align-items: center; gap: 1.6rem; }
 .top-links a { text-decoration: none; font-size: .95rem; color: var(--fg); text-shadow: 0 1px 12px rgba(0, 0, 0, .7); }
+/* le tre pagine dei corsi, sempre in alto ma in tono attenuato: si intravedono durante tutto il percorso, e si accende quella della sala in cui sei */
+.top-links .room { color: rgba(245, 245, 245, .62); text-shadow: 0 1px 3px rgba(0, 0, 0, .75), 0 0 14px rgba(0, 0, 0, .8); transition: color .35s; text-underline-offset: .45em; text-decoration-thickness: 2px; }
+.top-links .room:hover, .top-links .room:focus-visible { color: var(--fg); text-decoration: underline; text-decoration-color: rgba(245, 245, 245, .5); }
+.top-links .room.now { color: var(--fg); text-decoration: underline; text-decoration-color: var(--orange); }
+.top-links a, .brand span { white-space: nowrap; }
+@media (max-width: 1000px) { .brand span { display: none; } .top-links { gap: 1.1rem; } .top-links a:not(.pill) { font-size: .9rem; } }
 .top-links .pill .m { display: none; }
 .top-links a:hover { text-decoration: underline; text-underline-offset: .3em; }
 .top-links .pill { display: inline-flex; align-items: center; min-height: 2.5rem; padding: 0 1.1rem; background: var(--orange); color: #000; font: 700 1.15rem/1 var(--display); letter-spacing: .08em; text-transform: uppercase; }
