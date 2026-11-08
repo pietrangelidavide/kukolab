@@ -116,4 +116,11 @@ async function start() {
   introStart = performance.now() + 300;
   captions(); kick();
 }
+// sezione "Benessere a 360°": la linea si riempie da una tappa all'altra quando entra nella vista (senza JS o con "riduci movimento" resta tutto acceso)
+const team = $('.team');
+if (team && !reduce && 'IntersectionObserver' in window) {
+  team.classList.add('armed');
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); } }), { threshold: 0.3 });
+  $$('.pro', team).forEach((p, i) => { p.style.setProperty('--i', i); io.observe(p); });
+}
 start();

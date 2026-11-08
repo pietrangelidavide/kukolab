@@ -2,7 +2,7 @@
 // diversi: il cliente, Valerio, Chiara e il gruppo. Cambiano corporatura, capelli, volto (da foto o disegnato) e vestiti.
 // Gli abiti sono parametri continui (lunghezza di maniche e pantaloni, colori): quando il cliente cambia disciplina si trasformano,
 // non spuntano. Tutto in WebGL2, senza modelli esterni; un modello .glb potrà sostituire il corpo (vedi README del percorso).
-import { lathe, smooth, upload, texFromBitmap } from './engine.js';
+import { lathe, smooth, upload, texFromBitmap, sphere } from './engine.js';
 import { reupload } from './gl.js';
 import { torus } from './engine.js';
 import { LIGHT_GLSL, LIGHT_UNIFORMS, setLight, MAT } from './light.js';
@@ -44,10 +44,19 @@ uniform mat4 uM; uniform mat4 uVP; out vec3 vW; out vec3 vN; out vec2 vUv; out v
 void main(){ vec4 w = uM*vec4(aPos,1.); vW = w.xyz; mat3 nm = transpose(inverse(mat3(uM))); vNM = nm; vN = nm*aNor; vUv = aUv; vObj = aPos; gl_Position = uVP*w; }`;
 const FFS = V3 + `precision highp float;
 in vec3 vW; in vec3 vN; in vec2 vUv; in vec3 vObj; in mat3 vNM; uniform vec3 uEye, uFogC; uniform vec2 uFog; uniform vec4 uP; uniform sampler2D uTex;
+uniform float uHL[12]; uniform vec3 uHairC; uniform float uHairK;
 ${LIGHT_UNIFORMS}${LIGHT_GLSL}
 out vec4 o;
+float hlAt(float ph){ float f = clamp(ph/0.15, 0., 10.999); int i = int(f); return mix(uHL[i], uHL[i+1], f - float(i)); }
 void main(){
   vec4 tx = texture(uTex, vUv);
+  if(uHairK > .5){ // attaccatura dei capelli dipinta sul volto: scura sopra il bordo della calotta, sfuma nella pelle sotto, con qualche filo
+    float ph = atan(abs(vObj.x), max(vObj.z, .001)/1.06);
+    float hl = hlAt(ph);
+    float st = .5 + .5*sin(vObj.x*260. + sin(vObj.y*50.)*2.);
+    float m = smoothstep(hl - .05 - .012*st, hl + .003, vObj.y);
+    tx.rgb = mix(tx.rgb, uHairC*(.9 + .1*st), m*.95);
+  }
   vec3 n = normalize(vN); if(!gl_FrontFacing) n = -n;
   vec3 V = normalize(uEye - vW);
   vec3 c = toDsp(shade(tx.rgb, n, V, vW, uP, vObj, vNM));
@@ -85,19 +94,41 @@ export function addPeople(X) {
     return 0;
   };
   const sz = (x, y) => 1.06 * Math.sqrt(Math.max(0, hr(y) * hr(y) - x * x));
-  function capGeo(sd) {
-    const NP = 26, NT = 16, pos = [], nor = [], idx = [], ph0 = 0.035, ph1 = Math.PI * 0.97;
+  /* ---------- capelli: calotta con attaccatura naturale ----------
+     ph = angolo dal davanti (0 fronte, π nuca). L'attaccatura scende dalla fronte alle tempie, alle basette, poi dietro l'orecchio fino alla nuca.
+     La calotta si assottiglia fino a zero sul bordo, così non fa gradino sulla pelle; il volto (shader) sfuma lo stesso colore sotto il bordo. */
+  const HL_PTS = [[0, 0.285], [0.55, 0.28], [0.9, 0.25], [1.08, 0.2], [1.2, 0.1], [1.3, 0.02], [1.45, 0.05], [1.62, 0.07], [1.85, 0.0], [2.15, -0.06], [2.5, -0.12], [2.85, -0.15], [Math.PI, -0.16]];
+  const hairlineY = (ph) => {
+    const P = HL_PTS; ph = cl(ph, 0, Math.PI);
+    let i = 0; while (i < P.length - 2 && ph > P[i + 1][0]) i++;
+    const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
+    const h = p2[0] - p1[0], u = (ph - p1[0]) / h, u2 = u * u, u3 = u2 * u;
+    const m1 = (p2[1] - p0[1]) / (p2[0] - p0[0]) * h, m2 = (p3[1] - p1[1]) / (p3[0] - p1[0]) * h;
+    return (2 * u3 - 3 * u2 + 1) * p1[1] + (u3 - 2 * u2 + u) * m1 + (-2 * u3 + 3 * u2) * p2[1] + (u3 - u2) * m2;
+  };
+  const HL_N = 12, HL_D = 0.15; // campioni dell'attaccatura per lo shader del volto (0 … 1,65 rad, davanti)
+  const HLU = new Float32Array(HL_N).map((_, k) => hairlineY(k * HL_D));
+  const dhr = (y) => (hr(Math.min(0.41, y + 0.006)) - hr(Math.max(-0.42, y - 0.006))) / 0.012; // pendenza del profilo della testa
+  // thk = spessore sul cocuzzolo, back = volume in più dietro (nuca); la calotta sale dalla pelle lungo la normale del profilo
+  function capGeo(sd, thk, back) {
+    const NP = 44, NT = 20, pos = [], nor = [], idx = [];
     for (let j = 0; j <= NT; j++) for (let i = 0; i <= NP; i++) {
-      const ph = ph0 + (ph1 - ph0) * (i / NP), edge = 0.262 - 0.29 * smoothstep(0.3, 1.55, ph), t = j / NT;
-      const y = 0.432 + (edge - 0.432) * t, r = hr(Math.min(y, 0.418)) + 0.024 + 0.012 * Math.sin(Math.PI * Math.min(1, t * 1.4));
-      const x = sd * r * Math.sin(ph), z = 1.06 * r * Math.cos(ph);
-      pos.push(x, y, z);
-      const nx = x / 0.1225, ny = y / 0.1936, nz = z / (0.1225 * 1.1236), l = Math.hypot(nx, ny, nz) || 1; nor.push(nx / l, ny / l, nz / l);
+      const ph = Math.PI * (i / NP), t = j / NT, edge = hairlineY(ph);
+      const y = 0.42 + (edge - 0.42) * Math.pow(t, 0.9), k = Math.pow(1 - smoothstep(0, 1, t), 0.75);
+      const th = 0.004 + (thk + back * smoothstep(1.3, 2.4, ph)) * k;
+      let nr = 1, ny = 0;
+      if (j > 0) { const s = dhr(y), l = Math.hypot(1, s); nr = 1 / l; ny = -s / l; } else { nr = 0; ny = 1; }
+      const rh = hr(Math.min(y, 0.418)), R = j === 0 ? 0 : rh + th * nr, Y = y + th * ny;
+      const x = sd * R * Math.sin(ph), z = 1.06 * R * Math.cos(ph);
+      pos.push(x, Y, z);
+      const nxx = sd * nr * Math.sin(ph), nzz = nr * Math.cos(ph) / 1.06, l = Math.hypot(nxx, ny, nzz) || 1; nor.push(nxx / l, ny / l, nzz / l);
     }
     for (let j = 0; j < NT; j++) for (let i = 0; i < NP; i++) { const a = j * (NP + 1) + i, b = a + 1, c = a + NP + 1, d = c + 1; if (sd > 0) idx.push(a, c, b, b, c, d); else idx.push(a, b, c, b, d, c); }
     return up({ pos: new Float32Array(pos), nor: new Float32Array(nor), idx: new Uint32Array(idx) });
   }
-  AG.capL = capGeo(-1); AG.capR = capGeo(1);
+  const CAPS = new Map();
+  const CAPD = { short: [0.05, 0.022], buzz: [0.016, 0.0], curly: [0.034, 0.012], long: [0.046, 0.03], pony: [0.042, 0.02], bun: [0.042, 0.02], afro: [0.03, 0.0] };
+  const capFor = (kind) => { const key = CAPD[kind] ? kind : 'short'; let c = CAPS.get(key); if (!c) { const [a, b] = CAPD[key]; c = { L: capGeo(-1, a, b), R: capGeo(1, a, b) }; CAPS.set(key, c); } return c; };
   X.headSurface = sz; X.headRadius = hr;
 
   // griglia del volto: segue la superficie della testa
@@ -122,6 +153,7 @@ export function addPeople(X) {
     const p = gl.createProgram(); gl.attachShader(p, shd(gl, gl.VERTEX_SHADER, FVS)); gl.attachShader(p, shd(gl, gl.FRAGMENT_SHADER, FFS)); gl.linkProgram(p);
     if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
     const u = {}; for (let i = 0, n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS); i < n; i++) { const nm = gl.getActiveUniform(p, i).name; u[nm] = gl.getUniformLocation(p, nm); }
+    u.uHL = gl.getUniformLocation(p, 'uHL');
     return { vao, n: idx.length, p, u };
   })();
   const FACES = {};
@@ -137,10 +169,11 @@ export function addPeople(X) {
       } catch (e) { console.warn('[viso] non caricato:', k, e.message || e); }
     }));
   }
-  function drawFace(key, headM) {
+  function drawFace(key, headM, hairC) {
     const tex = FACES[key], F = X.U; if (!tex || !F) return;
     const { p, u } = faceGeo;
     gl.useProgram(p);
+    gl.uniform1fv(u.uHL, HLU); gl.uniform1f(u.uHairK, hairC ? 1 : 0); gl.uniform3fv(u.uHairC, hairC || [0, 0, 0]);
     gl.uniformMatrix4fv(u.uM, false, headM); gl.uniformMatrix4fv(u.uVP, false, F.vp); gl.uniform3fv(u.uEye, F.eye);
     gl.uniform3fv(u.uFogC, F.fogC); gl.uniform2fv(u.uFog, F.fog);
     setLight(gl, u, F);
@@ -210,12 +243,30 @@ export function addPeople(X) {
       }
       reupload(gl, hair.geo, { pos: hpos, nor: hnor, idx: hidx });
     }
-    // ricci (Valerio): sfere piccole sulla calotta alta, distribuite a spirale
-    const CURLS = Array.from({ length: 62 }, (_, i) => {
-      const a = i * 2.39996, y = 0.12 + 0.3 * Math.sqrt((i + 0.5) / 62), r = Math.sqrt(Math.max(0, 1 - (y / 0.44) ** 2)) * (hr(Math.min(y, 0.41)) + 0.03);
-      const x = Math.sin(a) * r, z = Math.cos(a) * r * 1.06;
-      return { x, y, z, s: 0.062 + hash(i * 5.1) * 0.03 };
-    }).filter((c) => !(c.z > 0.12 && c.y < 0.3 && Math.abs(c.x) < 0.26)); // la fronte resta libera, per il volto
+    // ricci (Valerio): tante sfere piccole sopra l'attaccatura, fuse in due mesh (una per il colore di base e una per i riflessi); più piccole vicino al bordo, così la frangia sfuma sul volto
+    let CURL = null;
+    const curlMeshes = () => {
+      if (CURL) return CURL;
+      const base = sphere(10), N = 300, parts = [[], []];
+      for (let i = 0; i < N; i++) {
+        const f = Math.sqrt((i + 0.5) / N), a = i * 2.39996, y = lerp(0.42, -0.1, f * f);
+        const az = Math.abs(((a + Math.PI) % (2 * Math.PI)) - Math.PI), sd = Math.sin(a) < 0 ? -1 : 1;
+        const d = y - hairlineY(az); if (d < 0.025) continue;       // niente ricci sulla pelle
+        const rh = hr(Math.min(y, 0.405)) + 0.03, s = (0.04 + hash(i * 7.3) * 0.032) * (0.62 + 0.38 * Math.min(1, d / 0.14));
+        const cx = sd * rh * Math.sin(az), cy = y + 0.012, cz = 1.06 * rh * Math.cos(az);
+        parts[i % 4 === 0 ? 1 : 0].push([cx, cy, cz, s]);
+      }
+      CURL = parts.map((list) => {
+        const pos = [], nor = [], idx = []; let off = 0;
+        for (const [cx, cy, cz, s] of list) {
+          for (let k = 0; k < base.pos.length; k += 3) { pos.push(base.pos[k] * s + cx, base.pos[k + 1] * s + cy, base.pos[k + 2] * s + cz); nor.push(base.nor[k], base.nor[k + 1], base.nor[k + 2]); }
+          for (let k = 0; k < base.idx.length; k++) idx.push(base.idx[k] + off);
+          off += base.pos.length / 3;
+        }
+        return up({ pos: new Float32Array(pos), nor: new Float32Array(nor), idx: new Uint32Array(idx) });
+      });
+      return CURL;
+    };
     const hairSt = { p: null, t: 0 };
 
     // pose → disegno. P (mondo): root[x,z], hip, yaw, pitch, lean, twist, roll, head, hR/hL, eR/eL, nR/nL, cR/cL, aR/aL (caviglie), fyR/fyL, fpR/fpL, smile;
@@ -290,18 +341,16 @@ export function addPeople(X) {
       bm0(AG.tube, boneM(M.pt(torsoM, [0, 1.16, 0]), M.pt(headM, [0, -0.3, 0]), 0.064), skin, MS);
       bm0(AG.head, M.mul(headM, M.S(1, 1, 1.06)), skin, { ...MS, spec: 0.18, shin: 26 });
       [-1, 1].forEach((s2) => bm0(G.sphere, M.mul(headM, M.chain(M.T(s2 * 0.312, -0.02, 0.0), M.Ry(s2 * 0.3), M.S(0.034, 0.068, 0.05))), skin, MS));
-      if (!lod || o.face) { const hm = M.mul(RM, headM), fk = spec.face; later(() => drawFace(fk, hm)); }
+      if (!lod || o.face) { const hm = M.mul(RM, headM), fk = spec.face, hp = HAIR.kind === 'bald' ? null : HAIR.col; later(() => drawFace(fk, hm, hp)); }
       /* capelli */
       const hcol = HAIR.col, hhi = HAIR.hi;
       if (HAIR.kind !== 'bald') {
-        bm0(AG.capL, headM, hcol, MH); bm0(AG.capR, headM, hcol, MH);
-        if (HAIR.kind === 'short' || HAIR.kind === 'long' || HAIR.kind === 'pony' || HAIR.kind === 'bun') bm0(G.sphere, M.mul(headM, M.chain(M.T(0, 0.05, -0.1), M.S(0.335, 0.335, 0.325))), hcol, MH);
-        else if (HAIR.kind === 'buzz') bm0(G.sphere, M.mul(headM, M.chain(M.T(0, 0.03, -0.09), M.S(0.325, 0.33, 0.315))), hcol, { ...MH, spec: 0.1 });
-        else if (HAIR.kind === 'afro') { bm0(G.sphere, M.mul(headM, M.chain(M.T(0, 0.12, -0.04), M.S(0.46, 0.44, 0.46))), hcol, { ...MH, spec: 0.12 }); }
-        else if (HAIR.kind === 'curly') {
-          bm0(G.sphere, M.mul(headM, M.chain(M.T(0, 0.06, -0.1), M.S(0.34, 0.33, 0.33))), hcol, MH);
-          const n = lod ? 0 : CURLS.length;
-          for (let i = 0; i < n; i++) { const c = CURLS[i]; bm0(G.sphere, M.mul(headM, M.chain(M.T(c.x, c.y, c.z), M.S(c.s))), i % 3 ? hcol : hhi, { ...MH, spec: 0.5 }); }
+        const CAP = capFor(HAIR.kind), MHC = { ...MH, spec: HAIR.kind === 'buzz' ? 0.1 : 0.26, shin: 26 };
+        bm0(CAP.L, headM, hcol, MHC); bm0(CAP.R, headM, hcol, MHC);
+        if (HAIR.kind === 'afro') bm0(G.sphere, M.mul(headM, M.chain(M.T(0, 0.14, -0.1), M.S(0.46, 0.43, 0.44))), hcol, { ...MH, spec: 0.12 });
+        else if (HAIR.kind === 'curly' && !lod) {
+          const cm = curlMeshes();
+          bm0(cm[0], headM, hcol, { ...MH, spec: 0.1, shin: 16 }); bm0(cm[1], headM, hhi, { ...MH, spec: 0.14, shin: 18 });
         }
         if (HAIR.kind === 'long' && hair) {
           const hc2 = M.pt(torsoM, [0, 1.3, 0]); void hc2;

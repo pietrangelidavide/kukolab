@@ -22,7 +22,7 @@ W, H = 576, 768
 META = {}
 
 # ---------------------------------------------------------------- dalle foto
-def from_photo(name, src, pupils, mouth_y, skin_box, flip=False):
+def from_photo(name, src, pupils, mouth_y, skin_box, flip=False, skin_fix=None):
     """pupils = ((x,y) occhio sinistro in foto, (x,y) occhio destro); mouth_y = riga della bocca in foto."""
     im = cv2.cvtColor(cv2.imread(os.path.join(IMG, src)), cv2.COLOR_BGR2RGB).astype(np.float32) / 255
     (lx, ly), (rx, ry) = pupils
@@ -57,6 +57,7 @@ def from_photo(name, src, pupils, mouth_y, skin_box, flip=False):
     pts = np.concatenate([at(-0.19, -0.06), at(0.19, -0.06), at(0.0, 0.22), at(-0.12, 0.17), at(0.12, 0.17)])
     skin = np.median(pts, axis=0)
     g = float(skin @ np.array([0.299, 0.587, 0.114])); skin = np.clip(g + (skin - g) * 0.78, 0, 1)
+    if skin_fix is not None: skin = np.array(skin_fix, np.float32)   # foto con luce molto contrastata: il colore della pelle si dà a mano
     out = cv2.bilateralFilter(out, 5, 0.05, 4)
     # maschera ovale: il bordo si fonde sul colore della pelle della testa
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
@@ -172,15 +173,26 @@ def illus(name, skin, iris, brow, lip, freckles=0, smile=0.022, brow_w=0.0016, s
     print(name, 'ok')
 
 if __name__ == '__main__':
+    import sys
+    # senza argomenti rigenera tutto; con dei nomi (es. python3 scripts/percorso-visi.py calabro fisio) rigenera solo quelli e tiene gli altri in visi.json
+    solo = set(sys.argv[1:])
+    jp = os.path.join(OUT, 'visi.json')
+    if solo and os.path.exists(jp): META.update(json.load(open(jp)))
+    def run(name, fn, *a, **k):
+        if not solo or name in solo: fn(name, *a, **k)
     # Valerio: occhi (518,392) e (588,384) nella foto, bocca a y=473; Chiara: (240,217), (312,222), bocca y=292
-    from_photo('valerio', 'trainer-valerio.jpg', ((518, 392), (588, 384)), 473, None)
-    from_photo('chiara', 'trainer-chiara.jpg', ((240, 217), (312, 222)), 292, None)
+    run('valerio', from_photo, 'trainer-valerio.jpg', ((518, 392), (588, 384)), 473, None)
+    run('chiara', from_photo, 'trainer-chiara.jpg', ((240, 217), (312, 222)), 292, None)
     # cliente (la persona che attraversa il percorso): carnagione chiara, occhi nocciola
-    illus('cliente', (0.93, 0.76, 0.66), (0.42, 0.30, 0.18), (0.20, 0.14, 0.11), ((0.78, 0.42, 0.42), (0.84, 0.50, 0.48)), freckles=40, seed=3)
+    run('cliente', illus, (0.93, 0.76, 0.66), (0.42, 0.30, 0.18), (0.20, 0.14, 0.11), ((0.78, 0.42, 0.42), (0.84, 0.50, 0.48)), freckles=40, seed=3)
     # gruppo
-    illus('g1', (0.62, 0.43, 0.32), (0.22, 0.14, 0.10), (0.10, 0.07, 0.06), ((0.62, 0.32, 0.30), (0.70, 0.40, 0.36)), seed=11)
-    illus('g2', (0.96, 0.80, 0.70), (0.30, 0.46, 0.56), (0.45, 0.33, 0.22), ((0.80, 0.46, 0.46), (0.88, 0.54, 0.52)), freckles=70, seed=5)
-    illus('g3', (0.45, 0.30, 0.22), (0.14, 0.09, 0.07), (0.07, 0.05, 0.05), ((0.52, 0.26, 0.26), (0.60, 0.34, 0.32)), stubble=0.5, seed=21)
-    illus('g4', (0.88, 0.68, 0.56), (0.28, 0.20, 0.13), (0.16, 0.11, 0.09), ((0.74, 0.40, 0.40), (0.82, 0.48, 0.46)), stubble=0.7, seed=31)
-    illus('g5', (0.78, 0.58, 0.45), (0.18, 0.12, 0.09), (0.12, 0.08, 0.07), ((0.70, 0.36, 0.36), (0.78, 0.44, 0.42)), seed=41)
-    json.dump(META, open(os.path.join(OUT, 'visi.json'), 'w'))
+    run('g1', illus, (0.62, 0.43, 0.32), (0.22, 0.14, 0.10), (0.10, 0.07, 0.06), ((0.62, 0.32, 0.30), (0.70, 0.40, 0.36)), seed=11)
+    run('g2', illus, (0.96, 0.80, 0.70), (0.30, 0.46, 0.56), (0.45, 0.33, 0.22), ((0.80, 0.46, 0.46), (0.88, 0.54, 0.52)), freckles=70, seed=5)
+    run('g3', illus, (0.45, 0.30, 0.22), (0.14, 0.09, 0.07), (0.07, 0.05, 0.05), ((0.52, 0.26, 0.26), (0.60, 0.34, 0.32)), stubble=0.5, seed=21)
+    run('g4', illus, (0.88, 0.68, 0.56), (0.28, 0.20, 0.13), (0.16, 0.11, 0.09), ((0.74, 0.40, 0.40), (0.82, 0.48, 0.46)), stubble=0.7, seed=31)
+    run('g5', illus, (0.78, 0.58, 0.45), (0.18, 0.12, 0.09), (0.12, 0.08, 0.07), ((0.70, 0.36, 0.36), (0.78, 0.44, 0.42)), seed=41)
+    # professionisti della sezione "Benessere a 360" (public/percorso/): il nutrizionista dalla sua foto del sito (occhi (430,243) e (556,249), bocca a y=368); osteopata e fisioterapista, senza foto, sono volti disegnati
+    run('calabro', from_photo, 'nutrizionista.jpg', ((430, 243), (556, 249)), 368, None, skin_fix=(0.80, 0.62, 0.53))
+    run('osteo', illus, (0.86, 0.66, 0.54), (0.20, 0.30, 0.22), (0.13, 0.10, 0.09), ((0.70, 0.38, 0.36), (0.78, 0.46, 0.43)), stubble=0.55, smile=0.026, seed=51)
+    run('fisio', illus, (0.94, 0.75, 0.64), (0.30, 0.42, 0.52), (0.30, 0.20, 0.13), ((0.80, 0.44, 0.44), (0.88, 0.52, 0.50)), freckles=36, smile=0.028, seed=61)
+    json.dump(META, open(jp, 'w'))

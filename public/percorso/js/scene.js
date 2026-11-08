@@ -67,6 +67,7 @@ export async function createScene(canvas, { base = '' } = {}) {
   let cine = null;
   if (QS.get('cine') !== '0') { try { cine = createCine(C); } catch (e) { console.warn('[cinema] non disponibile:', e.message); } }
   const FX = { tier: 0, shadows: QS.get('ombre') !== '0' };
+  const PORT = QS.get('ritratti'), PBG = QS.get('sfondo') === 'fff' ? 1 : 0; // ritratti per la sezione dei professionisti (vedi world.js)
   const dummySM = cine ? null : (() => {
     const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, 1, 1, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
@@ -82,7 +83,7 @@ export async function createScene(canvas, { base = '' } = {}) {
   const cv = (w, h, fn, o = { mip: true }) => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); fn(g, w, h); const tx = texFromBitmap(gl, c, { mip: o.mip, premul: true }); tx.canvas = c; return tx; };
   const DISP = '700 {S}px "Big Shoulders", "Arial Narrow", Impact, sans-serif';
   const word = (txt, S = 330, col = '#fff') => cv(2048, 512, (g, W, H) => { g.fillStyle = col; g.font = DISP.replace('{S}', S); g.textAlign = 'center'; g.textBaseline = 'middle'; if ('letterSpacing' in g) g.letterSpacing = (S * 0.04) + 'px'; g.fillText(txt, W / 2, H / 2 + S * 0.04); });
-  T.z0 = word('KUKO LAB', 340); T.z1 = word('PERSONAL', 340); T.z2 = word('PILATES', 340); T.z3 = word('FUNCTIONAL', 340);
+  T.z0 = word('KUKO LAB', 340); T.z1 = word('PERSONALE', 340); T.z2 = word('PILATES', 340); T.z3 = word('FUNZIONALE', 340);
   // timer di parete: cifre arancioni che scorrono (si aggiorna una volta al secondo)
   T.timer = cv(768, 288, () => { }, { mip: false });
   let timerSec = -1;
@@ -92,7 +93,7 @@ export async function createScene(canvas, { base = '' } = {}) {
     g.fillStyle = '#e86028'; g.font = DISP.replace('{S}', 220); g.textAlign = 'center'; g.textBaseline = 'middle';
     const left = 45 - (sec % 46), mm = String(Math.floor(left / 60)).padStart(2, '0'), ss = String(left % 60).padStart(2, '0');
     g.fillText(`${mm}:${ss}`, W / 2, H / 2 + 10);
-    g.fillStyle = 'rgba(255,255,255,.7)'; g.font = DISP.replace('{S}', 40); g.textAlign = 'left'; g.fillText('WORK', 34, 40); g.textAlign = 'right'; g.fillText('ROUND 3/5', W - 34, 40);
+    g.fillStyle = 'rgba(255,255,255,.7)'; g.font = DISP.replace('{S}', 40); g.textAlign = 'left'; g.fillText('LAVORO', 34, 40); g.textAlign = 'right'; g.fillText('SERIE 3/5', W - 34, 40);
     gl.bindTexture(gl.TEXTURE_2D, T.timer.t); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, T.timer.canvas);
   }
@@ -172,7 +173,7 @@ export async function createScene(canvas, { base = '' } = {}) {
   const LT0 = { lvp: M.id(), smOn: false, smSize: 2048, bias: 0.0008, nOff: 0.035, keyC: [1, 1, 1], ambT: [0.3, 0.3, 0.3], ambB: [0.2, 0.2, 0.2], rimC: [1, 1, 1], smTex: dummySM };
   const ctxObj = {
     gl, P, G, T, PAL, mesh, later, glass, MAT, quadFX, quadTex: decal, M, cl, lin, sm, lerp, eo, pop, mixc, S, base, visi,
-    get time() { return time; }, hooks: { opaque: [], titles: [], front: [] },
+    get time() { return time; }, hooks: { opaque: [], titles: [], front: [] }, portrait: PORT,
   };
   const hooks = ctxObj.hooks;
 
@@ -187,7 +188,7 @@ export async function createScene(canvas, { base = '' } = {}) {
     ptrS[0] += (pointer[0] - ptrS[0]) * 0.05; ptrS[1] += (pointer[1] - ptrS[1]) * 0.05;
     const sec = Math.floor(t); if (sec !== timerSec) { timerSec = sec; timerDraw(sec); }
     const c = WRL.cpath(pos);
-    const w = zoneW(c.x);
+    const w = PORT ? [0, 0, 1, 0, 0] : zoneW(c.x);
     const [ox, oy, oz, dist0, yaw0, el, shx0, need, tyf] = camAt(pos);
     let dist = dist0;
     if (S.asp < 1.25) dist = Math.max(dist, need / (S.asp * TANH));
@@ -222,13 +223,14 @@ export async function createScene(canvas, { base = '' } = {}) {
     if (useC && FX.shadows) { cine.shadowBegin([c.x + 1.5, 1.6, Math.min(0.5, c.z)], 12.5); replay(list, true); cine.shadowEnd(); }
     if (useC) cine.sceneBegin(); else { gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, S.w, S.h); }
     gl.disable(gl.DEPTH_TEST); gl.disable(gl.BLEND); gl.depthMask(true);
-    gl.clearColor(0.05, 0.05, 0.06, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    if (PORT) gl.clearColor(PBG, PBG, PBG, 1); else gl.clearColor(0.05, 0.05, 0.06, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // ---- sfondo (si vede solo sopra la parete di fondo)
     gl.useProgram(P.bg.p); const U = P.bg.u;
     gl.uniform3fv(U.uTop, mixArr('top', w)); gl.uniform3fv(U.uBot, mixArr('bot', w)); gl.uniform3fv(U.uGlow, mixArr('glow', w)); gl.uniform3fv(U.uVig, FOGM);
     gl.uniform2f(U.uGlowPos, 0.5, 0.35); gl.uniform1f(U.uGlowK, 0.35); gl.uniform1f(U.uAsp, S.asp); gl.uniform1f(U.uTime, t); gl.uniform1f(U.uVigK, 0.5);
-    gl.bindVertexArray(C.bv); gl.drawArrays(gl.TRIANGLES, 0, 3);
+    if (!PORT) { gl.bindVertexArray(C.bv); gl.drawArrays(gl.TRIANGLES, 0, 3); }
 
     // ---- passaggio opaco
     gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
@@ -247,7 +249,7 @@ export async function createScene(canvas, { base = '' } = {}) {
     // ---- scritte e aloni
     gl.useProgram(P.tex.p); hooks.titles.forEach((f) => f(pos, t, R, w, quadTexNow));
     gl.useProgram(P.fx.p); hooks.front.forEach((f) => f(pos, t, R, w, quadFX));
-    drawParticles(pos, t, R, w, dark);
+    if (!PORT) drawParticles(pos, t, R, w, dark);
     gl.depthMask(true); gl.disable(gl.BLEND);
 
     // ---- post-produzione: bagliore, profondità di campo, curva filmica, grana

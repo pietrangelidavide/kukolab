@@ -48,16 +48,17 @@ em { font-style: normal; }
 
 /* ---------- avanzamento: tre tappe unite da una linea ---------- */
 .rail { position: fixed; z-index: 25; right: var(--gut); top: 7.6rem; display: none; }
-.is-live .rail { display: block; }
+.is-live .rail { display: block; transition: opacity .35s; }
+.is-after .rail { opacity: 0; pointer-events: none; visibility: hidden; }
 /* un fondo scuro e morbido dietro all'avanzamento: resta leggibile anche nella sala chiara del Pilates */
 .rail::before { content: ""; position: absolute; z-index: -1; inset: -1.5rem -1.2rem -1.5rem -1.7rem; border-radius: 14px; background: rgba(8, 8, 9, .52); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); pointer-events: none; }
 .rail ol { display: flex; flex-direction: column; gap: 5.6rem; position: relative; z-index: 1; }
-.rail a { display: flex; align-items: center; justify-content: flex-end; gap: .9rem; text-decoration: none; font: 700 1.05rem/1 var(--display); letter-spacing: .18em; text-transform: uppercase; color: rgba(245, 245, 243, .7); transition: color .4s; }
+.rail a { display: flex; flex-direction: row-reverse; align-items: center; justify-content: flex-start; gap: 1.1rem; height: 1.05rem; text-decoration: none; font: 700 1.05rem/1 var(--display); letter-spacing: .18em; text-transform: uppercase; color: rgba(245, 245, 243, .7); transition: color .4s; }
 .rail a i { flex: none; width: .95rem; height: .95rem; border-radius: 50%; border: 2px solid rgba(245, 245, 243, .75); background: #050506; transition: background .4s, border-color .4s, box-shadow .4s, transform .4s; }
 .rail a[aria-current] { color: var(--fg); }
 .rail a.on i { background: var(--orange); border-color: var(--orange); box-shadow: 0 0 0 5px rgba(232, 96, 40, .24), 0 0 18px rgba(232, 96, 40, .8); }
 .rail a[aria-current] i { transform: scale(1.25); }
-.rail-line { position: absolute; z-index: 0; right: calc(.475rem - 1px); top: .475rem; bottom: .475rem; width: 2px; background: rgba(245, 245, 243, .35); }
+.rail-line { position: absolute; z-index: 0; right: calc(.475rem - 1px); top: .525rem; bottom: .525rem; width: 2px; background: rgba(245, 245, 243, .35); }
 .rail-line u { position: absolute; inset: 0; background: var(--orange); transform-origin: top; transform: scaleY(var(--fill)); box-shadow: 0 0 10px rgba(232, 96, 40, .7); }
 
 /* ---------- scena ---------- */
@@ -75,7 +76,7 @@ h1, h2 { font: 700 clamp(2.9rem, 6.2vw, 6.4rem)/.9 var(--display); letter-spacin
 h2 { font-size: clamp(2.6rem, 5vw, 5.2rem); }
 h1 em, .finale h2 em { color: var(--orange); }
 .lead { margin-top: 1.4rem; max-width: 30rem; text-wrap: balance; font-size: clamp(1.05rem, 1.35vw, 1.3rem); line-height: 1.5; color: rgba(245, 245, 243, .9); }
-.motto { display: block; margin-bottom: .55rem; font: 700 clamp(1.45rem, 1.9vw, 1.85rem)/1.05 var(--display); letter-spacing: .07em; text-transform: uppercase; color: var(--fg); }
+.motto { display: block; margin-bottom: .55rem; font: 700 clamp(1.65rem, 1.9vw, 1.85rem)/1.05 var(--display); letter-spacing: .07em; text-transform: uppercase; color: var(--fg); }
 .who { margin-top: 1.6rem; font-size: .95rem; color: var(--mute); }
 .hint { margin-top: 2.6rem; display: flex; align-items: center; gap: .9rem; font-size: .9rem; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
 .hint span { width: 1.5px; height: 2.6rem; background: linear-gradient(var(--orange), transparent); animation: hint 2.2s ease-in-out infinite; transform-origin: top; }
@@ -97,6 +98,37 @@ h1 em, .finale h2 em { color: var(--orange); }
   transform: translate3d(0, calc((1 - var(--v, 1)) * 16%), 0); filter: drop-shadow(0 0 1.6rem rgba(232, 96, 40, .5)) drop-shadow(0 .6rem 1.4rem rgba(0, 0, 0, .5)); will-change: transform; }
 .cut-valerio { --h: 38vh; }
 .cut-chiara { --h: 52vh; }
+
+/* ---------- Benessere a 360°: nutrizionista, osteopata, fisioterapista. Dopo il finale, prima di Instagram ---------- */
+.team { position: relative; z-index: 28; border-top: 1px solid var(--line); background: radial-gradient(75% 42% at 50% 58%, rgba(232, 96, 40, .1), transparent 70%), var(--bg); }
+.team .in { max-width: 76rem; margin-inline: auto; padding: clamp(4rem, 10vw, 8rem) var(--gut); }
+.team h2 { font-size: clamp(2.8rem, 8vw, 5rem); line-height: .92; }
+.team .lead { max-width: 36rem; }
+/* tre tappe unite da una linea, come l'avanzamento del percorso: ogni figura sta sopra la sua tappa, i testi stanno sotto, mai sulla linea */
+.pros { --gap: clamp(1.5rem, 4vw, 4rem); --u: min(.029rem, .06vw); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); margin-top: clamp(2.6rem, 6vw, 4.5rem); }
+.pro { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.pro-fig { display: flex; align-items: flex-end; justify-content: center; width: 100%; height: calc(980 * var(--u)); }
+.pro-fig img { width: auto; height: calc(var(--ih) * var(--u)); max-width: 100%; filter: drop-shadow(0 0 1.3rem rgba(232, 96, 40, .3)) drop-shadow(0 .5rem 1rem rgba(0, 0, 0, .5)); }
+.pro-node { position: relative; align-self: stretch; height: .95rem; margin-top: 1.1rem; }
+.pro-node::before, .pro-node u { content: ""; position: absolute; top: calc(.475rem - 1px); height: 2px; left: calc(var(--gap) / -2); right: calc(var(--gap) / -2); }
+.pro-node::before { background: rgba(245, 245, 243, .35); }
+.pro-node u { background: var(--orange); box-shadow: 0 0 10px rgba(232, 96, 40, .7); transform-origin: left; transition: transform .7s cubic-bezier(.4, 0, .2, 1) calc(var(--i, 0) * .5s); }
+.pro:first-child .pro-node::before, .pro:first-child .pro-node u { left: 50%; }
+.pro:last-child .pro-node::before, .pro:last-child .pro-node u { right: 50%; }
+.pro-node i { position: absolute; z-index: 1; left: 50%; top: 0; width: .95rem; height: .95rem; margin-left: -.475rem; border-radius: 50%; border: 2px solid var(--orange); background: var(--orange); box-shadow: 0 0 0 5px rgba(232, 96, 40, .24), 0 0 18px rgba(232, 96, 40, .8); transition: background .4s calc(var(--i, 0) * .5s), border-color .4s calc(var(--i, 0) * .5s), box-shadow .4s calc(var(--i, 0) * .5s); }
+.pro h3 { margin-top: 1.9rem; font: 700 clamp(2rem, 3vw, 2.6rem)/.95 var(--display); letter-spacing: .02em; text-transform: uppercase; }
+.pro-name { margin-top: 1rem; max-width: 22rem; font-size: .95rem; color: var(--mute); text-wrap: balance; }
+.pro-hook { margin-top: .75rem; font: 700 1.1rem/1.3 var(--text); text-wrap: balance; }
+.pro-text { margin-top: .5rem; max-width: 22rem; color: var(--mute); text-wrap: pretty; }
+.team-cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 1.2rem 2rem; margin-top: clamp(3rem, 6vw, 4.5rem); padding-top: clamp(2rem, 4vw, 3rem); border-top: 1px solid var(--line); text-align: center; }
+.team-cta p { max-width: 24rem; color: var(--mute); }
+/* all'ingresso nella vista la linea si riempie da una tappa all'altra e le figure salgono; senza JS o con "riduci movimento" è tutto già acceso */
+.team.armed .pro-node u { transform: scaleX(0); }
+.team.armed .pro-node i { background: #050506; border-color: rgba(245, 245, 243, .75); box-shadow: none; }
+.team.armed .pro-fig, .team.armed .pro h3, .team.armed .pro-name, .team.armed .pro-hook, .team.armed .pro-text { opacity: 0; transform: translate3d(0, 14px, 0); transition: opacity .6s ease calc(var(--i, 0) * .5s + .15s), transform .6s ease calc(var(--i, 0) * .5s + .15s); }
+.team.armed .pro.is-in .pro-node u { transform: scaleX(1); }
+.team.armed .pro.is-in .pro-node i { background: var(--orange); border-color: var(--orange); box-shadow: 0 0 0 5px rgba(232, 96, 40, .24), 0 0 18px rgba(232, 96, 40, .8); }
+.team.armed .pro.is-in .pro-fig, .team.armed .pro.is-in h3, .team.armed .pro.is-in .pro-name, .team.armed .pro.is-in .pro-hook, .team.armed .pro.is-in .pro-text { opacity: 1; transform: none; }
 
 /* ---------- Instagram: dopo il finale, copre la scena scorrendo ---------- */
 .ig { position: relative; z-index: 28; background: var(--bg); border-top: 1px solid var(--line); }
@@ -144,10 +176,10 @@ body:not(.is-live) .top { position: absolute; }
   /* su telefono la figura sta in alto e il testo sotto; la barra delle tappe corre in orizzontale sotto la testata */
   .rail { right: auto; left: var(--gut); top: calc(max(1rem, env(safe-area-inset-top)) + 3.2rem); width: calc(100% - 2 * var(--gut)); }
   .rail ol { flex-direction: row; justify-content: space-between; gap: 0; }
-  .rail a { flex-direction: column-reverse; align-items: center; gap: .45rem; font-size: .85rem; letter-spacing: .14em; }
+  .rail a { flex-direction: column-reverse; align-items: center; justify-content: flex-start; gap: .75rem; height: auto; font-size: .85rem; letter-spacing: .14em; }
   .rail li:first-child a { align-items: flex-start; }
   .rail li:last-child a { align-items: flex-end; }
-  .rail-line { right: auto; left: .475rem; top: .475rem; bottom: auto; width: calc(100% - .95rem); height: 2px; }
+  .rail-line { right: auto; left: .475rem; top: auto; bottom: calc(.475rem - 1px); width: calc(100% - .95rem); height: 2px; }
   .rail::before { inset: -.7rem -.8rem -.55rem -.8rem; border-radius: 12px; }
   .rail-line u { transform-origin: left; transform: scaleX(var(--fill)); }
   .scrim { background: linear-gradient(0deg, rgba(3, 3, 4, .94) 0%, rgba(3, 3, 4, .78) 30%, rgba(3, 3, 4, 0) 58%); }
@@ -164,6 +196,20 @@ body:not(.is-live) .top { position: absolute; }
   .cut-chiara { --hm: 30vh; }
   .has-cut .lead, .has-cut .who { max-width: 58%; }
   .motto { font-size: 1.3rem; }
+  /* telefono: le tre tappe diventano una linea verticale a sinistra, figure e testi a destra della linea */
+  .pros { --gap: 3.2rem; --u: .0145rem; grid-template-columns: 1fr; padding-left: 2.3rem; margin-top: 2.2rem; }
+  .pro { align-items: flex-start; text-align: left; }
+  .pro-fig { justify-content: flex-start; }
+  .pro-node { position: static; height: 0; margin: 0; }
+  .pro-node i { left: -2.3rem; top: calc(980 * var(--u) + 1.65rem); margin-left: 0; }
+  .pro-node::before, .pro-node u, .pro:first-child .pro-node::before, .pro:first-child .pro-node u { display: block; left: calc(-2.3rem + .475rem - 1px); right: auto; top: calc(980 * var(--u) + 1.65rem + .475rem); width: 2px; height: calc(100% + var(--gap)); }
+  .pro:last-child .pro-node::before, .pro:last-child .pro-node u { display: none; }
+  .pro-node u { transform-origin: top; }
+  .team.armed .pro-node u { transform: scaleY(0); }
+  .team.armed .pro.is-in .pro-node u { transform: scaleY(1); }
+  .pro h3 { margin-top: 1.1rem; }
+  .pro-text { max-width: none; }
+  .team-cta { justify-content: flex-start; text-align: left; }
   .hint { margin-top: 1.4rem; }
   .hint span { height: 1.8rem; }
   .cta { margin-top: 1.3rem; gap: .6rem; }

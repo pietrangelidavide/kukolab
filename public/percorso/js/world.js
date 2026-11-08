@@ -15,7 +15,7 @@ export async function addWorld(X) {
   const { K, Mx, MATS } = X;
   const { STEEL, CHROME, BLACK, MATT, RUB, PAINT, WOOD, UPH, GLOSS } = MATS;
   const PE = addPeople(X);
-  await PE.loadFaces(X.base, ['valerio', 'chiara', 'cliente', 'g1', 'g2', 'g3', 'g4', 'g5']);
+  await PE.loadFaces(X.base, ['valerio', 'chiara', 'cliente', 'g1', 'g2', 'g3', 'g4', 'g5', ...(X.portrait ? ['calabro', 'osteo', 'fisio'] : [])]);
   const SK = X.visi || {};
   const sk = (k, d) => (SK[k] && SK[k].skin) || d;
   const eio = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
@@ -605,9 +605,98 @@ export async function addWorld(X) {
     });
   }
 
+
+  /* =============================== PROFESSIONISTI (sezione "Benessere a 360°") ===============================
+     Servono solo per generare le immagini della sezione: la scena in pagina non li disegna.
+     Con ?ritratti=nutrizionista|osteopata|fisioterapista (e ?cine=0&sfondo=000|fff) la scena mostra solo quella persona, ferma,
+     su sfondo uniforme: scripts/percorso-professionisti.py ne ricava i ritagli con trasparenza. */
+  const basisM = (o, x, y, z) => new Float32Array([x[0], x[1], x[2], 0, y[0], y[1], y[2], 0, z[0], z[1], z[2], 0, o[0], o[1], o[2], 1]);
+  function rod(A, B, r, col, mat) { // cilindro da A a B (raggio r)
+    const d = v.sub(B, A), yn = v.nrm(d), ref = Math.abs(yn[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0], xn = v.nrm(v.cross(ref, yn)), zn = v.cross(xn, yn);
+    mesh(G.cyl12, basisM(v.mix(A, B, 0.5), v.mul(xn, r), d, v.mul(zn, r)), col, mat);
+  }
+  const PLAIN = { spec: 0.22, shin: 30, rim: 0.6 }, SOFT = { spec: 0.08, shin: 12, rim: 0.5 };
+  function makePros() {
+    const pros = {};
+    const mk = (id, spec) => PE.createPerson({ id, seed: 20 + Object.keys(pros).length, ...spec, skin: sk(spec.face, [0.85, 0.65, 0.54]) });
+    pros.nutrizionista = {
+      person: mk('nutrizionista', { face: 'calabro', hair: { kind: 'short', col: [0.065, 0.05, 0.04], hi: [0.13, 0.1, 0.08] }, build: { w: 1.04, torso: 1.04, arm: 1.05, leg: 1.04, h: 1.02, hip: 1.0 }, logo: [0.2, 0.86],
+        outfit: { top: [0.95, 0.95, 0.93], sleeve: null, sleeveL: 1.0, bot: [0.13, 0.14, 0.18], legL: 2, legK: 0.55, shoe: [0.2, 0.15, 0.12], sole: [0.9, 0.88, 0.84], bare: 0 } }),
+      yaw: 0.0,
+      pose(a, t) { // la mela in una mano, l'altra aperta: "ecco cosa mangiare"
+        const P0 = standIdle(a, t, { ph: 1 });
+        P0.head = [0.1, 0.0, 0.05];
+        P0.hR = Wp(a, [-0.74, 2.38, 0.86]); P0.eR = rot(a, [-1, -0.9, -0.1]); P0.nR = rot(a, [0.15, 1, 0]); P0.cR = [0.5, 0.55, 0.5];
+        P0.hL = Wp(a, [0.78, 2.3, 0.76]); P0.eL = rot(a, [1, -0.9, -0.1]); P0.nL = rot(a, [-0.2, 1, 0]); P0.cL = [0.1, 0.12, 0.3];
+        return P0;
+      },
+      props(J) {
+        const h = J.hands.R, ap = [h[0] - 0.01, h[1] + 0.16, h[2] + 0.12];
+        mesh(G.sphere, M.chain(M.T(ap[0], ap[1], ap[2]), M.S(0.17, 0.155, 0.17)), [0.78, 0.09, 0.07], { spec: 0.4, shin: 50, rim: 0.6, mat: X.MAT.organic });
+        mesh(G.sphere, M.chain(M.T(ap[0], ap[1] + 0.15, ap[2]), M.S(0.045, 0.04, 0.045)), [0.3, 0.2, 0.1], PLAIN);
+        mesh(G.sphere, M.chain(M.T(ap[0] + 0.07, ap[1] + 0.17, ap[2]), M.Rz(-0.5), M.S(0.1, 0.03, 0.05)), [0.25, 0.55, 0.2], PLAIN);
+      },
+    };
+    pros.osteopata = {
+      person: mk('osteopata', { face: 'osteo', hair: { kind: 'short', col: [0.1, 0.07, 0.05], hi: [0.18, 0.13, 0.1] }, build: { w: 1.08, torso: 1.07, arm: 1.12, leg: 1.06, h: 1.03, hip: 1.0 }, logo: [0.2, 0.86],
+        outfit: { top: [0.13, 0.36, 0.38], sleeve: null, sleeveL: 0.4, bot: [0.9, 0.9, 0.88], legL: 2, legK: 0.6, shoe: [0.93, 0.93, 0.9], sole: [0.84, 0.84, 0.82], bare: 0 } }),
+      yaw: 0.0,
+      pose(a, t) { // regge un modello di colonna vertebrale e lo indica con l'altra mano
+        const P0 = standIdle(a, t, { ph: 2 });
+        P0.head = [-0.1, 0.02, -0.04];
+        P0.hL = Wp(a, [0.66, 2.38, 0.82]); P0.eL = rot(a, [1, -0.8, 0]); P0.nL = rot(a, [-0.3, 1, 0]); P0.cL = [0.5, 0.5, 0.45];
+        P0.hR = Wp(a, [-0.12, 3.12, 1.02]); P0.eR = rot(a, [-1, -0.2, -0.4]); P0.nR = rot(a, [1, 0, 0.3]); P0.cR = [0.22, 0.25, 0.3];
+        return P0;
+      },
+      props(J) {
+        const h = J.hands.L, b = [h[0] + 0.02, h[1] + 0.12, h[2] + 0.14];
+        mesh(G.cyl12, M.chain(M.T(b[0], b[1] - 0.01, b[2]), M.S(0.2, 0.035, 0.2)), [0.18, 0.18, 0.2], PLAIN); // base
+        const n = 15;
+        for (let k = 0; k < n; k++) {
+          const u = k / (n - 1), y = b[1] + 0.05 + k * 0.1, bend = 0.1 * Math.sin(u * 5.4 + 0.5), z = b[2] + bend;
+          const w = 0.062 + 0.034 * u * (1 - 0.35 * u);
+          mesh(G.cyl12, M.chain(M.T(b[0], y, z), M.S(w, 0.045, w * 0.88)), [0.93, 0.89, 0.8], PLAIN); // vertebra
+          mesh(G.sphere, M.chain(M.T(b[0], y, z - w * 0.95), M.S(0.026, 0.034, 0.05)), [0.9, 0.85, 0.74], PLAIN); // apofisi
+          if (k < n - 1) mesh(G.cyl12, M.chain(M.T(b[0], y + 0.05, z + 0.004), M.S(w * 0.8, 0.02, w * 0.7)), [0.72, 0.5, 0.36], SOFT); // disco
+        }
+        mesh(G.sphere, M.chain(M.T(b[0], b[1] + 0.05 + n * 0.1 + 0.06, b[2] + 0.04), M.S(0.11, 0.1, 0.11)), [0.93, 0.89, 0.8], PLAIN); // cranio
+        mesh(G.cyl12, M.chain(M.T(b[0], b[1] + 0.05 + (n - 1) * 0.05, b[2] - 0.075), M.S(0.012, 0.76, 0.012)), K.chrome, CHROME); // asta dietro
+      },
+    };
+    pros.fisioterapista = {
+      person: mk('fisioterapista', { face: 'fisio', hair: { kind: 'pony', col: [0.3, 0.19, 0.11], hi: [0.46, 0.3, 0.17] }, build: { w: 0.9, torso: 0.94, arm: 0.82, leg: 0.93, h: 0.97, hip: 1.1 }, logo: [0.18, 0.84],
+        outfit: { top: [0.86, 0.91, 0.95], sleeve: null, sleeveL: 0.4, bot: [0.12, 0.16, 0.27], legL: 2, legK: 0.35, shoe: [0.93, 0.93, 0.9], sole: [0.88, 0.88, 0.86], shoeAcc: [0.91, 0.38, 0.14], bare: 0 } }),
+      yaw: 0.0,
+      pose(a, t) { // allunga una fascia elastica davanti al petto
+        const P0 = standIdle(a, t, { ph: 3 });
+        P0.head = [0.08, 0.0, -0.05];
+        P0.hR = Wp(a, [-0.82, 2.72, 0.76]); P0.eR = rot(a, [-1, -0.7, -0.2]); P0.nR = rot(a, [0.2, -1, 0]); P0.cR = [0.9, 0.9, 0.7];
+        P0.hL = Wp(a, [0.82, 2.72, 0.76]); P0.eL = rot(a, [1, -0.7, -0.2]); P0.nL = rot(a, [-0.2, -1, 0]); P0.cL = [0.9, 0.9, 0.7];
+        return P0;
+      },
+      props(J) {
+        const A = [J.hands.R[0] + 0.05, J.hands.R[1] - 0.06, J.hands.R[2] + 0.1], B = [J.hands.L[0] - 0.05, J.hands.L[1] - 0.06, J.hands.L[2] + 0.1];
+        const sag = 0.14, mid = v.mix(A, B, 0.5);
+        const C = [mid[0], mid[1] - sag, mid[2] + 0.02];
+        const col = [0.91, 0.38, 0.14], mat = { spec: 0.3, shin: 30, rim: 0.7 };
+        rod(A, C, 0.032, col, mat); rod(C, B, 0.032, col, mat);
+        rod([A[0], A[1] + 0.06, A[2]], [C[0], C[1] + 0.06, C[2]], 0.02, col, mat); rod([C[0], C[1] + 0.06, C[2]], [B[0], B[1] + 0.06, B[2]], 0.02, col, mat);
+      },
+    };
+    return pros;
+  }
+  const PROS = X.portrait ? makePros() : null;
+  function portraitHook(t) {
+    const d = PROS[X.portrait]; if (!d) return;
+    const a = { x: 0, z: 0, yaw: d.yaw || 0 };
+    const J = d.person.draw(d.pose(a, 0.4), 0.4, { lod: 0, face: true });
+    d.props(J);
+  }
+
   /* =============================== HOOKS =============================== */
   const cache = { pos: 0 };
   hooks.opaque.push((pos, t, R) => {
+    if (PROS) { portraitHook(t); return; }
     const c = cpath(pos);
     clientX.x = c.x; clientX.z = c.z; cache.pos = pos;
     const cx = R.fx;
