@@ -87,6 +87,7 @@ in vec3 vW; in vec3 vN; in vec3 vObj; in mat3 vNM; uniform vec3 uEye, uCol, uFog
 ${LIGHT_UNIFORMS}${LIGHT_GLSL}
 out vec4 o;
 void main(){
+  if(vObj.y > uClip) discard; // abiti di lunghezza variabile: si taglia la parte oltre l'orlo
   vec3 n = normalize(vN); if(!gl_FrontFacing) n = -n;
   vec3 V = normalize(uEye - vW);
   vec3 c = toDsp(shade(uCol, n, V, vW, uP, vObj, vNM)) + uGlow;

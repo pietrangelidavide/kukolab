@@ -3,7 +3,7 @@
 // la sequenza si riavvolge identica. Il motore è lo stesso già usato altrove (WebGL2 scritto a mano, senza librerie): niente da compilare.
 import { createGL, texFromBitmap, M, PAL, mixc, sphere, cyl, torus, box, upload, lathe, smooth } from './engine.js';
 import { createCine } from './cine.js';
-import { setLight, MAT } from './light.js';
+import { setLight, MAT, objScale } from './light.js';
 
 const cl = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const lin = (a, b, x) => cl((x - a) / (b - a));
@@ -52,11 +52,11 @@ function camAt(pos) {
 
 /* ---------- atmosfera di ogni sala (valori lineari) ---------- */
 const MOOD = [
-  { key: [0.86, 0.8, 0.72], aT: [0.2, 0.22, 0.26], aB: [0.1, 0.1, 0.11], rim: [0.95, 0.5, 0.3], top: [0.055, 0.055, 0.065], bot: [0.12, 0.115, 0.115], fog: [0.08, 0.08, 0.09], glow: [0.5, 0.3, 0.2], dark: 0.7 },
-  { key: [0.95, 0.97, 1.0], aT: [0.17, 0.19, 0.23], aB: [0.08, 0.08, 0.09], rim: [1.0, 0.42, 0.16], top: [0.04, 0.045, 0.055], bot: [0.09, 0.09, 0.1], fog: [0.07, 0.075, 0.085], glow: [0.2, 0.25, 0.35], dark: 0.7 },
-  { key: [1.0, 0.9, 0.74], aT: [0.42, 0.4, 0.36], aB: [0.3, 0.25, 0.18], rim: [1.0, 0.85, 0.65], top: [0.7, 0.66, 0.58], bot: [0.8, 0.72, 0.6], fog: [0.72, 0.66, 0.56], glow: [1.0, 0.9, 0.75], dark: 0.0 },
-  { key: [1.0, 0.82, 0.66], aT: [0.15, 0.15, 0.16], aB: [0.07, 0.06, 0.06], rim: [1.0, 0.3, 0.1], top: [0.05, 0.04, 0.04], bot: [0.12, 0.07, 0.05], fog: [0.09, 0.06, 0.05], glow: [0.7, 0.25, 0.1], dark: 0.85 },
-  { key: [1.0, 0.9, 0.78], aT: [0.13, 0.13, 0.15], aB: [0.05, 0.05, 0.06], rim: [1.0, 0.45, 0.2], top: [0.03, 0.03, 0.035], bot: [0.07, 0.065, 0.065], fog: [0.05, 0.05, 0.055], glow: [0.7, 0.3, 0.15], dark: 1.0 },
+  { key: [0.86, 0.8, 0.72], aT: [0.2, 0.22, 0.26], aB: [0.1, 0.1, 0.11], rim: [0.95, 0.5, 0.3], top: [0.055, 0.055, 0.065], bot: [0.12, 0.115, 0.115], fog: [0.08, 0.08, 0.09], glow: [0.5, 0.3, 0.2], dark: 0.7, side: [0.7, 0.3, 0.09] },
+  { key: [0.95, 0.97, 1.0], aT: [0.17, 0.19, 0.23], aB: [0.08, 0.08, 0.09], rim: [1.0, 0.42, 0.16], top: [0.04, 0.045, 0.055], bot: [0.09, 0.09, 0.1], fog: [0.07, 0.075, 0.085], glow: [0.2, 0.25, 0.35], dark: 0.7, side: [0.78, 0.31, 0.09] },
+  { key: [1.0, 0.9, 0.74], aT: [0.42, 0.4, 0.36], aB: [0.3, 0.25, 0.18], rim: [1.0, 0.85, 0.65], top: [0.7, 0.66, 0.58], bot: [0.8, 0.72, 0.6], fog: [0.72, 0.66, 0.56], glow: [1.0, 0.9, 0.75], dark: 0.0, side: [0.3, 0.17, 0.07] },
+  { key: [1.0, 0.82, 0.66], aT: [0.15, 0.15, 0.16], aB: [0.07, 0.06, 0.06], rim: [1.0, 0.3, 0.1], top: [0.05, 0.04, 0.04], bot: [0.12, 0.07, 0.05], fog: [0.09, 0.06, 0.05], glow: [0.7, 0.25, 0.1], dark: 0.85, side: [0.95, 0.36, 0.1] },
+  { key: [1.0, 0.9, 0.78], aT: [0.13, 0.13, 0.15], aB: [0.05, 0.05, 0.06], rim: [1.0, 0.45, 0.2], top: [0.03, 0.03, 0.035], bot: [0.07, 0.065, 0.065], fog: [0.05, 0.05, 0.055], glow: [0.7, 0.3, 0.15], dark: 1.0, side: [0.85, 0.33, 0.1] },
 ];
 const ZXC = [0, 22, 46, 70, 94];
 
@@ -67,7 +67,8 @@ export async function createScene(canvas, { base = '' } = {}) {
   let cine = null;
   if (QS.get('cine') !== '0') { try { cine = createCine(C); } catch (e) { console.warn('[cinema] non disponibile:', e.message); } }
   const FX = { tier: 0, shadows: QS.get('ombre') !== '0' };
-  const PORT = QS.get('ritratti'), PBG = QS.get('sfondo') === 'fff' ? 1 : 0; // ritratti per la sezione dei professionisti (vedi world.js)
+  const PORT = QS.get('ritratti'); // ritratti per la sezione dei professionisti (vedi world.js)
+  const PBGC = (() => { const h = (QS.get('sfondo') || '000').replace('#', ''); const f = h.length === 3 ? h.split('').map((c) => c + c).join('') : h.padEnd(6, '0'); return [0, 2, 4].map((i) => parseInt(f.slice(i, i + 2), 16) / 255); })();
   const dummySM = cine ? null : (() => {
     const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, 1, 1, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
@@ -112,7 +113,7 @@ export async function createScene(canvas, { base = '' } = {}) {
   const S = { w: 1, h: 1, dpr: 1, asp: 1.6, mobile: false };
   const vp = new Float32Array(16);
   let eye = [0, 0, 10], time = 0;
-  const mvpQuad = (x, y, z, w, h, rz = 0) => M.mul(vp, M.chain(M.T(x, y, z), M.Rz(rz), M.S(w, h, 1)));
+  const mvpQuad = (x, y, z, w, h, rz = 0, rx = 0) => M.mul(vp, M.chain(M.T(x, y, z), M.Rx(rx), M.Rz(rz), M.S(w, h, 1)));
 
   /* ---------- disegno ---------- */
   function setMesh(m, col, o = {}) {
@@ -121,6 +122,8 @@ export async function createScene(canvas, { base = '' } = {}) {
     gl.uniform4f(u.uP, o.spec ?? defM.spec, o.shin ?? defM.shin, o.rim ?? defM.rim, o.mat || 0);
     gl.uniform1f(u.uAlpha, o.alpha ?? 1);
     gl.uniform3fv(u.uGlow, o.glow || [0, 0, 0]);
+    gl.uniform1f(u.uClip, o.clip ?? 9);
+    gl.uniform3fv(u.uObjS, objScale(m));
   }
   let REC = null, GLASS = [];
   let DRAWS = 0;
@@ -140,7 +143,7 @@ export async function createScene(canvas, { base = '' } = {}) {
   function quadFX(kind, x, y, z, w, h, col, alpha, o = {}) {
     if (alpha <= 0.002) return;
     const u = P.fx.u;
-    gl.uniformMatrix4fv(u.uMVP, false, mvpQuad(x, y, z, w, h, o.rz || 0));
+    gl.uniformMatrix4fv(u.uMVP, false, mvpQuad(x, y, z, w, h, o.rz || 0, o.rx || 0));
     gl.uniform1f(u.uKind, kind); gl.uniform1f(u.uAlpha, alpha); gl.uniform1f(u.uTime, time);
     gl.uniform1f(u.uA, o.a ?? 2); gl.uniform1f(u.uB, o.b ?? 1); gl.uniform1f(u.uC, o.c ?? 0);
     gl.uniform3fv(u.uCol, col); gl.uniform3fv(u.uCol2, o.col2 || col);
@@ -165,6 +168,15 @@ export async function createScene(canvas, { base = '' } = {}) {
     });
   }
 
+  // ombra morbida di contatto sul pavimento (ellisse sfumata), dentro al passaggio opaco; w = larghezza, d = lunghezza lungo il giro yaw
+  function contact(x, z, w, d, alpha, yaw = 0, y = 0.012) {
+    later(() => {
+      gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false);
+      gl.useProgram(P.fx.p); quadFX(6, x, y, z, w, d, [0, 0, 0], alpha, { a: 1.5, rx: -Math.PI / 2, rz: yaw });
+      gl.depthMask(true); gl.disable(gl.BLEND); gl.useProgram(P.mesh.p);
+    });
+  }
+
   /* ---------- particelle: pulviscolo nella luce, scintille nella sala Functional ---------- */
   const NP = 150, pa = new Float32Array(NP * 4), pb = new Float32Array(NP * 4);
   const PS = Array.from({ length: NP }, () => ({ x: rnd(), y: rnd(), z: rnd(), s: rnd(), ph: rnd() * 6.28, k: rnd(), sp: 0.4 + rnd() }));
@@ -172,8 +184,8 @@ export async function createScene(canvas, { base = '' } = {}) {
   let ptrS = [0, 0], WRL = null, camCache = null, camOv = null;
   const LT0 = { lvp: M.id(), smOn: false, smSize: 2048, bias: 0.0008, nOff: 0.035, keyC: [1, 1, 1], ambT: [0.3, 0.3, 0.3], ambB: [0.2, 0.2, 0.2], rimC: [1, 1, 1], smTex: dummySM };
   const ctxObj = {
-    gl, P, G, T, PAL, mesh, later, glass, MAT, quadFX, quadTex: decal, M, cl, lin, sm, lerp, eo, pop, mixc, S, base, visi,
-    get time() { return time; }, hooks: { opaque: [], titles: [], front: [] }, portrait: PORT,
+    gl, P, G, T, PAL, mesh, later, glass, contact, MAT, quadFX, quadTex: decal, M, cl, lin, sm, lerp, eo, pop, mixc, S, base, visi,
+    get time() { return time; }, hooks: { opaque: [], titles: [], front: [] }, portrait: PORT, portraitYaw: +(QS.get('giro') || 0),
   };
   const hooks = ctxObj.hooks;
 
@@ -210,7 +222,7 @@ export async function createScene(canvas, { base = '' } = {}) {
 
     // ---- luce di sala: cambia con la posizione del cliente
     const lt = cine ? cine.light : LT0;
-    lt.keyC = mixArr('key', w); lt.ambT = mixArr('aT', w); lt.ambB = mixArr('aB', w); lt.rimC = mixArr('rim', w);
+    lt.keyC = mixArr('key', w); lt.ambT = mixArr('aT', w); lt.ambB = mixArr('aB', w); lt.rimC = mixArr('rim', w); lt.sideC = mixArr('side', w);
     const dark = MOOD.reduce((a, m, i) => a + m.dark * w[i], 0);
     const FOGM = mixArr('fog', w);
     const fogK = [dist * 1.25, dist * 3.6];
@@ -223,7 +235,7 @@ export async function createScene(canvas, { base = '' } = {}) {
     if (useC && FX.shadows) { cine.shadowBegin([c.x + 1.5, 1.6, Math.min(0.5, c.z)], 12.5); replay(list, true); cine.shadowEnd(); }
     if (useC) cine.sceneBegin(); else { gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, S.w, S.h); }
     gl.disable(gl.DEPTH_TEST); gl.disable(gl.BLEND); gl.depthMask(true);
-    if (PORT) gl.clearColor(PBG, PBG, PBG, 1); else gl.clearColor(0.05, 0.05, 0.06, 1);
+    if (PORT) gl.clearColor(PBGC[0], PBGC[1], PBGC[2], 1); else gl.clearColor(0.05, 0.05, 0.06, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // ---- sfondo (si vede solo sopra la parete di fondo)

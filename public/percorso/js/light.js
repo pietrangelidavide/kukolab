@@ -5,12 +5,13 @@
 
 export const KEYDIR = (() => { const v = [-0.62, 0.7, 0.5], l = Math.hypot(...v); return v.map((x) => x / l); })(); // verso la luce principale
 export const RIMDIR = (() => { const v = [0.7, 0.32, -0.7], l = Math.hypot(...v); return v.map((x) => x / l); })();  // verso il controluce
+export const SIDEDIR = (() => { const v = [0.95, 0.14, -0.12], l = Math.hypot(...v); return v.map((x) => x / l); })(); // luce laterale arancione, da destra
 
 // tipi di materiale (uP.w)
 export const MAT = { plain: 0, skin: 1, cloth: 2, hair: 3, organic: 4, metal: 5, glass: 6, wood: 7 };
 
 export const LIGHT_UNIFORMS = `uniform mat4 uLVP; uniform highp sampler2DShadow uSM; uniform vec4 uSMp;
-uniform vec3 uKeyC, uAmbT, uAmbB, uRimC, uKeyD, uRimD;
+uniform vec3 uKeyC, uAmbT, uAmbB, uRimC, uKeyD, uRimD, uSideC, uSideD, uObjS; uniform float uClip;
 `;
 
 export const LIGHT_GLSL = `
@@ -61,12 +62,33 @@ vec3 shade(vec3 alb, vec3 n, vec3 V, vec3 wp, vec4 P, vec3 obj, mat3 NM){
   } else if(wood){
     float gr = vnoise(vec3(obj.x*2., obj.y*26., obj.z*2.)); alb *= .9 + .2*gr; n = normalize(n + NM*nGrad(vec3(obj.x*3., obj.y*30., obj.z*3.))*.012);
   } else if(cloth){
-    float w1 = sin(obj.x*150.)*sin(obj.y*150.), w2 = sin(obj.z*150.)*sin(obj.y*150.); alb *= 1. + .03*(w1 + w2);
-    n = normalize(n + NM*nGrad(obj*40.)*.012);
+    float gf = clamp(kind - 2., 0., .49);
+    vec3 qw = obj*uObjS; float aa = 1. - smoothstep(.25, .9, fwidth(qw.x*420.) + fwidth(qw.y*420.)); // trama in unità di scena, sfuma se più fine di un pixel
+    float w1 = sin(qw.x*420.)*sin(qw.y*420.), w2 = sin(qw.z*420.)*sin(qw.y*420.); alb *= 1. + .03*aa*(w1 + w2);
+    n = normalize(n + NM*nGrad(qw*130.)*.012*aa);
+    if(gf > .01){ // capo tecnico: cuciture piatte ai lati, pieghe nell'articolazione piegata, orlo
+      float bend = clamp((gf - .02)/.44, 0., 1.);
+      float fz = fwidth(obj.z) + 1e-5;
+      float s0 = 1. - smoothstep(0., 1.5*fz, abs(obj.z)), s1 = 1. - smoothstep(0., 1.1*fz, abs(abs(obj.z) - 4.5*fz));
+      alb *= 1. - .36*s0 - .17*s1;
+      float jw = max(smoothstep(.62, 1., obj.y), smoothstep(.38, 0., obj.y));
+      float fo = sin(obj.y*72. + vnoise(obj*5.)*5. + obj.x*6.);
+      float fa = bend*jw*(.3 + .7*smoothstep(-.2, .9, obj.z));
+      alb *= 1. - .24*fa*(.5 + .5*fo);
+      n = normalize(n + NM*vec3(0., fo, 0.)*.32*fa);
+      alb *= 1. - .4*smoothstep(uClip - .05, uClip, obj.y);
+    }
   } else if(hair){ // fili: righe fini lungo la ciocca (la direzione in cui scende)
     float st = vnoise(vec3(obj.x*26., obj.y*1.3, obj.z*26.)), st2 = vnoise(vec3(obj.x*75., obj.y*2.4, obj.z*75.));
     alb *= .78 + .28*st + .16*st2;
     alb *= mix(1.1, .7, .45 + .55*smoothstep(.6, 1.7, obj.y)); // radici più scure, punte più chiare
+  }
+  if(skin){ // pelle: arrossamenti, macchie e pori in unità di mondo (legati al corpo, non allo schermo)
+    vec3 q = obj*uObjS;
+    float bl = vnoise(q*13. + 4.), bl2 = vnoise(q*36.), pr = vnoise(q*105.);
+    alb = mix(alb, alb*vec3(1.07, .9, .86), smoothstep(.45, .9, bl)*.2);
+    alb *= (.965 + .07*bl2)*(.975 + .04*pr);
+    n = normalize(n + NM*nGrad(q*105.)*.0042);
   }
   vec3 a = toLin(alb);
   float NoV = max(dot(n, V), 1e-3);
@@ -96,6 +118,15 @@ vec3 shade(vec3 alb, vec3 n, vec3 V, vec3 wp, vec4 P, vec3 obj, mat3 NM){
     float s2 = pow(max(0., sqrt(max(0., 1. - pow(dot(normalize(T - n*(.22 - shift)), H), 2.)))), 38.);
     sp = uKeyC*sh*(s1*.34 + s2*.26*mix(vec3(1.), a*2.4, .8))*smoothstep(-.1, .4, NoL);
   }
+  // luce laterale arancione: avvolge il lato destro del corpo (senza ombre, morbida)
+  float sNoL = dot(n, uSideD);
+  float swr = skin ? .22 : (cloth ? .12 : .06);
+  float sdl = clamp((sNoL + swr)/(1. + swr), 0., 1.);
+  diff += a*uSideC*sdl*(skin ? 1.12 : 1.);
+  { vec3 H2 = normalize(uSideD + V); float nl2 = max(sNoL, 0.);
+    vec3 F2 = f0 + (1. - f0)*pow(1. - max(dot(V, H2), 0.), 5.);
+    if(!hair) sp += F2*D_GGX(max(dot(n, H2), 0.), rough*rough)*V_SmithG(NoV, nl2, rough)*nl2*uSideC*3.14159*.85; }
+  sp = sp/(1. + sp*.22); // riflessi controllati: i picchi non bruciano
   // riflessi dell'ambiente (softbox)
   vec3 R = reflect(-V, n);
   vec3 fe = f0 + (max(vec3(1. - rough), f0) - f0)*pow(1. - NoV, 5.);
@@ -111,6 +142,9 @@ vec3 shade(vec3 alb, vec3 n, vec3 V, vec3 wp, vec4 P, vec3 obj, mat3 NM){
 }
 `;
 
+// scala dell'oggetto lungo i suoi tre assi (lunghezza delle colonne della matrice): porta le coordinate dell'oggetto in unità di scena
+export const objScale = (m) => [Math.hypot(m[0], m[1], m[2]), Math.hypot(m[4], m[5], m[6]), Math.hypot(m[8], m[9], m[10])];
+
 // carica nel programma tutti i valori della luce (da chiamare con il programma già attivo)
 export function setLight(gl, u, F) {
   if (!F || !F.light3) return;
@@ -119,6 +153,7 @@ export function setLight(gl, u, F) {
   gl.uniform4f(u.uSMp, L.smOn ? 1 : 0, 1 / L.smSize, L.bias, L.nOff);
   gl.uniform3fv(u.uKeyC, L.keyC); gl.uniform3fv(u.uAmbT, L.ambT); gl.uniform3fv(u.uAmbB, L.ambB); gl.uniform3fv(u.uRimC, L.rimC);
   gl.uniform3fv(u.uKeyD, KEYDIR); gl.uniform3fv(u.uRimD, RIMDIR);
+  gl.uniform3fv(u.uSideC, L.sideC || [0, 0, 0]); gl.uniform3fv(u.uSideD, SIDEDIR);
   gl.activeTexture(gl.TEXTURE7); gl.bindTexture(gl.TEXTURE_2D, L.smTex); gl.uniform1i(u.uSM, 7);
   gl.activeTexture(gl.TEXTURE0);
 }

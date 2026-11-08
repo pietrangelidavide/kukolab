@@ -686,10 +686,21 @@ export async function addWorld(X) {
     return pros;
   }
   const PROS = X.portrait ? makePros() : null;
+  if (PROS) { // anche i personaggi principali, fermi, per provare corpo e volto da vicino (?ritratti=valerio|chiara|cliente|gruppo)
+    const still = (a, t) => standIdle(a, t, { ph: 0 });
+    const arms = (a, t) => { const P0 = standIdle(a, t, { ph: 1 }); P0.hR = Wp(a, [-0.7, 2.5, 0.5]); P0.hL = Wp(a, [0.7, 2.5, 0.5]); P0.eR = rot(a, [-1, -0.3, -0.4]); P0.eL = rot(a, [1, -0.3, -0.4]); P0.cR = [0.8, 0.8, 0.8]; P0.cL = [0.3, 0.3, 0.3]; return P0; };
+    const none = () => {};
+    PROS.valerio = { person: valerio[0], yaw: 0, pose: still, props: none, outfit: OUT.pt };
+    PROS.chiara = { person: chiara[0], yaw: 0, pose: still, props: none, outfit: OUT.pil };
+    PROS.cliente = { person: client, yaw: 0, pose: still, props: none, outfit: OUT.fun };
+    PROS.gruppo = { person: group[2], yaw: 0, pose: arms, props: none, outfit: OUT.fun };
+    PROS.gruppo2 = { person: group[1], yaw: 0, pose: arms, props: none };
+    PROS.gruppo3 = { person: group[0], yaw: 0, pose: still, props: none };
+  }
   function portraitHook(t) {
     const d = PROS[X.portrait]; if (!d) return;
-    const a = { x: 0, z: 0, yaw: d.yaw || 0 };
-    const J = d.person.draw(d.pose(a, 0.4), 0.4, { lod: 0, face: true });
+    const a = { x: 0, z: 0, yaw: (d.yaw || 0) + (X.portraitYaw || 0) };
+    const J = d.person.draw(d.pose(a, 0.4), 0.4, { lod: 0, face: true, outfit: d.outfit });
     d.props(J);
   }
 

@@ -56,13 +56,13 @@ def from_photo(name, src, pupils, mouth_y, skin_box, flip=False, skin_fix=None):
         return out[v - r:v + r, u - r:u + r].reshape(-1, 3)
     pts = np.concatenate([at(-0.19, -0.06), at(0.19, -0.06), at(0.0, 0.22), at(-0.12, 0.17), at(0.12, 0.17)])
     skin = np.median(pts, axis=0)
-    g = float(skin @ np.array([0.299, 0.587, 0.114])); skin = np.clip(g + (skin - g) * 0.78, 0, 1)
+    g = float(skin @ np.array([0.299, 0.587, 0.114])); skin = np.clip(g + (skin - g) * 0.92, 0, 1)
     if skin_fix is not None: skin = np.array(skin_fix, np.float32)   # foto con luce molto contrastata: il colore della pelle si dà a mano
     out = cv2.bilateralFilter(out, 5, 0.05, 4)
     # maschera ovale: il bordo si fonde sul colore della pelle della testa
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
-    d = np.sqrt(((xx - W / 2) / (W * 0.50)) ** 2 + ((yy - H * 0.52) / (H * 0.50)) ** 2)
-    m = np.clip((1.0 - d) / 0.2, 0, 1); m = m * m * (3 - 2 * m)
+    d = np.sqrt(((xx - W / 2) / (W * 0.465)) ** 2 + ((yy - H * 0.52) / (H * 0.50)) ** 2)   # un po' più stretta: il bordo della foto (orecchio, capelli, sfondo) non deve vedersi
+    m = np.clip((1.0 - d) / 0.27, 0, 1); m = m * m * (3 - 2 * m)
     top = np.clip((yy - H * 0.06) / (H * 0.10), 0, 1); m = m * (top * top * (3 - 2 * top))   # la fronte alta (capelli) sfuma: ci pensa la calotta
     m = cv2.GaussianBlur(m, (0, 0), 5)[..., None]
     res = out * m + np.array(skin, np.float32) * (1 - m)
