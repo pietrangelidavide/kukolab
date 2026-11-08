@@ -53,19 +53,26 @@ em { font-style: normal; }
 .top-links .pill:hover { background: #fff; text-decoration: none; }
 
 /* ---------- avanzamento: tre tappe unite da una linea ---------- */
-.rail { position: fixed; z-index: 25; right: var(--gut); top: 7.6rem; display: none; }
+.rail { position: fixed; z-index: 25; right: var(--gut); top: 5.9rem; width: min(22.5rem, calc(100% - 2 * var(--gut) - 3rem)); display: none; }
 .is-live .rail { display: block; transition: opacity .35s; }
 .is-after .rail { opacity: 0; pointer-events: none; visibility: hidden; }
-/* un fondo scuro e morbido dietro all'avanzamento: resta leggibile anche nella sala chiara del Pilates */
-.rail::before { content: ""; position: absolute; z-index: -1; inset: -1.5rem -1.2rem -1.5rem -1.7rem; border-radius: 14px; background: rgba(8, 8, 9, .52); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); pointer-events: none; }
-.rail ol { display: flex; flex-direction: column; gap: 5.6rem; position: relative; z-index: 1; }
-.rail a { display: flex; flex-direction: row-reverse; align-items: center; justify-content: flex-start; gap: 1.1rem; height: 1.05rem; text-decoration: none; font: 700 1.05rem/1 var(--display); letter-spacing: .18em; text-transform: uppercase; color: rgba(245, 245, 243, .7); transition: color .4s; }
+/* un velo scuro dietro la barra, così resta leggibile su ogni scena */
+.rail::before { content: ""; position: absolute; z-index: -1; inset: -.9rem -1.2rem -.85rem -1.4rem; border-radius: 12px; background: rgba(8, 8, 9, .52); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); pointer-events: none; }
+/* tre tappe in orizzontale: la prima a sinistra, la seconda al centro, la terza a destra, così i puntini cadono a 0, 50 e 100% della linea */
+.rail ol { display: flex; justify-content: space-between; position: relative; z-index: 1; }
+.rail li { flex: 1 1 0; display: flex; justify-content: center; }
+.rail li:first-child { justify-content: flex-start; }
+.rail li:last-child { justify-content: flex-end; }
+.rail a { display: flex; flex-direction: column-reverse; align-items: center; gap: .75rem; text-decoration: none; font: 700 1.05rem/1 var(--display); letter-spacing: .18em; text-transform: uppercase; color: rgba(245, 245, 243, .7); transition: color .4s; }
+.rail li:first-child a { align-items: flex-start; }
+.rail li:last-child a { align-items: flex-end; }
 .rail a i { flex: none; width: .95rem; height: .95rem; border-radius: 50%; border: 2px solid rgba(245, 245, 243, .75); background: #050506; transition: background .4s, border-color .4s, box-shadow .4s, transform .4s; }
 .rail a[aria-current] { color: var(--fg); }
 .rail a.on i { background: var(--orange); border-color: var(--orange); box-shadow: 0 0 0 5px rgba(232, 96, 40, .24), 0 0 18px rgba(232, 96, 40, .8); }
 .rail a[aria-current] i { transform: scale(1.25); }
-.rail-line { position: absolute; z-index: 0; right: calc(.475rem - 1px); top: .525rem; bottom: .525rem; width: 2px; background: rgba(245, 245, 243, .35); }
-.rail-line u { position: absolute; inset: 0; background: var(--orange); transform-origin: top; transform: scaleY(var(--fill)); box-shadow: 0 0 10px rgba(232, 96, 40, .7); }
+/* la linea corre sotto i puntini, da sinistra a destra, e si riempie d'arancio mentre scorri */
+.rail-line { position: absolute; z-index: 0; left: .475rem; bottom: calc(.475rem - 1px); width: calc(100% - .95rem); height: 2px; background: rgba(245, 245, 243, .35); }
+.rail-line u { position: absolute; inset: 0; background: var(--orange); transform-origin: left; transform: scaleX(var(--fill)); box-shadow: 0 0 10px rgba(232, 96, 40, .7); }
 
 /* ---------- scena ---------- */
 #gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; background: #050506; }
@@ -184,15 +191,10 @@ body:not(.is-live) .top { position: absolute; }
   .top-links .pill .m { display: inline; }
   .top-links a:not(.pill) { display: none; }
   .top-links .pill { min-height: 2.25rem; padding: 0 .9rem; font-size: 1.05rem; }
-  /* su telefono la figura sta in alto e il testo sotto; la barra delle tappe corre in orizzontale sotto la testata */
+  /* su telefono la figura sta in alto e il testo sotto; la barra delle tappe occupa tutta la larghezza, sotto la testata */
   .rail { right: auto; left: var(--gut); top: calc(max(1rem, env(safe-area-inset-top)) + 3.2rem); width: calc(100% - 2 * var(--gut)); }
-  .rail ol { flex-direction: row; justify-content: space-between; gap: 0; }
-  .rail a { flex-direction: column-reverse; align-items: center; justify-content: flex-start; gap: .75rem; height: auto; font-size: .85rem; letter-spacing: .14em; }
-  .rail li:first-child a { align-items: flex-start; }
-  .rail li:last-child a { align-items: flex-end; }
-  .rail-line { right: auto; left: .475rem; top: auto; bottom: calc(.475rem - 1px); width: calc(100% - .95rem); height: 2px; }
-  .rail::before { inset: -.7rem -.8rem -.55rem -.8rem; border-radius: 12px; }
-  .rail-line u { transform-origin: left; transform: scaleX(var(--fill)); }
+  .rail a { font-size: .85rem; letter-spacing: .14em; }
+  .rail::before { inset: -.7rem -.8rem -.55rem -.8rem; }
   .scrim { background: linear-gradient(0deg, rgba(3, 3, 4, .94) 0%, rgba(3, 3, 4, .78) 30%, rgba(3, 3, 4, 0) 58%); }
   .is-live .phase { align-items: flex-end; padding: 6rem var(--gut) calc(1.8rem + env(safe-area-inset-bottom)); }
   .is-live .finale { padding-bottom: calc(1.8rem + env(safe-area-inset-bottom)); }
@@ -227,7 +229,6 @@ body:not(.is-live) .top { position: absolute; }
   .where { margin-top: 1.2rem; font-size: .85rem; }
 }
 @media (max-height: 560px) and (min-width: 761px) {
-  .rail ol { gap: 3rem; }
   h1 { font-size: clamp(2.4rem, 8vh, 4rem); }
   h2 { font-size: clamp(2.2rem, 7.5vh, 3.6rem); }
 }
