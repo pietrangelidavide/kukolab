@@ -34,12 +34,16 @@
 
 <!-- Avanzamento: tre tappe unite da una linea che si riempie mentre scorri; alla fine sono tutte accese -->
 <nav class="rail" aria-label="Il percorso: Personal, Pilates, Funzionale">
-  <ol>
-    <li><a href="#personale" data-go="1" data-stage="0"><i></i><span>Personal</span></a></li>
-    <li><a href="#pilates" data-go="3" data-stage="1"><i></i><span>Pilates</span></a></li>
-    <li><a href="#funzionale" data-go="5" data-stage="2"><i></i><span>Funzionale</span></a></li>
-  </ol>
-  <b class="rail-line" aria-hidden="true"><u></u></b>
+  <div class="rail-track">
+    <ol>
+      <li><a href="#personale" data-go="1" data-stage="0"><i></i><span>Personal</span></a></li>
+      <li><a href="#pilates" data-go="3" data-stage="1"><i></i><span>Pilates</span></a></li>
+      <li><a href="#funzionale" data-go="5" data-stage="2"><i></i><span>Funzionale</span></a></li>
+    </ol>
+    <b class="rail-line" aria-hidden="true"><u></u></b>
+  </div>
+  <!-- Solo su computer: porta alla tappa successiva (Personal → Pilates → Funzionale → finale) -->
+  <button type="button" class="rail-next">Continua<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
 </nav>
 
 <main id="percorso">
@@ -47,10 +51,11 @@
 
   <section class="phase" id="hero" data-a="-1" data-b="0.62" aria-labelledby="h-hero">
     <div class="copy">
-      <h1 id="h-hero">Il tuo benessere a 360°<br><em>Un percorso completo.</em></h1>
+      <h1 id="h-hero">Il tuo benessere a 360°</h1>
       <p class="lead">Tre discipline, un unico percorso. Costruito intorno a te.</p>
-      <p class="hint" aria-hidden="true"><span></span>Scorri per entrare</p>
     </div>
+    <!-- Invito al centro: porta alla prima tappa del percorso (Personal). Senza 3D è un normale collegamento alla sezione. -->
+    <p class="enter"><a class="btn big" href="#personale" data-go="1">Scopri il percorso<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg></a></p>
     <img class="still" src="/img/studio-forza-wide.jpg" width="1600" height="900" alt="La sala di KUKO LAB, con i rack, i pesi e il banco con il logo">
   </section>
 
@@ -153,11 +158,28 @@
       <li><a href="https://www.instagram.com/kukolab_performance/reels/" target="_blank" rel="noopener"><img src="/img/reel-halloween.jpg" width="760" height="1314" loading="lazy" alt="Video «Promo Halloween Pilates reformer»"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11"/><path d="M10 8l6 4-6 4z"/></svg></a></li>
     </ul>
   </div>
-  <footer class="foot">
-    <p>© 2026 KUKO LAB Performance studio · Via del Pianeta Urano 44, EUR, Roma</p>
-    <p><a href="/personal-training">Personal training</a> <a href="/functional">Functional</a> <a href="/pilates">Pilates</a> <a href="/privacy">Privacy</a></p>
-  </footer>
 </section>
+
+<!-- Contatti: dopo Instagram, prima del piede della pagina -->
+<section class="contact" id="dove" aria-labelledby="dove-t">
+  <div class="in">
+    <div class="contact-head">
+      <h2 id="dove-t">Vieni a trovarci.</h2>
+      <p>Per orari, disponibilità e per prenotare la tua prova scrivici su WhatsApp: ti rispondiamo noi.</p>
+      <a class="btn" data-wa="contatti" href="https://wa.me/393920948122?text=Ciao%20KUKO%20LAB%2C%20vorrei%20prenotare%20una%20prova.">Scrivici su WhatsApp</a>
+    </div>
+    <dl class="contact-list">
+      <div><dt>Dove siamo</dt><dd><a href="https://www.google.com/maps/search/?api=1&amp;query=Via+del+Pianeta+Urano+44+Roma" target="_blank" rel="noopener">Via del Pianeta Urano 44, EUR, Roma</a></dd></div>
+      <div><dt>Telefono</dt><dd><a href="tel:+393920948122">392 094 8122</a></dd></div>
+      <div><dt>Instagram</dt><dd><a href="https://www.instagram.com/kukolab_performance/" target="_blank" rel="noopener">@kukolab_performance</a></dd></div>
+    </dl>
+  </div>
+</section>
+
+<footer class="foot">
+  <p>© 2026 KUKO LAB Performance studio · Via del Pianeta Urano 44, EUR, Roma</p>
+  <p><a href="/personal-training">Personal training</a> <a href="/functional">Functional</a> <a href="/pilates">Pilates</a> <a href="/privacy">Privacy</a></p>
+</footer>
 
 <div class="loader" aria-hidden="true"><img src="/img/logo-kuko.png" alt=""><i></i></div>
 

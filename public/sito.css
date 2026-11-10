@@ -137,6 +137,7 @@ body:has(.menu:target) { overflow: hidden; }
 .foot { border-top: 1px solid var(--line); padding: 1.6rem 0 calc(1.6rem + env(safe-area-inset-bottom)); color: var(--mute); font-size: .9rem; }
 .foot div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .4rem 1.5rem; max-width: var(--max); margin-inline: auto; padding-inline: var(--gut); }
 .foot a { text-decoration: underline; text-underline-offset: .2em; }
+.foot p:last-child { display: flex; flex-wrap: wrap; gap: .3rem 1.4rem; }
 
 /* ---------------------------------------------------------------- pagine interne: testata di pagina */
 .phead .in { max-width: var(--max); margin-inline: auto; padding: clamp(3.5rem, 10vw, 7rem) var(--gut) clamp(2rem, 5vw, 3.5rem); }
@@ -240,6 +241,65 @@ body:has(.menu:target) { overflow: hidden; }
 @media (max-width: 520px) {
   .cx-side .btn { display: flex; }
   .cx-side .btn + .btn { margin-left: 0; margin-top: .7rem; }
+}
+
+/* ---------------------------------------------------------------- schermi larghi: la pagina usa tutta l'ampiezza.
+   La colonna cresce con lo schermo (fino a 120rem), i margini laterali pure, e crescono gli spazi tra le due colonne, tra i blocchi e tra le righe di testo. */
+@media (min-width: 1100px) {
+  :root { --gut: clamp(3rem, 6vw, 8rem); --max: clamp(78rem, 90vw, 120rem); }
+  .head .bar { min-height: 4.5rem; }
+  .head img { height: 2.1rem; }
+  .nav { gap: clamp(2.2rem, 3vw, 3.6rem); }
+
+  .phead .in { padding-block: clamp(5rem, 8vw, 10rem) clamp(3rem, 5vw, 6rem); }
+  .phead h1 { font-size: clamp(6rem, 9vw, 13rem); }
+  .phead p { max-width: 46rem; font-size: clamp(1.25rem, 1.2vw, 1.6rem); line-height: 1.5; }
+  .jump { gap: .8rem; margin-top: 2.4rem; }
+  .jump a { padding: .75rem 1.3rem; font-size: 1.05rem; }
+  .strip { height: clamp(15rem, 24vw, 36rem); }
+
+  .cx { margin-top: clamp(2rem, 4vw, 5rem); }
+  .cx .in { gap: clamp(4rem, 10vw, 15rem); padding-block: clamp(4rem, 7vw, 9rem); }
+  .cx.deep .in { padding-block: clamp(4.5rem, 8vw, 10rem); }
+  .cx h2 { font-size: clamp(5.5rem, 5.6vw, 8.5rem); }
+  .cx .lead { margin-top: 1.6rem; font-size: clamp(1.5rem, 1.5vw, 2rem); }
+  .cx-main p { max-width: 44rem; font-size: clamp(1.1rem, 1vw, 1.3rem); line-height: 1.65; }
+  .cx-main p:not(.lead) { margin-top: 1.2rem; }
+  .steps, .benefits, .cx.deep .when { max-width: 46rem; }
+  .steps li { padding-block: 1.25rem; padding-left: 3.4rem; }
+  .steps li::before { top: .95rem; font-size: 2.1rem; }
+  .benefits { margin-top: 2.2rem; }
+  .benefits li { padding-block: 1.25rem; }
+  .cx.deep .when li { padding-block: .85rem; }
+  .cx.deep .when li::before { top: 1.5rem; }
+  .tags { gap: .7rem; margin-top: 2rem; }
+  .cx .btn { margin-top: 2.6rem; }
+  .note { margin-top: 1.6rem; }
+
+  .person .in { gap: clamp(4rem, 10vw, 14rem); padding-block: clamp(4.5rem, 8vw, 10rem); }
+  .person img { max-width: min(100%, 30rem); }
+  .person h2, .pros h2 { font-size: clamp(5rem, 5.6vw, 8.5rem); }
+  .person .lead, .pros .lead { max-width: 44rem; margin-top: 1.8rem; font-size: clamp(1.4rem, 1.4vw, 1.8rem); }
+  .creds { max-width: 40rem; margin-top: 2.4rem; }
+  .creds li { padding-block: 1rem; }
+  .line { margin-top: 2.2rem; gap: .5rem 2.4rem; }
+
+  .pros .in { padding-block: clamp(4.5rem, 8vw, 10rem); }
+  .duo { gap: clamp(1rem, 1.6vw, 2.4rem); margin-top: clamp(3.5rem, 5vw, 6rem); }
+  .pro-card { padding: clamp(2.2rem, 3.6vw, 4.6rem); }
+  .pro-card h3 { font-size: clamp(3rem, 3.4vw, 4.6rem); }
+  .pro-card p { max-width: 38rem; margin-top: 1.1rem; font-size: clamp(1.1rem, 1vw, 1.25rem); }
+  .others .lead { max-width: 46rem; }
+
+  .dove .in { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: end; gap: clamp(4rem, 10vw, 15rem); padding-block: clamp(5.5rem, 9vw, 12rem); }
+  .dove h2 { font-size: clamp(7rem, 9vw, 14rem); }
+  .dove .addr { margin-top: 0; font-size: clamp(1.4rem, 1.5vw, 1.9rem); }
+  .dove .note { margin-top: .8rem; }
+  .dove .btn { margin-top: 2.4rem; }
+  .links { gap: .6rem 2.4rem; margin-top: 2.2rem; }
+
+  .foot { padding-block: 2.2rem calc(2.2rem + env(safe-area-inset-bottom)); font-size: 1rem; }
+  .legal { max-width: 52rem; }
 }
 
 /* ---------------------------------------------------------------- informativa privacy (stessa testata e stesso piede) */

@@ -4,7 +4,7 @@ import { createScene, STEPS } from './scene.js';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const body = document.body, story = $('#percorso'), canvas = $('#gl'), rail = $('.rail');
-const phases = $$('.phase'), stages = $$('.rail a'), rooms = $$('.top-links .room'), hint = $('.hint');
+const phases = $$('.phase'), stages = $$('.rail a'), rooms = $$('.top-links .room'), nextBtn = $('.rail-next');
 const params = new URLSearchParams(location.search);
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const saveData = !!(navigator.connection && navigator.connection.saveData);
@@ -55,24 +55,29 @@ async function start() {
   // salti: verso una tappa (la scena arriva da sola scorrendo)
   const scrollFor = (p) => { const r = story.getBoundingClientRect(); return r.top + scrollY + (p / STEPS) * (r.height - innerHeight); };
   let tween = 0;
-  const stopTween = () => { tween++; };
+  let tweenOn = false, goal = -1; // tweenOn: c'è un'animazione di scorrimento in corso verso la tappa «goal»
+  const stopTween = () => { tween++; tweenOn = false; };
   ['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach((ev) => addEventListener(ev, stopTween, { passive: true }));
   function goTo(p) {
     const to = Math.round(scrollFor(p)), from = scrollY, dist = Math.abs(to - from);
     if (reduce || dist < 6) return scrollTo({ top: to, behavior: 'auto' });
     const id = ++tween, dur = cl(700 + dist * 0.3, 900, 2600), t0 = performance.now();
+    tweenOn = true; goal = p;
     const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
     const step = (now) => {
       if (id !== tween) return;
       const u = cl((now - t0) / dur);
       scrollTo(0, from + (to - from) * ease(u));
-      if (u < 1) requestAnimationFrame(step);
+      if (u < 1) requestAnimationFrame(step); else tweenOn = false;
     };
     requestAnimationFrame(step);
   }
   // «Prenota» (data-jump) porta subito alla sezione, senza far scorrere la scena attraverso le sale: la scena è una funzione della posizione, quindi basta saltare
   function jumpTo(p) { stopTween(); scrollTo({ top: Math.round(scrollFor(p)), behavior: 'auto' }); measure(); cur = target; vel = 0; }
   $$('[data-go]').forEach((a) => a.addEventListener('click', (e) => { if (!body.classList.contains('is-live')) return; e.preventDefault(); if (a.hasAttribute('data-jump')) jumpTo(+a.dataset.go); else goTo(+a.dataset.go); }));
+  // «Continua»: porta alla tappa successiva (Personal → Pilates → Funzionale → finale); da lì in poi la barra scompare
+  const STOPS = [1, 3, 5, 6];
+  if (nextBtn) nextBtn.addEventListener('click', () => { const base = tweenOn ? Math.max(target, goal) : target; const s = STOPS.find((x) => x > base + 0.2); if (s != null) goTo(s); }); // parte dalla posizione vera (o dalla tappa già in arrivo), così un doppio clic salta alla tappa dopo
   // se un link in una fase non visibile riceve il focus da tastiera, porto lì la scena
   phases.forEach((p) => p.addEventListener('focusin', () => { const a = +p.dataset.a, b = +p.dataset.b; if (cur < a || cur > b) scrollTo({ top: scrollFor(Math.max(0, (a + Math.min(b, a + 0.7)) / 2)), behavior: 'auto' }); }));
 
@@ -90,6 +95,8 @@ async function start() {
       const dir = cur < a ? 1 : -1;
       c.style.transform = `translate3d(0, ${(dir * (1 - v) * 36).toFixed(1)}px, 0)`;
       c.style.pointerEvents = v > 0.7 ? 'auto' : 'none';
+      const en = $('.enter', p);   // l'invito «Scopri il percorso» (solo nella prima schermata) si può toccare quando si vede
+      if (en) en.style.pointerEvents = v > 0.7 ? 'auto' : 'none';
     });
     document.documentElement.style.setProperty('--scrim', vmax.toFixed(3));
     // avanzamento: la linea si riempie camminando da una sala all'altra; ogni tappa si accende quando ci entri
@@ -102,7 +109,8 @@ async function start() {
     });
     rooms.forEach((a) => a.classList.toggle('now', +a.dataset.room === inRoom));
     rail.classList.toggle('done', cur >= 5.85);
-    if (hint) hint.style.opacity = String(1 - sm(0.02, 0.16, cur));
+    // su computer la barra si vede solo dentro il percorso: nella prima schermata c'è «Scopri il percorso», nel finale ci sono i contatti
+    rail.classList.toggle('off', cur < 0.5 || cur >= 5.6);
   }
 
   let running = false, visible = true;
