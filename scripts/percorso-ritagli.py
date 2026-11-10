@@ -24,8 +24,7 @@ ALTEZZA_MAX = 1100  # px: il ritaglio sta in basso a destra, mai piu' alto di me
 
 # nome -> (file in public/img, ricostruire gli oggetti rossi in mano? la pallina di Chiara non viene riconosciuta come persona)
 SORGENTI = {
-    # 'valerio' non c'e' piu': il suo ritaglio (ritaglio-valerio.webp) e' l'action figure inviata dal cliente, gia' scontornata a mano
-    # dalla confezione e committata cosi' com'e'; rilanciare lo script non la deve sovrascrivere con la vecchia foto.
+    'valerio': ('valerio.jpg', False),
     'chiara': ('trainer-chiara.jpg', True),
 }
 

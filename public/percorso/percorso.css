@@ -128,7 +128,7 @@ h1 em, .finale h2 em { color: var(--orange); }
 .cut { display: none; }
 .is-live .cut { display: block; position: absolute; right: calc(var(--gut) - .4rem); bottom: 0; width: auto; height: var(--h, 42vh); max-width: 32vw; object-fit: contain; object-position: bottom right; pointer-events: none;
   transform: translate3d(0, calc((1 - var(--v, 1)) * 16%), 0); filter: drop-shadow(0 0 1.6rem rgba(232, 96, 40, .5)) drop-shadow(0 .6rem 1.4rem rgba(0, 0, 0, .5)); will-change: transform; }
-.cut-valerio { --h: 56vh; }
+.cut-valerio { --h: 38vh; }
 .cut-chiara { --h: 52vh; }
 
 /* ---------- Benessere a 360°: nutrizionista, osteopata, fisioterapista. Dopo il finale, prima di Instagram ---------- */
@@ -263,7 +263,7 @@ body:not(.is-live) .top { position: absolute; }
   .more { margin-top: 1.1rem; }
   .more .btn { min-height: 2.9rem; padding: 0 1.2rem; }
   .is-live .cut { right: .5rem; height: var(--hm, 25vh); max-width: 46vw; }
-  .cut-valerio { --hm: 34vh; }
+  .cut-valerio { --hm: 24vh; }
   .cut-chiara { --hm: 30vh; }
   .has-cut .lead, .has-cut .who { max-width: 58%; }
   .motto { font-size: 1.3rem; }
