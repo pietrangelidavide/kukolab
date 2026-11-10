@@ -114,14 +114,6 @@ h1 em, .finale h2 em { color: var(--orange); }
 .btn.big { gap: 1rem; min-height: 4.3rem; padding: 0 2.2rem 0 2.6rem; font-size: clamp(1.7rem, 1.9vw, 2.1rem); letter-spacing: .08em; white-space: nowrap; box-shadow: 0 .6rem 2.4rem rgba(0, 0, 0, .55); }
 .btn.big svg { flex: none; width: 1.5rem; height: 1.5rem; fill: none; stroke: currentColor; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; animation: bob 1.9s ease-in-out infinite; }
 @keyframes bob { 0%, 100% { transform: translateY(-.12rem); } 50% { transform: translateY(.22rem); } }
-/* Prima schermata su computer: titolo e frase al centro, ad altezza occhi (poco sopra la metà), sopra la testa del cliente 3D.
-   Su telefono resta in basso (regole sotto). L'alone scuro dietro serve perché qui lo sfondo è la porta a vetri, non il buio a sinistra. */
-@media (min-width: 761px) {
-  .is-live #hero { align-items: flex-start; justify-content: center; padding-top: clamp(6.5rem, 24vh, 17rem); text-align: center; }
-  .is-live #hero::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse 58% 36% at 50% 40%, rgba(3, 3, 4, .66) 0%, rgba(3, 3, 4, .38) 55%, rgba(3, 3, 4, 0) 100%); }
-  #hero .copy { max-width: 60rem; }
-  #hero .lead { max-width: 34rem; margin-inline: auto; }
-  #hero h1, #hero .lead { text-shadow: 0 .15rem 1.6rem rgba(0, 0, 0, .55); }
 }
 .cta { display: flex; flex-wrap: wrap; gap: .9rem; margin-top: 2.1rem; }
 .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 3.4rem; padding: 0 1.8rem; background: var(--orange); color: #000; font: 700 1.4rem/1 var(--display); letter-spacing: .07em; text-transform: uppercase; text-decoration: none; }
@@ -132,6 +124,19 @@ h1 em, .finale h2 em { color: var(--orange); }
 .where a { text-decoration-thickness: 1px; text-underline-offset: .25em; }
 .finale .copy { max-width: 40rem; }
 .is-live .finale { align-items: flex-end; padding-bottom: 4rem; }
+/* Su computer tutto il percorso ha il testo centrato, ad altezza occhi (poco sopra la metà dello schermo): etichetta arancio, titolo,
+   frase e pulsanti stanno al centro, in ogni sala e nel finale. Su telefono resta in basso (regole più sotto). */
+@media (min-width: 761px) {
+  .is-live .phase, .is-live .finale { align-items: flex-start; justify-content: center; padding-top: clamp(6.5rem, 24vh, 17rem); padding-bottom: 3rem; text-align: center; }
+  .phase .copy { max-width: 60rem; }
+  .phase .lead, .phase .where { margin-inline: auto; }
+  .phase .lead { max-width: 34rem; }
+  .phase .cta { justify-content: center; }
+  .phase h1, .phase h2, .phase .lead, .phase .who, .phase .where, .phase .label { text-shadow: 0 .15rem 1.6rem rgba(0, 0, 0, .55); }
+  .phase .label { text-shadow: none; }
+  /* l'alone scuro dietro il testo non sta più a sinistra ma al centro */
+  .scrim { background: radial-gradient(ellipse 64% 52% at 50% 40%, rgba(3, 3, 4, .66) 0%, rgba(3, 3, 4, .4) 55%, rgba(3, 3, 4, 0) 100%); }
+}
 
 /* ---------- ritagli di Valerio e Chiara: in basso a destra, escono dal bordo dello schermo ---------- */
 .cut { display: none; }
