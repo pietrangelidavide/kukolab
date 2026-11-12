@@ -23,7 +23,7 @@
 <div class="scrim" aria-hidden="true"></div>
 
 <header class="top">
-  <a class="brand" href="#inizio" data-go="0" aria-label="KUKO LAB, torna all'inizio"><img src="/img/logo-kuko.png" width="672" height="243" alt=""><span>KUKO LAB</span></a>
+  <a class="brand" href="#attrezzi" aria-label="KUKO LAB, torna all'inizio"><img src="/img/logo-kuko.png" width="672" height="243" alt=""><span>KUKO LAB</span></a>
   <nav class="top-links" aria-label="Collegamenti">
     <a class="room" href="/personal-training" data-room="0">Personal training</a>
     <a class="room" href="/pilates" data-room="1">Pilates</a>
@@ -46,13 +46,63 @@
   <button type="button" class="rail-next">Continua<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
 </nav>
 
+<!-- Presentazione: un filmato attraversa lo studio e si ferma su ogni attrezzo. Scorrendo, il filmato avanza (js/tour.js); le etichette seguono gli attrezzi.
+     Senza JavaScript, con «riduci movimento», risparmio dati o se il filmato non parte resta la foto con l'elenco degli attrezzi. -->
+<section class="tour" id="attrezzi" aria-labelledby="h-tour">
+  <div class="tour-pin">
+    <picture>
+      <source media="(max-aspect-ratio: 1/1)" srcset="/percorso/video/attrezzi-verticale-copertina.jpg" width="540" height="960">
+      <img class="tour-still" src="/percorso/video/attrezzi-copertina.jpg" width="1280" height="720" fetchpriority="high" alt="L'ingresso di KUKO LAB visto dall'interno: la porta a vetri, le piante e in fondo la sala del personal training">
+    </picture>
+    <video class="tour-video" muted playsinline preload="auto" tabindex="-1" aria-hidden="true" disablepictureinpicture disableremoteplayback></video>
+    <div class="tour-shade" aria-hidden="true"></div>
+    <div class="tour-pins" aria-hidden="true"></div>
+    <div class="tour-intro">
+      <h1 id="h-tour">Il tuo benessere a 360°</h1>
+      <p class="lead">Entra nello studio e guarda da vicino tutti gli attrezzi di Personal training, Pilates e Functional.</p>
+    </div>
+    <p class="tour-cue" aria-hidden="true">Scorri<svg viewBox="0 0 24 24" width="28" height="28"><path d="M5 9l7 7 7-7"/></svg></p>
+    <a class="tour-skip" href="#percorso">Salta il video</a>
+    <div class="tour-hud" aria-hidden="true">
+      <p class="tour-room"><span class="label">Ingresso</span></p>
+      <ol class="tour-steps">
+        <li><b><u></u></b><span>Personal</span></li>
+        <li><b><u></u></b><span>Pilates</span></li>
+        <li><b><u></u></b><span>Functional</span></li>
+      </ol>
+    </div>
+    <p class="tour-end"><a class="btn big" href="#percorso">Segui un cliente<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg></a></p>
+  </div>
+  <div class="tour-lista">
+    <h2>Gli attrezzi dello studio</h2>
+    <section>
+      <h3>Personal training</h3>
+      <ul>
+        <li>Power rack</li><li>Bilanciere e dischi</li><li>Albero dei dischi</li><li>Rastrelliera manubri</li><li>Torre a cavi</li><li>Kettlebell</li><li>Panca</li><li>Rack per squat</li><li>Elastici</li><li>Manubri esagonali</li><li>Palla medica</li><li>Cronometro</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Pilates</h3>
+      <ul>
+        <li>Reformer</li><li>Cadillac</li><li>Wunda chair</li><li>Spine corrector</li><li>Fitball</li><li>Magic circle</li><li>Blocchi in schiuma</li><li>Pallina soft</li><li>Rullo</li><li>Tappetini</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Functional</h3>
+      <ul>
+        <li>Rig a traversa</li><li>TRX</li><li>Box pliometrici</li><li>Coni</li><li>Corde da battaglia</li><li>Sacchi di sabbia</li><li>Slam ball</li>
+      </ul>
+    </section>
+  </div>
+</section>
+
 <main id="percorso">
   <span id="inizio"></span>
 
   <section class="phase" id="hero" data-a="-1" data-b="0.62" aria-labelledby="h-hero">
     <div class="copy">
-      <h1 id="h-hero">Il tuo benessere a 360°</h1>
-      <p class="lead">Tre discipline, un unico percorso. Costruito intorno a te.</p>
+      <h2 id="h-hero">Ora vivilo da dentro.</h2>
+      <p class="lead">Segui un cliente dall'ingresso alla fine dell'allenamento: tre discipline, un unico percorso, costruito intorno a te.</p>
     </div>
     <!-- Invito al centro: porta alla prima tappa del percorso (Personal). Senza 3D è un normale collegamento alla sezione. -->
     <p class="enter"><a class="btn big" href="#personale" data-go="1">Scopri il percorso<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg></a></p>
@@ -183,6 +233,7 @@
 
 <div class="loader" aria-hidden="true"><img src="/img/logo-kuko.png" alt=""><i></i></div>
 
+<script type="module" src="/percorso/js/tour.js"></script>
 <script type="module" src="/percorso/js/main.js"></script>
 </body>
 </html>
