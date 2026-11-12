@@ -137,6 +137,9 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
   .disc.mid .lead { margin-top: 0; }
   .disc.mid .who { margin-top: clamp(.7rem, 1.8svh, 1.5rem); }
   .disc.mid .more { margin-top: auto; padding-top: clamp(.8rem, 2svh, 1.6rem); }   /* il bottone «Scopri di più» scende in fondo alla schermata */
+  /* Functional di gruppo (senza foto): l'etichetta sale a metà della riga vuota sopra il titolo, che resta a metà schermata */
+  #funzionale .head { position: relative; }
+  #funzionale .label { position: absolute; left: 50%; bottom: 100%; margin: 0 0 calc((100svh - 4.5rem) * .17) 0; transform: translateX(-50%); white-space: nowrap; }
 }
 
 /* ---------- chiusura: la frase che riassume e l'invito a scrivere ---------- */
