@@ -95,6 +95,7 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 @media (prefers-reduced-motion: no-preference) {
   .slogan, .discs, .hero .wa { animation: rise .8s cubic-bezier(.2, .7, .2, 1) both; }
   .slogan { animation-delay: 2.75s; } .discs { animation-delay: 3s; } .hero .wa { animation-delay: 3.2s; }
+  .scroll { animation: arrowIn .6s ease-out 3.9s both; }   /* la freccia compare per ultima */
 }
 @keyframes rise { from { opacity: 0; transform: translate3d(0, 16px, 0); } }
 
