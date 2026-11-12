@@ -82,7 +82,7 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 @keyframes wmLab { from { transform: translateX(calc(var(--d) * -1px)); } }
 @keyframes wmU { from { opacity: 0; transform: translateY(26px); } }
 @keyframes wmHollow { from { fill-opacity: 1; } }
-.slogan { margin-top: clamp(1rem, 2.6vh, 1.8rem); font-size: clamp(1.15rem, 2.6vw, 2.1rem); line-height: 1.3; letter-spacing: .09em; text-transform: uppercase; color: var(--fg); }
+.slogan { margin-top: clamp(1rem, 2.6vh, 1.8rem); font-weight: 700; font-size: clamp(1.25rem, 2.7vw, 2.2rem); line-height: 1.3; letter-spacing: .09em; text-transform: uppercase; color: var(--fg); }
 .discs { display: flex; flex-wrap: wrap; justify-content: center; gap: .8rem; margin-top: clamp(1.6rem, 4.5vh, 3rem); }
 .discs .btn { min-width: 10.5rem; min-height: 3.6rem; font-size: 1.5rem; }
 .hero .wa { margin-top: clamp(1rem, 2.6vh, 1.6rem); min-height: 2.8rem; padding: 0 1.7rem; font-size: 1.2rem; letter-spacing: .06em; }
@@ -115,7 +115,8 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 .disc.mid .lead { margin-inline: auto; max-width: 36rem; }
 .more .btn { min-height: 3.1rem; }
 .act { margin-top: 1.6rem; display: flex; flex-direction: column; align-items: center; }
-.act .label { margin-bottom: .9rem; }
+.act .label { margin-bottom: .9rem; padding: .85rem 1.7rem .75rem; font-size: 1.6rem; }
+.act .more .btn { min-height: 2.7rem; padding: 0 1.4rem; font-size: 1.15rem; }
 .act .more { margin-top: 0; }
 @media (min-width: 900px) {
   .disc .in { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(3rem, 8vw, 9rem); max-width: var(--wide); }
@@ -333,9 +334,12 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
    «Scrivici su WhatsApp» sta in fondo, sopra la freccia, che compare per ultima. --lift = metà dello spazio che occupano i tre bottoni. */
 @media (max-width: 760px) and (min-height: 561px) {
   .hero { --bh: 3.3rem; --bgap: .65rem; --lift: calc((var(--bh) * 3 + var(--bgap) * 2 + 1.8rem) / 2); padding-bottom: 8.5rem; }
+  /* iPhone: la barra di Safari è trasparente e sotto si vedeva già la sezione dopo. La schermata è alta quanto lo schermo intero (lvh) e ciò che sta in fondo resta sopra la barra (--bar = differenza tra schermo intero e parte visibile) */
+  .hero { --bar: calc(100lvh - 100svh); min-height: 100lvh; padding-bottom: calc(8.5rem + var(--bar)); }
+  .scroll { bottom: calc(clamp(1rem, 3vh, 2rem) + var(--bar, 0px)); }
   .discs { flex-direction: column; flex-wrap: nowrap; align-items: center; gap: var(--bgap); margin-top: 1.8rem; }
   .discs .btn { flex: none; width: min(100%, 17rem); min-height: var(--bh); font-size: 1.4rem; letter-spacing: .07em; }
-  .hero .wa { position: absolute; left: 0; right: 0; bottom: calc(clamp(1rem, 3vh, 2rem) + 3.4rem); width: max-content; margin: 0 auto; }
+  .hero .wa { position: absolute; left: 0; right: 0; bottom: calc(clamp(1rem, 3vh, 2rem) + 3.4rem + var(--bar, 0px)); width: max-content; margin: 0 auto; }
   /* le foto di Valerio e Chiara più piccole, per lasciare spazio al testo */
   .ph.cut img { height: clamp(11rem, 32svh, 16rem); }
 }
