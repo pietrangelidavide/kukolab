@@ -336,7 +336,7 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 @media (max-width: 760px) and (min-height: 561px) {
   .hero { --bh: 3.3rem; --bgap: .65rem; --lift: calc((var(--bh) * 3 + var(--bgap) * 2 + 1.8rem) / 2); padding-bottom: 8.5rem; }
   /* iPhone: la barra di Safari è trasparente e sotto si vedeva già la sezione dopo. La schermata è alta quanto lo schermo intero (lvh) e ciò che sta in fondo resta sopra la barra (--bar = differenza tra schermo intero e parte visibile) */
-  .hero { --bar: calc(100lvh - 100svh); min-height: 100lvh; padding-bottom: calc(8.5rem + var(--bar)); }
+  .hero { --bar: calc(100lvh - 100svh + 4rem); min-height: calc(100lvh + 5rem); padding-bottom: calc(8.5rem + var(--bar)); }   /* 5rem in più: su iPhone la pagina si vede anche sotto la barra flottante; bottone e freccia scendono di 1rem */
   .scroll { bottom: calc(clamp(1rem, 3vh, 2rem) + var(--bar, 0px)); }
   .discs { flex-direction: column; flex-wrap: nowrap; align-items: center; gap: var(--bgap); margin-top: 1.8rem; }
   .discs .btn { flex: none; width: min(100%, 17rem); min-height: var(--bh); font-size: 1.4rem; letter-spacing: .07em; }
