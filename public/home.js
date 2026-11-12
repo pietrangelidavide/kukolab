@@ -40,3 +40,11 @@ if (discs.length && !reduce && 'IntersectionObserver' in window) {
   const io2 = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-in'); io2.unobserve(e.target); } }), { threshold: 0.45 }   /* parte quando quasi metà sezione è in vista, così il movimento si vede */);
   discs.forEach((d) => io2.observe(d));
 }
+
+// menu a tendina del telefono: si chiude scegliendo una voce, toccando fuori o con Esc
+const menu = $('.menu');
+if (menu) {
+  menu.addEventListener('click', (e) => { if (e.target.closest('a')) menu.open = false; });
+  document.addEventListener('click', (e) => { if (menu.open && !menu.contains(e.target)) menu.open = false; });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.open) { menu.open = false; $('summary', menu).focus(); } });
+}

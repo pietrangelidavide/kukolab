@@ -55,6 +55,7 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 .top-links a:hover { color: var(--fg); text-decoration: underline; text-decoration-color: var(--orange); }
 .top-links a.pill { display: inline-flex; align-items: center; min-height: 2.5rem; padding: 0 1.1rem; border-radius: 999px; background: var(--orange); color: #000; font: 700 1.15rem/1 var(--display); letter-spacing: .08em; text-transform: uppercase; }
 .top-links a.pill:hover { background: #fff; text-decoration: none; }
+.menu { display: none; }
 .pill .m { display: none; }
 
 /* ---------- prima schermata ---------- */
@@ -307,7 +308,19 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 @media (max-width: 760px) {
   .top { padding-block: max(.6rem, env(safe-area-inset-top)) .6rem; }
   .brand img { height: 2rem; }
-  .top-links a:not(.pill) { display: none; }
+  .top-links > a:not(.pill) { display: none; }
+  /* menu a tendina accanto a «Prenota»: le stesse voci del desktop, ma scorrono alle sezioni della pagina */
+  .top-links { gap: .6rem; }
+  .menu { display: block; position: relative; }
+  .menu summary { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; list-style: none; }
+  .menu summary::-webkit-details-marker { display: none; }
+  .menu summary svg { width: 1.3rem; height: 1.3rem; fill: none; stroke: var(--fg); stroke-width: 2.2; stroke-linecap: round; }
+  .menu[open] summary { border-color: var(--orange); } .menu[open] summary svg { stroke: var(--orange); }
+  .menu summary:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+  .menu-list { position: absolute; right: 0; top: calc(100% + .7rem); display: grid; min-width: 13.5rem; padding: .4rem 0; border: 1px solid var(--line); border-radius: 1rem; background: #0b0b0c; box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, .6); }
+  .menu-list a { padding: .85rem 1.2rem; font: 700 1.3rem/1 var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--fg); }
+  .menu-list a + a { border-top: 1px solid rgba(255, 255, 255, .1); }
+  .menu-list a:hover, .menu-list a:active { color: var(--orange); text-decoration: none; }
   .pill .d { display: none; }
   .pill .m { display: inline; }
   .top-links a.pill { min-height: 2.25rem; padding: 0 .9rem; font-size: 1.05rem; }
