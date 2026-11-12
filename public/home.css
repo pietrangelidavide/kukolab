@@ -38,8 +38,8 @@ em { font-style: normal; }
 
 h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: .005em; text-transform: uppercase; text-wrap: balance; }
 
-/* ---------- pulsanti: rettangoli netti, come i tagli del logo ---------- */
-.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 3.4rem; padding: 0 1.8rem; background: var(--orange); color: #000; font: 700 1.4rem/1 var(--display); letter-spacing: .07em; text-transform: uppercase; text-decoration: none; transition: background .2s, color .2s; }
+/* ---------- pulsanti: angoli completamente arrotondati ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 3.4rem; padding: 0 1.8rem; border-radius: 999px; background: var(--orange); color: #000; font: 700 1.4rem/1 var(--display); letter-spacing: .07em; text-transform: uppercase; text-decoration: none; transition: background .2s, color .2s; }
 .btn:hover { background: #fff; }
 .btn.ghost { background: transparent; color: var(--fg); box-shadow: inset 0 0 0 2px var(--fg); }
 .btn.ghost:hover { background: var(--fg); color: #000; }
@@ -53,7 +53,7 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 .top-links { display: flex; align-items: center; gap: 1.8rem; }
 .top-links a { text-decoration: none; font-size: .95rem; white-space: nowrap; color: rgba(245, 245, 243, .78); text-underline-offset: .45em; text-decoration-thickness: 2px; }
 .top-links a:hover { color: var(--fg); text-decoration: underline; text-decoration-color: var(--orange); }
-.top-links a.pill { display: inline-flex; align-items: center; min-height: 2.5rem; padding: 0 1.1rem; background: var(--orange); color: #000; font: 700 1.15rem/1 var(--display); letter-spacing: .08em; text-transform: uppercase; }
+.top-links a.pill { display: inline-flex; align-items: center; min-height: 2.5rem; padding: 0 1.1rem; border-radius: 999px; background: var(--orange); color: #000; font: 700 1.15rem/1 var(--display); letter-spacing: .08em; text-transform: uppercase; }
 .top-links a.pill:hover { background: #fff; text-decoration: none; }
 .pill .m { display: none; }
 
@@ -85,7 +85,7 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 .slogan { margin-top: clamp(1rem, 2.6vh, 1.8rem); font-size: clamp(1.2rem, 2.2vw, 1.75rem); line-height: 1.3; letter-spacing: .01em; color: var(--fg); }
 .discs { display: flex; flex-wrap: wrap; justify-content: center; gap: .8rem; margin-top: clamp(1.6rem, 4.5vh, 3rem); }
 .discs .btn { min-width: 10.5rem; min-height: 3.6rem; font-size: 1.5rem; }
-.hero .wa { margin-top: clamp(1rem, 2.6vh, 1.6rem); min-height: 3.6rem; padding: 0 2.4rem; font-size: 1.5rem; }
+.hero .wa { margin-top: clamp(1rem, 2.6vh, 1.6rem); min-height: 2.8rem; padding: 0 1.7rem; font-size: 1.2rem; letter-spacing: .06em; }
 .scroll { position: absolute; left: 50%; bottom: clamp(1rem, 3vh, 2rem); display: grid; place-items: center; width: 2.75rem; height: 2.75rem; transform: translateX(-50%); color: var(--fg); opacity: .6; transition: opacity .2s; }
 .scroll:hover { opacity: 1; }
 .scroll svg { width: 1.6rem; height: 1.6rem; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; animation: bob 2s ease-in-out infinite; }
@@ -102,7 +102,7 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 .disc .in { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; align-items: center; max-width: 76rem; margin-inline: auto; padding: clamp(3.5rem, 9vw, 7rem) var(--gut); }
 .ph { width: min(100%, 34rem, calc(72svh * .8)); justify-self: center; }
 .ph img { width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; background: #111; }
-.label { display: inline-block; margin-bottom: 1.2rem; padding: .5rem .85rem .42rem; background: var(--orange); color: #000; font: 700 1.35rem/1 var(--display); letter-spacing: .14em; text-transform: uppercase; }
+.label { display: inline-block; margin-bottom: 1.2rem; padding: .5rem .95rem .42rem; border-radius: 999px; background: var(--orange); color: #000; font: 700 1.35rem/1 var(--display); letter-spacing: .14em; text-transform: uppercase; }
 .lead { margin-top: 1.3rem; max-width: 30rem; text-wrap: balance; font-size: clamp(1.05rem, 1.3vw, 1.3rem); line-height: 1.5; color: rgba(245, 245, 243, .9); }
 .motto { display: block; margin-bottom: .55rem; font: 700 clamp(1.65rem, 1.9vw, 1.85rem)/1.05 var(--display); letter-spacing: .07em; text-transform: uppercase; color: var(--fg); }
 .who { margin-top: 1.5rem; font-size: .95rem; color: var(--mute); }
@@ -222,11 +222,11 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
   .hero { padding-bottom: 5rem; }
     .discs { gap: .5rem; width: 100%; max-width: 26rem; }
   .discs .btn { flex: 1 1 0; min-width: 0; padding: 0 .4rem; font-size: 1.2rem; letter-spacing: .05em; }
-  .hero .wa { width: 100%; max-width: 26rem; padding: 0 1rem; }
+  .hero .wa { padding: 0 1.4rem; }
   h2 { font-size: clamp(2.4rem, 11.5vw, 3.4rem); }
   .finale h2 { font-size: clamp(2.1rem, 10vw, 3rem); }
   .lead { margin-top: .9rem; font-size: 1rem; }
-  .label { margin-bottom: .8rem; padding: .42rem .7rem .36rem; font-size: 1.15rem; }
+  .label { margin-bottom: .8rem; padding: .42rem .85rem .36rem; font-size: 1.15rem; }
   .motto { font-size: 1.3rem; }
   .more .btn, .btn { min-height: 3.1rem; padding: 0 1.3rem; font-size: 1.25rem; }
   .cta { gap: .6rem; margin-top: 1.4rem; }
@@ -248,8 +248,8 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
   .hero { padding-block: 4.5rem 3.5rem; }
   .slogan { margin-top: .6rem; font-size: 1.05rem; }
   .discs { margin-top: 1rem; }
-  .discs .btn, .hero .wa { min-height: 2.9rem; font-size: 1.2rem; }
-  .hero .wa { margin-top: .7rem; }
+  .discs .btn { min-height: 2.9rem; font-size: 1.2rem; }
+  .hero .wa { margin-top: .7rem; min-height: 2.4rem; font-size: 1.05rem; }
   .scroll { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .scroll svg { animation: none; } .top { transition: none; } }
