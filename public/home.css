@@ -116,7 +116,7 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 .disc.mid .lead { margin-inline: auto; max-width: 36rem; }
 .more .btn { min-height: 3.1rem; }
 .act { margin-top: 1.6rem; display: flex; flex-direction: column; align-items: center; }
-.act .label { margin-bottom: .9rem; padding: .85rem 1.7rem .75rem; font-size: 1.6rem; }
+.act .label { margin-bottom: 1.3rem; padding: .85rem 1.7rem .75rem; font-size: 1.6rem; }
 .act .more .btn { min-height: 2.7rem; padding: 0 1.4rem; font-size: 1.15rem; }
 .act .more { margin-top: 0; }
 @media (min-width: 900px) {
@@ -142,7 +142,7 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
   .disc.mid .who { margin-top: clamp(.7rem, 1.8svh, 1.5rem); }
   .disc.mid .act { margin-top: auto; padding-top: clamp(.8rem, 2svh, 1.6rem); }   /* etichetta e bottone «Scopri di più» scendono in fondo alla schermata */
   .disc.mid .more { margin-top: 0; }
-  .disc.mid .label { margin-bottom: clamp(.6rem, 1.6svh, 1rem); }
+  .disc.mid .label { margin-bottom: clamp(1rem, 2.4svh, 1.5rem); }
 }
 
 /* ---------- movimento nelle tre discipline ----------
