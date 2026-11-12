@@ -99,6 +99,7 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 
 /* ---------- le tre discipline: foto a sinistra e testo a destra, poi il contrario ---------- */
 .disc { border-top: 1px solid var(--line); background: var(--bg); }
+#personale { border-top: 0; }   /* niente linea tra la prima schermata e Personal training */
 .disc .in { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; align-items: center; max-width: 76rem; margin-inline: auto; padding: clamp(3.5rem, 9vw, 7rem) var(--gut); }
 .ph { width: min(100%, 34rem, calc(72svh * .8)); justify-self: center; }
 .ph img { width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; background: #111; }
