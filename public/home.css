@@ -102,6 +102,9 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 .disc .in { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; align-items: center; max-width: 76rem; margin-inline: auto; padding: clamp(3.5rem, 9vw, 7rem) var(--gut); }
 .ph { width: min(100%, 34rem, calc(72svh * .8)); justify-self: center; }
 .ph img { width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; background: #111; }
+/* Valerio e Chiara: ritagli senza sfondo, in piedi sul bordo basso della cornice, con un alone arancio dietro (come nel percorso) */
+.ph.cut { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: radial-gradient(78% 58% at 50% 40%, rgba(232, 96, 40, .62), rgba(232, 96, 40, .17) 58%, rgba(232, 96, 40, 0) 100%), #0c0c0e; }
+.ph.cut img { position: absolute; inset: 0; height: 100%; aspect-ratio: auto; object-fit: contain; object-position: 50% 100%; background: none; }
 .label { display: inline-block; margin-bottom: 1.2rem; padding: .5rem .95rem .42rem; border-radius: 999px; background: var(--orange); color: #000; font: 700 1.35rem/1 var(--display); letter-spacing: .14em; text-transform: uppercase; }
 .lead { margin-top: 1.3rem; max-width: 30rem; text-wrap: balance; font-size: clamp(1.05rem, 1.3vw, 1.3rem); line-height: 1.5; color: rgba(245, 245, 243, .9); }
 .motto { display: block; margin-bottom: .55rem; font: 700 clamp(1.65rem, 1.9vw, 1.85rem)/1.05 var(--display); letter-spacing: .07em; text-transform: uppercase; color: var(--fg); }
