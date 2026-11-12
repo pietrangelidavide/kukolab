@@ -60,11 +60,28 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 /* ---------- prima schermata ---------- */
 .hero { position: relative; isolation: isolate; min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem var(--gut) 4.5rem; text-align: center; overflow: hidden;
   background: radial-gradient(60% 46% at 50% 46%, rgba(232, 96, 40, .14), rgba(232, 96, 40, 0) 72%), var(--bg); }
-.hero-logo { width: clamp(9.5rem, 15vw, 14.5rem); height: auto; }
-/* il nome è solo un contorno: il riempimento resta trasparente e si vede lo sfondo */
-.hero h1 { margin-top: clamp(.6rem, 2vh, 1.4rem); font: 700 clamp(4.6rem, 18.5vw, 15rem)/.86 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--fg);
-  -webkit-text-stroke: clamp(1.5px, .22vw, 3.5px) var(--fg); paint-order: stroke fill; }
-@supports (-webkit-text-stroke: 1px #000) { .hero h1 { color: transparent; } }
+/* il marchio: il logo si apre (la K va a sinistra, entrano U K O e LAB si sposta a destra) e alla fine è solo un contorno.
+   L'SVG è generato da scripts/wordmark.py. Stato di partenza del CSS = stato finale (solo contorni): chi non vede le animazioni lo vede così. */
+.mark { width: min(100%, 74rem, 150svh); margin: 0; font: inherit; line-height: 0; }
+.wm { display: block; width: 100%; height: auto; overflow: visible; }
+.wm path { vector-effect: non-scaling-stroke; stroke-width: 3px; stroke-linejoin: miter; stroke-miterlimit: 3; fill-opacity: 0; }
+.wm .w { fill: var(--fg); stroke: var(--fg); }
+.wm .o { fill: var(--orange); stroke: var(--orange); }
+@media (min-width: 1500px) { .wm path { stroke-width: 3.5px; } }
+@media (max-width: 760px) { .wm path { stroke-width: 2px; } }
+@media (prefers-reduced-motion: no-preference) {
+  .wm { animation: wmIn .7s ease-out both; }
+  /* 1. il logo intero, al centro, compare. 2. si allarga: K a sinistra, LAB a destra. 3. entrano U K O. 4. i riempimenti spariscono e restano i contorni */
+  .wm-k { animation: wmK 1.15s cubic-bezier(.7, 0, .2, 1) .85s both; }
+  .wm-lab > .lab { animation: wmLab 1.15s cubic-bezier(.7, 0, .2, 1) .85s both; }
+  .wm .u { animation: wmU .55s cubic-bezier(.2, .7, .2, 1) calc(1.55s + var(--i) * .13s) both; }
+  .wm path { animation: wmHollow .9s ease-in-out 2.35s both; }
+}
+@keyframes wmIn { from { opacity: 0; transform: scale(.94); } }
+@keyframes wmK { from { transform: translateX(calc(var(--d) * 1px)); } }
+@keyframes wmLab { from { transform: translateX(calc(var(--d) * -1px)); } }
+@keyframes wmU { from { opacity: 0; transform: translateY(26px); } }
+@keyframes wmHollow { from { fill-opacity: 1; } }
 .slogan { margin-top: clamp(1rem, 2.6vh, 1.8rem); font-size: clamp(1.2rem, 2.2vw, 1.75rem); line-height: 1.3; letter-spacing: .01em; color: var(--fg); }
 .discs { display: flex; flex-wrap: wrap; justify-content: center; gap: .8rem; margin-top: clamp(1.6rem, 4.5vh, 3rem); }
 .discs .btn { min-width: 10.5rem; min-height: 3.6rem; font-size: 1.5rem; }
@@ -73,10 +90,10 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 .scroll:hover { opacity: 1; }
 .scroll svg { width: 1.6rem; height: 1.6rem; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; animation: bob 2s ease-in-out infinite; }
 @keyframes bob { 0%, 100% { transform: translateY(-.15rem); } 50% { transform: translateY(.25rem); } }
-/* un solo momento animato: gli elementi salgono uno dopo l'altro all'apertura */
+/* dopo il marchio, slogan e bottoni salgono uno dopo l'altro */
 @media (prefers-reduced-motion: no-preference) {
-  .hero-logo, .hero h1, .slogan, .discs, .hero .wa { animation: rise .8s cubic-bezier(.2, .7, .2, 1) both; }
-  .hero h1 { animation-delay: .08s; } .slogan { animation-delay: .2s; } .discs { animation-delay: .32s; } .hero .wa { animation-delay: .44s; }
+  .slogan, .discs, .hero .wa { animation: rise .8s cubic-bezier(.2, .7, .2, 1) both; }
+  .slogan { animation-delay: 2.6s; } .discs { animation-delay: 2.85s; } .hero .wa { animation-delay: 3.05s; }
 }
 @keyframes rise { from { opacity: 0; transform: translate3d(0, 16px, 0); } }
 
@@ -203,8 +220,7 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
   .pill .m { display: inline; }
   .top-links a.pill { min-height: 2.25rem; padding: 0 .9rem; font-size: 1.05rem; }
   .hero { padding-bottom: 5rem; }
-  .hero h1 { letter-spacing: .04em; }
-  .discs { gap: .5rem; width: 100%; max-width: 26rem; }
+    .discs { gap: .5rem; width: 100%; max-width: 26rem; }
   .discs .btn { flex: 1 1 0; min-width: 0; padding: 0 .4rem; font-size: 1.2rem; letter-spacing: .05em; }
   .hero .wa { width: 100%; max-width: 26rem; padding: 0 1rem; }
   h2 { font-size: clamp(2.4rem, 11.5vw, 3.4rem); }
@@ -230,8 +246,6 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 /* telefono in orizzontale o schermi bassi: la prima schermata scende a un po' meno di una schermata piena e si accorcia */
 @media (max-height: 560px) {
   .hero { padding-block: 4.5rem 3.5rem; }
-  .hero-logo { width: 6rem; }
-  .hero h1 { font-size: clamp(3.4rem, 17vh, 6.5rem); }
   .slogan { margin-top: .6rem; font-size: 1.05rem; }
   .discs { margin-top: 1rem; }
   .discs .btn, .hero .wa { min-height: 2.9rem; font-size: 1.2rem; }
