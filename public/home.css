@@ -74,8 +74,8 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
   /* 1. il logo intero, al centro, compare. 2. si allarga: K a sinistra, LAB a destra. 3. entrano U K O. 4. i riempimenti spariscono e restano i contorni */
   .wm-k { animation: wmK 1.15s cubic-bezier(.7, 0, .2, 1) .85s both; }
   .wm-lab > .lab { animation: wmLab 1.15s cubic-bezier(.7, 0, .2, 1) .85s both; }
-  .wm .u { animation: wmU .55s cubic-bezier(.2, .7, .2, 1) calc(1.55s + var(--i) * .13s) both; }
-  .wm path { animation: wmHollow .9s ease-in-out 2.35s both; }
+  .wm .u { animation: wmU .55s cubic-bezier(.2, .7, .2, 1) calc(1.8s + var(--i) * .12s) both; }
+  .wm path { animation: wmHollow .9s ease-in-out 2.5s both; }
 }
 @keyframes wmIn { from { opacity: 0; transform: scale(.94); } }
 @keyframes wmK { from { transform: translateX(calc(var(--d) * 1px)); } }
@@ -93,7 +93,7 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 /* dopo il marchio, slogan e bottoni salgono uno dopo l'altro */
 @media (prefers-reduced-motion: no-preference) {
   .slogan, .discs, .hero .wa { animation: rise .8s cubic-bezier(.2, .7, .2, 1) both; }
-  .slogan { animation-delay: 2.6s; } .discs { animation-delay: 2.85s; } .hero .wa { animation-delay: 3.05s; }
+  .slogan { animation-delay: 2.75s; } .discs { animation-delay: 3s; } .hero .wa { animation-delay: 3.2s; }
 }
 @keyframes rise { from { opacity: 0; transform: translate3d(0, 16px, 0); } }
 

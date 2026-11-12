@@ -6,7 +6,7 @@ Parte dal logo vero (public/img/logo-kuko.png: la K con la freccia arancio e LAB
 di circa 14 gradi, aste da 54 e barre da 43 unità). Scrive l'SVG su stdout: incollarlo nel <h1> della home.
 
 Uso:  python3 scripts/wordmark.py > .tmp/wordmark.svg      (serve opencv, numpy e pillow)
-Le misure sono in unità del logo (1344 x 486): K a sinistra, UKO nel mezzo, LAB a destra spostato di OFFSET_LAB.
+Le misure sono in unità del logo (1344 x 486). I vuoti si misurano sul disegno, riga per riga (GAP_LETTER tra K, U, K, O; GAP_WORD tra KUKO e LAB), non sui riquadri delle lettere.
 """
 import math
 import sys
@@ -20,7 +20,44 @@ SLANT = 0.25               # inclinazione delle lettere di LAB (dx per dy)
 H = 207                    # altezza delle lettere di LAB
 TOP = 137 - Y0             # dove cominciano, in alto, le lettere di LAB
 SV, TB = 54, 43            # spessore delle aste verticali e delle barre orizzontali
-GAP_LETTER, GAP_WORD = 20, 32
+GAP_LETTER = 18            # vuoto minimo tra la K del marchio, U, K e O (e tra le lettere di LAB, che e' di 17-24)
+GAP_WORD = 64              # vuoto minimo tra KUKO e LAB: lo spazio tra le due parole
+
+
+ROWS = 460
+
+
+def mask_of(groups, width=3600):
+    """Maschera 1 dove c'e' disegno (il primo poligono di ogni forma e' il contorno, gli altri sono i buchi)."""
+    m = np.zeros((ROWS, width), np.uint8)
+    for polys in groups:
+        for i, p in enumerate(polys):
+            cv2.fillPoly(m, [np.round(np.array(p)).astype(np.int32)], 1 if i == 0 else 0)
+    return m
+
+
+def right_edge(m):
+    r = np.full(ROWS, -1e9)
+    for y in range(ROWS):
+        xs = np.flatnonzero(m[y])
+        if xs.size:
+            r[y] = xs.max() + 1
+    return r
+
+
+def left_edge(m):
+    l = np.full(ROWS, 1e9)
+    for y in range(ROWS):
+        xs = np.flatnonzero(m[y])
+        if xs.size:
+            l[y] = xs.min()
+    return l
+
+
+def place(prev_right, left, gap):
+    """Di quanto spostare a destra una forma (bordo sinistro `left`) perche' dalla precedente (bordo destro `prev_right`) la distanza minima, riga per riga, sia `gap`."""
+    ok = (prev_right > -1e8) & (left < 1e8)
+    return gap - np.min(left[ok] - prev_right[ok])
 
 
 def trace():
@@ -88,26 +125,26 @@ def main():
     kmark = [o for o in t['white'] if o['x'] < 500]
     lab = [o for o in t['white'] if o['x'] >= 500]
     chev = t['orange']
-    k_right = max(p[:, 0].max() for o in chev for p in o['poly'])          # bordo destro della freccia
-    lab_left = min(p[:, 0].min() for o in lab for p in o['poly'])
-    lab_right = max(p[:, 0].max() for o in lab for p in o['poly'])
+    kgroup = [o['poly'] for o in kmark + chev]
+    lab_polys = [o['poly'] for o in lab]
     widths = {'U': 172, 'K': 175, 'O': 190}
     letters = [('U', letter_U), ('K', letter_K), ('O', letter_O)]
-    x = k_right + GAP_WORD
+    right = right_edge(mask_of(kgroup))                        # bordo destro di tutto cio' che sta a sinistra, riga per riga
     uko = []
     for name, fn in letters:
-        w = widths[name]
-        polys = [shear(p, x) for p in fn(w)]
+        polys = [shear(p, 0) for p in fn(widths[name])]
+        dx = place(right, left_edge(mask_of([polys])), GAP_LETTER)
+        polys = [[(x + dx, y) for x, y in p] for p in polys]
         uko.append((name, polys))
-        x += w + H * SLANT + GAP_LETTER
-    uko_right = x - GAP_LETTER
-    lab_new_left = uko_right + GAP_WORD
-    shift = lab_new_left - lab_left                                           # di quanto va spostato LAB
-    total = lab_new_left + (lab_right - lab_left)
-    start = (total - (lab_right)) / 2                                         # il logo intero, centrato, prima di aprirsi
-    print(f'<!-- generato da scripts/wordmark.py: larghezza {total:.0f}, LAB si sposta di {shift:.0f}, partenza {start:.0f} -->', file=sys.stderr)
+        right = np.maximum(right, right_edge(mask_of([polys])))
+    labm = mask_of(lab_polys)
+    shift = place(right, left_edge(labm), GAP_WORD)             # di quanto va spostato LAB
+    lab_right = max(p[:, 0].max() for o in lab for p in o['poly'])
+    total = lab_right + shift
+    start = shift / 2                                          # il logo intero, centrato, prima di aprirsi
+    print(f'<!-- generato da scripts/wordmark.py: larghezza {total:.0f}, LAB si sposta di {shift:.0f} -->', file=sys.stderr)
     out = []
-    out.append(f'<svg class="wm" viewBox="0 0 {total:.0f} 460" style="--w:{total:.0f};--d:{shift / 2:.0f};--s:{start:.0f}" aria-hidden="true" focusable="false">')
+    out.append(f'<svg class="wm" viewBox="0 0 {total:.0f} 460" style="--d:{start:.0f}" aria-hidden="true" focusable="false">')
     out.append('  <g class="wm-k">')
     for o in kmark:
         out.append(f'    <path class="w" d="{d_of(o["poly"])}"/>')
