@@ -136,13 +136,13 @@ function init(sec) {
   // sala corrente, e quanto di ogni sala è già percorso
   function hud(T) {
     if (!data) return;
-    const ts = data.tappe; let best = ts[0], bd = 1e9;
-    ts.forEach((t) => { const d = Math.abs(t.t - T); if (d < bd) { bd = d; best = t; } });
-    if (best.stanza !== hud.want) { // la scritta della sala si dissolve, cambia e riappare
-      hud.want = best.stanza; room.classList.add('sw');
+    const mids = chaps.map((c) => (c.a0 + c.a1) / 2); // la sala cambia a metà del passaggio (quando il capitolo è al massimo)
+    let want = 'Ingresso'; chaps.forEach((c, i) => { if (T >= mids[i]) want = c.room; });
+    if (want !== hud.want) { // la scritta della sala si dissolve, cambia e riappare
+      hud.want = want; room.classList.add('sw');
       clearTimeout(hud.tm); hud.tm = setTimeout(() => { roomLabel.textContent = hud.want; room.classList.remove('sw'); }, 170);
     }
-    const first = (s) => ts.find((t) => t.stanza === s), starts = [first('Personal Training').t - 1.2, first('Pilates').t - 1.4, first('Functional').t - 1.4, D];
+    const starts = [mids[0], mids[1], mids[2], D];
     steps.forEach((li, i) => {
       const f = cl((T - starts[i]) / (starts[i + 1] - starts[i]));
       li.style.setProperty('--f', f.toFixed(3));

@@ -6,7 +6,7 @@
 // Serve Playwright (con Chromium) e ffmpeg. Uso:
 //   node scripts/filmato-attrezzi.mjs disegna  [--formato orizzontale|verticale] [--da 0] [--a 9999] [--passo 1] [--cartella .tmp/filmato]
 //   node scripts/filmato-attrezzi.mjs etichette [--formato ...]   (dove cade ogni etichetta su ogni fotogramma: veloce, non disegna immagini)
-//   node scripts/filmato-attrezzi.mjs codifica [--formato orizzontale|verticale] [--cartella .tmp/filmato]   (mp4 + immagine di copertina + dati delle etichette)
+//   node scripts/filmato-attrezzi.mjs codifica [--formato orizzontale|verticale] [--cartella .tmp/filmato] [--solo-dati]   (mp4 + immagine di copertina + dati delle etichette)
 //   node scripts/filmato-attrezzi.mjs anteprima [--formato ...]   (un fotogramma per tappa, piccolo, per controllare le inquadrature)
 // Per disegnare su più processi: lancia più volte «disegna» con intervalli diversi (--da / --a); i fotogrammi già fatti vengono saltati.
 // Ordine: anteprima (controllo) → disegna → etichette → codifica.
@@ -94,12 +94,13 @@ function codifica() {
   const files = fs.readdirSync(cartella).filter((x) => /^f\d{5}\.jpg$/.test(x));
   if (files.length < nFrame) console.warn(`Attenzione: ci sono ${files.length} fotogrammi su ${nFrame}.`);
   const out = path.join(root, 'public', 'percorso', 'video'); fs.mkdirSync(out, { recursive: true });
-  const crf = String(arg('crf', verticale ? 25 : 24));
+  const crf = String(arg('crf', 28));
   // un fotogramma chiave ogni 6 e niente B-frame: scorrendo la pagina il video salta avanti e indietro e deve ricostruire l'immagine in fretta
-  const r = spawnSync('ffmpeg', ['-y', '-framerate', String(FPS), '-i', path.join(cartella, 'f%05d.jpg'), '-c:v', 'libx264', '-preset', 'slow', '-crf', crf, '-g', '6', '-keyint_min', '6', '-sc_threshold', '0', '-bf', '0',
+  const soloDati = !!arg('solo-dati', false); // rifà solo il file delle etichette (il filmato resta quello che c'è)
+  const r = soloDati ? { status: 0 } : spawnSync('ffmpeg', ['-y', '-framerate', String(FPS), '-i', path.join(cartella, 'f%05d.jpg'), '-c:v', 'libx264', '-preset', 'slow', '-crf', crf, '-g', '6', '-keyint_min', '6', '-sc_threshold', '0', '-bf', '0',
     '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-movflags', '+faststart', '-an', path.join(out, nome + '.mp4')], { stdio: 'inherit' });
   if (r.status) throw new Error('ffmpeg non è riuscito a codificare');
-  fs.copyFileSync(path.join(cartella, 'f00000.jpg'), path.join(out, nome + '-copertina.jpg'));
+  if (!soloDati) fs.copyFileSync(path.join(cartella, 'f00000.jpg'), path.join(out, nome + '-copertina.jpg'));
   // etichette: unisco i pezzi. Per ogni fotogramma: [indice dell'etichetta, x, y] in frazioni dell'immagine (0-1); le etichette e le tappe stanno in testa al file
   const fp = path.join(cartella, 'etichette.json'); if (!fs.existsSync(fp)) throw new Error('Manca etichette.json: lancia prima «etichette»');
   const pins = JSON.parse(fs.readFileSync(fp, 'utf8'));

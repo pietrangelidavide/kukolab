@@ -18,19 +18,19 @@ export const TAPPE = [
     { id: 'bilanciere', n: 'Bilanciere e dischi', at: [12.5, 4.6, -5.3], lato: 's' },
   ] },
   { id: 'pt-manubri', stanza: 'Personal Training', t: 5.0, hold: 1.4, tgt: [23.0, 3.8, -5.0], d: 17, yaw: 0, el: 6, fov: 34, pos: 1.0, dr: -6, et: [
-    { id: 'albero', n: 'Albero dei dischi', at: [18.2, 3.2, -2.6], lato: 's' },
-    { id: 'rastrelliera', n: 'Rastrelliera manubri', at: [21.6, 2.7, -5.8], lato: 's' },
+    { id: 'albero', n: 'Albero dei dischi', at: [18.2, 3.2, -2.6], lato: 'd' },
+    { id: 'rastrelliera', n: 'Rastrelliera manubri', at: [21.6, 2.7, -5.8], lato: 'd' },
     { id: 'cavi', n: 'Torre a cavi', at: [25.6, 4.4, -5.4], lato: 'd' },
     { id: 'kettlebell-pt', n: 'Kettlebell', at: [27.8, 1.0, -5.6], lato: 'd' },
   ] },
   { id: 'pt-panca', stanza: 'Personal Training', t: 7.0, hold: 1.0, tgt: [30.4, 4.2, -2.0], d: 17, yaw: -42, el: 9, fov: 36, pos: 1.1, dr: 6, et: [
     { id: 'panca', n: 'Panca', at: [30.6, 1.6, -0.2], lato: 's' },
-    { id: 'rack2', n: 'Rack per squat', at: [30.6, 9.4, -3.8], lato: 'd' },
+    { id: 'rack2', n: 'Rack per squat', at: [30.2, 6.6, -3.8], lato: 'd' },
     { id: 'elastici', n: 'Elastici', at: [32.2, 0.7, 2.2], lato: 'd' },
   ] },
   { id: 'pt-terra', stanza: 'Personal Training', t: 8.9, hold: 1.2, tgt: [26, 0.9, 2.0], d: 9.5, yaw: 5, el: 13, fov: 32, pos: 1.2, dr: -5, et: [
-    { id: 'manubrio', n: 'Manubri esagonali', at: [23, 0.4, 1.3], lato: 's' },
-    { id: 'dischi', n: 'Dischi', at: [25.4, 0.7, 2.2], lato: 's' },
+    { id: 'manubrio', n: 'Manubri', at: [23, 0.4, 1.3], lato: 'd' },
+    { id: 'dischi', n: 'Dischi', at: [25.4, 0.7, 2.2], lato: 'd' },
     { id: 'palla-medica', n: 'Palla medica', at: [26.4, 1.1, 2.2], lato: 'd' },
     { id: 'cronometro', n: 'Cronometro', at: [29, 0.7, 2.2], lato: 'd' },
   ] },
@@ -40,7 +40,7 @@ export const TAPPE = [
     { id: 'pallina', n: 'Pallina soft', at: [49.2, 0.7, 2.2], lato: 'd' },
   ] },
   { id: 'pil-cadillac', stanza: 'Pilates', t: 14.0, hold: 1.2, tgt: [36.2, 3.8, -4.4], d: 16, yaw: 20, el: 8, fov: 34, pos: 3.0, dr: -6, et: [
-    { id: 'cadillac', n: 'Cadillac', at: [35.6, 8.2, -4.4], lato: 'd' },
+    { id: 'cadillac', n: 'Cadillac', at: [38.75, 5.35, -4.4], lato: 'd' },
   ] },
   { id: 'pil-sedia', stanza: 'Pilates', t: 16.0, hold: 1.2, tgt: [55.4, 1.7, -0.2], d: 11, yaw: -62, el: 16, fov: 32, pos: 3.05, dr: 6, vert: { tgt: [55.4, 2.0, -0.4], d: 10, yaw: -20, el: 18, alpha: 0.5 }, et: [
     { id: 'wunda', n: 'Wunda chair', at: [55.6, 3.1, 0.4], lato: 's' },
@@ -58,7 +58,7 @@ export const TAPPE = [
   ] },
   { id: 'fun-box', stanza: 'Functional', t: 23.0, hold: 1.2, lift: 6.5, tgt: [79.6, 1.7, -2.6], d: 12, yaw: -20, el: 9, fov: 32, pos: 5.0, dr: 6, vert: { tgt: [80.0, 2.2, -3.0], d: 14, yaw: -8, el: 6 }, et: [
     { id: 'plyo', n: 'Box pliometrici', at: [80.5, 2.4, -3.2], lato: 'd' },
-    { id: 'coni', n: 'Coni', at: [79.4, 0.7, 3.7], lato: 's' },
+    { id: 'coni', n: 'Coni', at: [79.15, 1.2, 3.2], lato: 's' },
   ] },
   { id: 'fun-corde', stanza: 'Functional', t: 25.0, hold: 1.2, tgt: [65.9, 1.9, -4.4], d: 6.6, yaw: 24, el: 8, fov: 32, pos: 5.1, dr: -10, et: [
     { id: 'corde', n: 'Corde da battaglia', at: [65.9, 1.6, -4.6], lato: 'd' },
