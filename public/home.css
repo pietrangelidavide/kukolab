@@ -194,7 +194,11 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 .team { position: relative; border-top: 1px solid var(--line); background: radial-gradient(75% 42% at 50% 58%, rgba(232, 96, 40, .1), transparent 70%), var(--bg); }
 .team .in { max-width: 76rem; margin-inline: auto; padding: clamp(4rem, 10vw, 8rem) var(--gut); }
 .team h2 { font-size: clamp(2.8rem, 8vw, 5rem); }
-.team .lead { max-width: 36rem; }
+.team-head { text-align: center; }
+.team h2 em { color: var(--orange); white-space: nowrap; }
+.team .lead { max-width: 44rem; margin-inline: auto; }
+.team-close { margin-top: clamp(3rem, 6vw, 4.5rem); padding-top: clamp(2rem, 4vw, 3rem); border-top: 1px solid var(--line); text-align: center; scroll-margin-top: 5rem; }
+.team-say { max-width: 34rem; margin-inline: auto; font: 700 clamp(1.5rem, 2.4vw, 2.1rem)/1.1 var(--display); letter-spacing: .05em; text-transform: uppercase; text-wrap: balance; }
 /* tre tappe unite da una linea: ogni figura sta sopra la sua tappa, i testi stanno sotto, mai sulla linea */
 .pros { --gap: clamp(1.5rem, 4vw, 4rem); --u: min(.029rem, .06vw); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); margin-top: clamp(2.6rem, 6vw, 4.5rem); }
 .pro { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; }
