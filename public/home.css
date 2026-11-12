@@ -106,9 +106,6 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 .ph.cut { width: auto; max-width: 100%; }
 .ph.cut img { display: block; width: auto; max-width: 100%; height: clamp(19rem, 58svh, 36rem); aspect-ratio: auto; object-fit: contain; background: none; margin-inline: auto;
   filter: drop-shadow(0 0 1px rgba(255, 150, 90, .95)) drop-shadow(0 0 .55rem rgba(232, 96, 40, .85)) drop-shadow(0 0 2rem rgba(232, 96, 40, .5)); }
-/* Functional di gruppo: la foto della palestra, in formato largo (1300 px di sorgente mostrati a circa 830: nitida anche su schermi ad alta densità) */
-.ph.wide { width: min(100%, 52rem, calc(80svh * 1.5)); }
-.ph.wide img { aspect-ratio: 3 / 2; }
 .label { display: inline-block; margin-bottom: 1.2rem; padding: .5rem .95rem .42rem; border-radius: 999px; background: var(--orange); color: #000; font: 700 1.35rem/1 var(--display); letter-spacing: .14em; text-transform: uppercase; }
 .lead { margin-top: 1.3rem; max-width: 30rem; text-wrap: balance; font-size: clamp(1.05rem, 1.3vw, 1.3rem); line-height: 1.5; color: rgba(245, 245, 243, .9); }
 .motto { display: block; margin-bottom: .55rem; font: 700 clamp(1.65rem, 1.9vw, 1.85rem)/1.05 var(--display); letter-spacing: .07em; text-transform: uppercase; color: var(--fg); }
@@ -125,17 +122,19 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
   .disc h2 { font-size: clamp(2.6rem, 5vw, 5.2rem); }
 }
 
-/* Desktop: ognuna delle tre sezioni sta in una schermata sola (sotto la testata fissa). La foto prende lo spazio che resta sopra al testo,
-   così non serve contare le altezze: più la finestra è bassa, più la foto si rimpicciolisce. Su telefono e finestre molto basse resta la versione impilata. */
+/* Desktop: ognuna delle tre sezioni sta in una schermata sola (sotto la testata fissa) e il titolo sta a metà schermo: tre righe, la foto (se c'è)
+   sopra, etichetta e titolo al centro, il resto del testo sotto; le due righe esterne sono uguali (1fr), quindi il titolo resta al centro
+   qualunque sia l'altezza della finestra, e la foto si rimpicciolisce da sola nello spazio che ha. Su telefono e finestre molto basse resta la versione impilata. */
 @media (min-width: 900px) and (min-height: 560px) {
-  .disc.mid .in { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(.8rem, 2.4svh, 2rem); box-sizing: border-box; height: calc(100svh - 4.5rem); padding-block: clamp(.6rem, 2svh, 1.6rem); }
-  .disc.mid .ph, .disc.mid .ph.wide, .disc.mid .ph.cut { flex: 1 1 0; min-height: 0; width: 100%; max-width: none; display: flex; justify-content: center; align-items: center; }
-  .disc.mid .ph picture { display: contents; }
-  .disc.mid .ph.cut img { width: auto; height: 100%; max-width: 100%; margin: 0; }
-  .disc.mid .ph.wide img { width: auto; height: auto; max-width: min(100%, 56rem); max-height: 100%; min-height: 0; aspect-ratio: auto; margin: 0; }
+  .disc.mid .in { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr); justify-items: center; align-items: start; row-gap: clamp(.6rem, 1.8svh, 1.4rem); box-sizing: border-box; height: calc(100svh - 4.5rem); padding-block: clamp(1.6rem, 5svh, 3.5rem); }
+  .disc.mid .copy { display: contents; }
+  .disc.mid .ph.cut { grid-row: 1; align-self: stretch; width: 100%; max-width: none; min-height: 0; display: flex; justify-content: center; align-items: flex-end; }
+  .disc.mid .ph.cut img { width: auto; height: 100%; max-height: 26rem; max-width: 100%; margin: 0; }
+  .disc.mid .head { grid-row: 2; }
+  .disc.mid .rest { grid-row: 3; align-self: start; }
   .disc.mid h2 { font-size: clamp(2.2rem, min(5vw, 8svh), 5.2rem); }
   .disc.mid .label { margin-bottom: clamp(.5rem, 1.6svh, 1.2rem); }
-  .disc.mid .lead { margin-top: clamp(.6rem, 1.6svh, 1.3rem); }
+  .disc.mid .lead { margin-top: 0; }
   .disc.mid .who { margin-top: clamp(.7rem, 1.8svh, 1.5rem); }
   .disc.mid .more { margin-top: clamp(.8rem, 2svh, 1.6rem); }
 }
