@@ -82,7 +82,7 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 @keyframes wmLab { from { transform: translateX(calc(var(--d) * -1px)); } }
 @keyframes wmU { from { opacity: 0; transform: translateY(26px); } }
 @keyframes wmHollow { from { fill-opacity: 1; } }
-.slogan { margin-top: clamp(1rem, 2.6vh, 1.8rem); font-size: clamp(1.2rem, 2.2vw, 1.75rem); line-height: 1.3; letter-spacing: .01em; color: var(--fg); }
+.slogan { margin-top: clamp(1rem, 2.6vh, 1.8rem); font-size: clamp(1.15rem, 2.6vw, 2.1rem); line-height: 1.3; letter-spacing: .09em; text-transform: uppercase; color: var(--fg); }
 .discs { display: flex; flex-wrap: wrap; justify-content: center; gap: .8rem; margin-top: clamp(1.6rem, 4.5vh, 3rem); }
 .discs .btn { min-width: 10.5rem; min-height: 3.6rem; font-size: 1.5rem; }
 .hero .wa { margin-top: clamp(1rem, 2.6vh, 1.6rem); min-height: 2.8rem; padding: 0 1.7rem; font-size: 1.2rem; letter-spacing: .06em; }
