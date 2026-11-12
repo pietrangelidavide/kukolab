@@ -548,17 +548,6 @@ export async function addWorld(X) {
   const SEGU = [[1.38, 2.62], [3.38, 4.62], [5.3, 5.85]];
   // sciame per un tratto j (0: Personal→Pilates, 1: Pilates→Functional, 2: Functional→finale); u = avanzamento 0→1
   function swarm(pos, t, cxPos) {
-    if (X.tour) { // filmato degli attrezzi: ogni sala ha i suoi, tutti insieme e fermi al loro posto (niente trasformazioni)
-      for (let i = 0; i < SLOTS.length; i++) {
-        const S = SLOTS[i];
-        for (let room = 0; room < 3; room++) {
-          const h = S.home[room], ap = appear(h[0]);
-          if (ap < 0.02) continue;
-          KINDS[S.kinds[room]](Mx(h[0], 0, h[1], ap, ap, ap, 0, i * 0.9 + room, 0), S.sc);
-        }
-      }
-      return;
-    }
     for (let i = 0; i < SLOTS.length; i++) {
       const S = SLOTS[i];
       // in quale fase siamo: trovo il tratto attivo
@@ -744,7 +733,7 @@ export async function addWorld(X) {
     if (Math.abs(cx - ZX[2]) < 40) salaPil(pos, cx, t);
     if (Math.abs(cx - ZX[3]) < 40) { ropeHand.on = false; salaFun(pos, cx, t); }
     if (Math.abs(cx - ZX[4]) < 44) sala0(pos, cx, t);
-    if (!X.tour) gates(pos, cx, t); // nel filmato degli attrezzi niente cancelli: i montanti del primo rack stanno proprio sul cancello e coprirebbero la vista
+    gates(pos, cx, t);
     swarm(pos, t, { x: c.x, z: c.z });
     // persone
     const intro = R.intro;
@@ -757,11 +746,7 @@ export async function addWorld(X) {
       if (a.held && a.held.kind === 'db' && pos < 1.22 && a.held.k > 0.02) { const h = J.hands; const mid = v.mix(h.R, h.L, 0.5); P.hexDumbbell(M.chain(M.T(mid[0], mid[1] - 0.05, mid[2] + 0.02), M.Ry(0), M.Rz(0), M.S(0.9 * a.held.k)), K.black); }
       if (a.held && a.held.kind === 'kb' && a.held.k > 0.02) { const h = J.hands; const mid = v.mix(h.R, h.L, 0.5); P.kettlebell(M.mul(M.T(mid[0], mid[1] - 1.0, mid[2]), M.S(0.9 * a.held.k)), K.black, 1); }
       if (a.bell) { const h = J.hands; const mid = v.mix(h.R, h.L, 0.5); P.kettlebell(M.mul(M.T(mid[0], mid[1] - 0.95, mid[2]), M.S(0.8)), K.black, 1); }
-      if (a.rope) {
-        const h = J.hands; ropeHand.on = true; ropeHand.L = h.R; ropeHand.R = h.L;
-        // (nel percorso le corde non si vedono: l'attrezzo è disegnato prima delle persone; nel filmato lo disegno qui, con le mani già al loro posto)
-        if (X.tour) [h.R, h.L].forEach((hh, i) => P.rope([ZX[3] - 4.6 + i * 1.0, 1.0, -6.0], hh, t, 1, i * 1.2, K.orange));
-      }
+      if (a.rope) { const h = J.hands; ropeHand.on = true; ropeHand.L = h.R; ropeHand.R = h.L; }
     }
     // manubrio posato a terra dal cliente (poi diventa lo sciame 0)
     if (pos >= 1.22 && pos < 1.38) {

@@ -23,7 +23,7 @@
 <div class="scrim" aria-hidden="true"></div>
 
 <header class="top">
-  <a class="brand" href="#attrezzi" aria-label="KUKO LAB, torna all'inizio"><img src="/img/logo-kuko.png" width="672" height="243" alt=""><span>KUKO LAB</span></a>
+  <a class="brand" href="#inizio" data-go="0" aria-label="KUKO LAB, torna all'inizio"><img src="/img/logo-kuko.png" width="672" height="243" alt=""><span>KUKO LAB</span></a>
   <nav class="top-links" aria-label="Collegamenti">
     <a class="room" href="/personal-training" data-room="0">Personal training</a>
     <a class="room" href="/pilates" data-room="1">Pilates</a>
@@ -46,187 +46,13 @@
   <button type="button" class="rail-next">Continua<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
 </nav>
 
-<!-- Icone al tratto degli attrezzi (si disegnano a mano libera mentre compaiono: ogni tratto ha pathLength="1"). Servono alle schede e alle illustrazioni della presentazione. -->
-<svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
-  <symbol id="i-barbell" viewBox="0 0 48 48"><path pathLength="1" d="M3 24h42"/><path pathLength="1" d="M9 15v18M14 11v26M34 11v26M39 15v18"/></symbol>
-  <symbol id="i-plates" viewBox="0 0 48 48"><path pathLength="1" d="M24 5v38"/><path pathLength="1" d="M15 12h18M12 20h24M14 28h20M17 36h14"/></symbol>
-  <symbol id="i-dumbbell" viewBox="0 0 48 48"><path pathLength="1" d="M15 24h18"/><path pathLength="1" d="M8 18v12M13 14v20M35 14v20M40 18v12"/></symbol>
-  <symbol id="i-kettlebell" viewBox="0 0 48 48"><path pathLength="1" d="M16 19a8 8 0 0116 0"/><circle pathLength="1" cx="24" cy="30" r="12"/><path pathLength="1" d="M19 14c1-4 9-4 10 0"/></symbol>
-  <symbol id="i-rack" viewBox="0 0 48 48"><path pathLength="1" d="M10 43V6M38 43V6M10 6h28M10 15h28"/><path pathLength="1" d="M4 24h40M8 20v8M40 20v8"/></symbol>
-  <symbol id="i-cable" viewBox="0 0 48 48"><path pathLength="1" d="M10 43V6h22v8"/><path pathLength="1" d="M10 18h8v18h-8M32 14v14"/><circle pathLength="1" cx="32" cy="32" r="4"/></symbol>
-  <symbol id="i-bench" viewBox="0 0 48 48"><rect pathLength="1" x="5" y="21" width="38" height="7" rx="2"/><path pathLength="1" d="M12 28v12M36 28v12M8 40h8M32 40h8"/></symbol>
-  <symbol id="i-band" viewBox="0 0 48 48"><ellipse pathLength="1" cx="24" cy="24" rx="19" ry="10"/><ellipse pathLength="1" cx="24" cy="24" rx="11" ry="4.5"/></symbol>
-  <symbol id="i-ball" viewBox="0 0 48 48"><circle pathLength="1" cx="24" cy="24" r="17"/><path pathLength="1" d="M7 24c9 6 25 6 34 0M24 7c-7 9-7 25 0 34"/></symbol>
-  <symbol id="i-timer" viewBox="0 0 48 48"><circle pathLength="1" cx="24" cy="27" r="15"/><path pathLength="1" d="M24 27l6-7M19 6h10M24 6v6"/></symbol>
-  <symbol id="i-reformer" viewBox="0 0 48 48"><rect pathLength="1" x="3" y="23" width="42" height="7" rx="1.5"/><path pathLength="1" d="M7 30v9M41 30v9M17 23v-6h12v6M33 27l2-4 2 8 2-8 2 8 2-4"/></symbol>
-  <symbol id="i-blocks" viewBox="0 0 48 48"><rect pathLength="1" x="5" y="24" width="17" height="15" rx="1.5"/><rect pathLength="1" x="26" y="14" width="17" height="25" rx="1.5"/></symbol>
-  <symbol id="i-cadillac" viewBox="0 0 48 48"><path pathLength="1" d="M6 42V8h36v34M6 18h36"/><path pathLength="1" d="M14 32h20v-6M18 18v8M30 18v8"/></symbol>
-  <symbol id="i-chair" viewBox="0 0 48 48"><rect pathLength="1" x="11" y="22" width="26" height="19" rx="2"/><path pathLength="1" d="M17 22v-9h14v9M20 41v4M28 41v4"/></symbol>
-  <symbol id="i-spine" viewBox="0 0 48 48"><path pathLength="1" d="M5 36c7-17 31-17 38 0M5 36h38"/><path pathLength="1" d="M14 36v4M34 36v4"/></symbol>
-  <symbol id="i-ring" viewBox="0 0 48 48"><circle pathLength="1" cx="24" cy="24" r="15"/><circle pathLength="1" cx="24" cy="24" r="11"/><rect pathLength="1" x="3" y="20" width="6" height="8" rx="2"/><rect pathLength="1" x="39" y="20" width="6" height="8" rx="2"/></symbol>
-  <symbol id="i-mat" viewBox="0 0 48 48"><rect pathLength="1" x="4" y="28" width="40" height="8" rx="2"/><path pathLength="1" d="M10 28v8M38 28v8M8 22c4-5 28-5 32 0"/></symbol>
-  <symbol id="i-roller" viewBox="0 0 48 48"><ellipse pathLength="1" cx="13" cy="24" rx="6" ry="11"/><path pathLength="1" d="M13 13h21a6 11 0 010 22H13"/></symbol>
-  <symbol id="i-rig" viewBox="0 0 48 48"><path pathLength="1" d="M5 43V7M43 43V7M5 7h38M5 15h38"/><path pathLength="1" d="M17 15v14M31 15v14M14 29h6M28 29h6"/></symbol>
-  <symbol id="i-trx" viewBox="0 0 48 48"><circle pathLength="1" cx="24" cy="7" r="3"/><path pathLength="1" d="M24 10L13 36M24 10l11 26"/><rect pathLength="1" x="8" y="36" width="9" height="5" rx="2.5"/><rect pathLength="1" x="31" y="36" width="9" height="5" rx="2.5"/></symbol>
-  <symbol id="i-box" viewBox="0 0 48 48"><path pathLength="1" d="M7 17l17-9 17 9v19L24 45 7 36z"/><path pathLength="1" d="M7 17l17 9 17-9M24 26v19"/></symbol>
-  <symbol id="i-cone" viewBox="0 0 48 48"><path pathLength="1" d="M24 6l12 33H12z"/><path pathLength="1" d="M7 39h34M17 26h14"/></symbol>
-  <symbol id="i-rope" viewBox="0 0 48 48"><circle pathLength="1" cx="6" cy="26" r="3"/><path pathLength="1" d="M9 26c4-14 9-14 13 0s9 14 13 0c2-6 4-9 7-9"/><path pathLength="1" d="M9 31c4-12 9-12 13 0s9 12 13 0c2-5 4-8 7-8"/></symbol>
-  <symbol id="i-sandbag" viewBox="0 0 48 48"><rect pathLength="1" x="5" y="17" width="38" height="18" rx="9"/><path pathLength="1" d="M15 17v18M33 17v18M21 12h6"/></symbol>
-</svg>
-
-<!-- Presentazione: un filmato attraversa lo studio e si ferma su ogni attrezzo. Scorrendo, il filmato avanza (js/tour.js); le etichette seguono gli attrezzi.
-     Testi e illustrazioni compaiono e svaniscono con il filmato: un capitolo per sala nei passaggi tra le sale, una didascalia per ogni attrezzo, una scheda a un tocco sulle etichette.
-     Senza JavaScript, con «riduci movimento», risparmio dati o se il filmato non parte resta la foto con l'elenco degli attrezzi (che contiene anche le schede). -->
-<section class="tour" id="attrezzi" aria-labelledby="h-tour">
-  <div class="tour-pin">
-    <picture>
-      <source media="(max-aspect-ratio: 1/1)" srcset="/percorso/video/attrezzi-verticale-copertina.jpg" width="540" height="960">
-      <img class="tour-still" src="/percorso/video/attrezzi-copertina.jpg" width="1280" height="720" fetchpriority="high" alt="L'ingresso di KUKO LAB visto dall'interno: la porta a vetri, le piante e in fondo la sala del personal training">
-    </picture>
-    <video class="tour-video" muted playsinline preload="auto" tabindex="-1" aria-hidden="true" disablepictureinpicture disableremoteplayback></video>
-    <div class="tour-shade" aria-hidden="true"></div>
-    <div class="tour-dim" aria-hidden="true"></div>
-    <div class="tour-pins" aria-hidden="true"></div>
-
-    <div class="tour-intro">
-      <h1 id="h-tour">Il tuo benessere a 360°</h1>
-      <p class="lead">Entra nello studio e guarda da vicino tutti gli attrezzi di Personal training, Pilates e Functional.</p>
-    </div>
-
-    <!-- Un capitolo per sala: compare nel passaggio da una sala all'altra (tour.js ricava i tempi dal filmato), con una parola gigante, un'illustrazione al tratto che si disegna e un testo -->
-    <section class="tour-chap" data-room="Personal Training" data-n="0">
-      <p class="tour-mark" aria-hidden="true">Personal</p>
-      <svg class="tour-ill" viewBox="0 0 200 150" aria-hidden="true" focusable="false">
-        <g class="pz" data-z="0.5" data-o="0"><use href="#i-rack" x="62" y="2" width="136" height="136"/></g>
-        <g class="pz" data-z="1.1" data-o="1"><use href="#i-barbell" x="0" y="64" width="96" height="96"/></g>
-        <g class="pz" data-z="1.6" data-o="2"><use href="#i-kettlebell" x="104" y="84" width="58" height="58"/></g>
-        <g class="pz" data-z="0.8" data-o="3"><use href="#i-dumbbell" x="150" y="96" width="46" height="46"/></g>
-      </svg>
-      <div class="tour-chap-t">
-        <p class="label">Allenamento personale</p>
-        <h2>Qui costruisci la forza.</h2>
-        <p class="lead">Rack, bilancieri e cavi: la sala dove ci si allena con un trainer accanto, un obiettivo alla volta.</p>
-      </div>
-    </section>
-    <section class="tour-chap" data-room="Pilates" data-n="1">
-      <p class="tour-mark" aria-hidden="true">Pilates</p>
-      <svg class="tour-ill" viewBox="0 0 200 150" aria-hidden="true" focusable="false">
-        <g class="pz" data-z="0.5" data-o="0"><use href="#i-reformer" x="26" y="14" width="156" height="156"/></g>
-        <g class="pz" data-z="1.2" data-o="1"><use href="#i-ring" x="0" y="82" width="66" height="66"/></g>
-        <g class="pz" data-z="1.7" data-o="2"><use href="#i-ball" x="136" y="86" width="60" height="60"/></g>
-        <g class="pz" data-z="0.9" data-o="3"><use href="#i-spine" x="84" y="100" width="46" height="46"/></g>
-      </svg>
-      <div class="tour-chap-t">
-        <p class="label">Pilates</p>
-        <h2>Qui ritrovi controllo.</h2>
-        <p class="lead">Reformer, cadillac e piccoli attrezzi: movimenti lenti e precisi che cambiano il modo in cui ti muovi ogni giorno.</p>
-      </div>
-    </section>
-    <section class="tour-chap" data-room="Functional" data-n="2">
-      <p class="tour-mark" aria-hidden="true">Functional</p>
-      <svg class="tour-ill" viewBox="0 0 200 150" aria-hidden="true" focusable="false">
-        <g class="pz" data-z="0.5" data-o="0"><use href="#i-rig" x="52" y="2" width="146" height="146"/></g>
-        <g class="pz" data-z="1.1" data-o="1"><use href="#i-rope" x="0" y="70" width="92" height="92"/></g>
-        <g class="pz" data-z="1.6" data-o="2"><use href="#i-box" x="112" y="88" width="54" height="54"/></g>
-        <g class="pz" data-z="0.8" data-o="3"><use href="#i-cone" x="160" y="100" width="38" height="38"/></g>
-      </svg>
-      <div class="tour-chap-t">
-        <p class="label">Allenamento funzionale</p>
-        <h2>Qui si lavora insieme.</h2>
-        <p class="lead">Rig, TRX, corde e box: allenamenti di gruppo che ti portano un passo oltre, con la spinta di chi è accanto a te.</p>
-      </div>
-    </section>
-
-    <!-- Didascalie: una per inquadratura, compaiono quando la camera si ferma e svaniscono quando riparte (data-tappa = id della tappa in scripts/lib/regia-attrezzi.mjs) -->
-    <div class="tour-caps">
-      <p class="tour-cap" data-tappa="pt-rack">Rack e bilanciere: la base della forza.</p>
-      <p class="tour-cap" data-tappa="pt-manubri">Dai manubri ai cavi: ogni muscolo ha il suo attrezzo.</p>
-      <p class="tour-cap" data-tappa="pt-panca">Panca e rack per squat: carichi che crescono con te.</p>
-      <p class="tour-cap" data-tappa="pt-terra">A terra, il lavoro di precisione.</p>
-      <p class="tour-cap" data-tappa="pil-reformer">Il reformer: molle e carrello per lavorare con controllo.</p>
-      <p class="tour-cap" data-tappa="pil-cadillac">Il cadillac: barre e molle per allungarsi e sostenersi.</p>
-      <p class="tour-cap" data-tappa="pil-sedia">Wunda chair e spine corrector: equilibrio, mobilità, postura.</p>
-      <p class="tour-cap" data-tappa="pil-terra">Tappetini e magic circle: piccoli attrezzi, grande precisione.</p>
-      <p class="tour-cap" data-tappa="fun-trx">Rig e TRX: ci si allena con il peso del corpo.</p>
-      <p class="tour-cap" data-tappa="fun-box">Box e coni: salti, scatti e cambi di direzione.</p>
-      <p class="tour-cap" data-tappa="fun-corde">Le corde da battaglia: potenza e fiato.</p>
-      <p class="tour-cap" data-tappa="fun-terra">Sacchi di sabbia e slam ball: forza a terra, insieme.</p>
-    </div>
-
-    <p class="tour-cue" aria-hidden="true">Scorri<svg viewBox="0 0 24 24" width="28" height="28"><path d="M5 9l7 7 7-7"/></svg></p>
-    <a class="tour-skip" href="#percorso">Salta il video</a>
-    <div class="tour-hud">
-      <div class="tour-hudl">
-        <p class="tour-hint" aria-hidden="true">Tocca un attrezzo per scoprire a cosa serve</p>
-        <p class="tour-room" aria-hidden="true"><span class="label">Ingresso</span></p>
-      </div>
-      <ol class="tour-steps" aria-label="Le tre sale">
-        <li><button type="button" data-room="Personal Training" aria-label="Vai al Personal training"><b><u></u></b><span>Personal</span></button></li>
-        <li><button type="button" data-room="Pilates" aria-label="Vai al Pilates"><b><u></u></b><span>Pilates</span></button></li>
-        <li><button type="button" data-room="Functional" aria-label="Vai al Functional"><b><u></u></b><span>Functional</span></button></li>
-      </ol>
-    </div>
-    <p class="tour-end"><a class="btn big" href="#percorso">Segui un cliente<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg></a></p>
-  </div>
-
-  <!-- Gli attrezzi, con a cosa servono: è l'elenco per chi non vede il filmato e la fonte delle schede (id a-… = id dell'etichetta, data-ic = icona) -->
-  <div class="tour-lista">
-    <h2>Gli attrezzi dello studio</h2>
-    <section>
-      <h3>Personal training</h3>
-      <ul>
-        <li id="a-rack" data-ic="rack"><strong>Power rack</strong> <span>Squat, panca e trazioni in sicurezza, con i fermi regolabili.</span></li>
-        <li id="a-bilanciere" data-ic="barbell"><strong>Bilanciere e dischi</strong> <span>Stacchi, squat e panca: i movimenti base della forza.</span></li>
-        <li id="a-albero" data-ic="plates"><strong>Albero dei dischi</strong> <span>Dove i dischi restano in ordine e a portata di mano.</span></li>
-        <li id="a-rastrelliera" data-ic="dumbbell"><strong>Rastrelliera manubri</strong> <span>Manubri di ogni peso, dal più leggero al più pesante.</span></li>
-        <li id="a-cavi" data-ic="cable"><strong>Torre a cavi</strong> <span>Resistenza costante per braccia, spalle e schiena.</span></li>
-        <li id="a-kettlebell-pt" data-ic="kettlebell"><strong>Kettlebell</strong> <span>Swing e movimenti completi che accendono tutto il corpo.</span></li>
-        <li id="a-panca" data-ic="bench"><strong>Panca</strong> <span>Per spinte, rematori e lavoro su un braccio alla volta.</span></li>
-        <li id="a-rack2" data-ic="rack"><strong>Rack per squat</strong> <span>Per gli squat con il bilanciere, con i supporti regolabili in altezza.</span></li>
-        <li id="a-elastici" data-ic="band"><strong>Elastici</strong> <span>Riscaldamento, mobilità e carichi leggeri.</span></li>
-        <li id="a-manubrio" data-ic="dumbbell"><strong>Manubri</strong> <span>Esagonali: la forma impedisce loro di rotolare.</span></li>
-        <li id="a-dischi" data-ic="plates"><strong>Dischi</strong> <span>Di varie misure, per aumentare il carico a piccoli passi.</span></li>
-        <li id="a-palla-medica" data-ic="ball"><strong>Palla medica</strong> <span>Lanci e passaggi per allenare la potenza.</span></li>
-        <li id="a-cronometro" data-ic="timer"><strong>Cronometro</strong> <span>Scandisce i tempi di lavoro e di recupero.</span></li>
-      </ul>
-    </section>
-    <section>
-      <h3>Pilates</h3>
-      <ul>
-        <li id="a-reformer" data-ic="reformer"><strong>Reformer</strong> <span>Carrello, molle e cinghie: resistenza regolabile per tutto il corpo.</span></li>
-        <li id="a-blocchi" data-ic="blocks"><strong>Blocchi in schiuma</strong> <span>Sostegno e allineamento, per trovare la posizione giusta.</span></li>
-        <li id="a-pallina" data-ic="ball"><strong>Pallina soft</strong> <span>Attiva i muscoli profondi e affina il controllo.</span></li>
-        <li id="a-cadillac" data-ic="cadillac"><strong>Cadillac</strong> <span>Un telaio con barre e molle per lavorare in allungamento e sospensione.</span></li>
-        <li id="a-wunda" data-ic="chair"><strong>Wunda chair</strong> <span>Forza ed equilibrio con un pedale a molla.</span></li>
-        <li id="a-spine" data-ic="spine"><strong>Spine corrector</strong> <span>Apre il torace e allunga la colonna.</span></li>
-        <li id="a-fitball" data-ic="ball"><strong>Fitball</strong> <span>Una base instabile per allenare il controllo del centro del corpo.</span></li>
-        <li id="a-rotolo" data-ic="roller"><strong>Rullo</strong> <span>Mobilità e rilascio muscolare.</span></li>
-        <li id="a-magic-circle" data-ic="ring"><strong>Magic circle</strong> <span>Una resistenza leggera per gambe, braccia e addome.</span></li>
-        <li id="a-tappetino" data-ic="mat"><strong>Tappetini</strong> <span>La base degli esercizi a corpo libero.</span></li>
-      </ul>
-    </section>
-    <section>
-      <h3>Functional</h3>
-      <ul>
-        <li id="a-rig" data-ic="rig"><strong>Rig a traversa</strong> <span>La struttura per trazioni, anelli e TRX: ci si allena in gruppo.</span></li>
-        <li id="a-trx" data-ic="trx"><strong>TRX</strong> <span>Cinghie con cui ci si allena col peso del corpo, a ogni livello.</span></li>
-        <li id="a-plyo" data-ic="box"><strong>Box pliometrici</strong> <span>Salti e scatti, con altezze diverse.</span></li>
-        <li id="a-coni" data-ic="cone"><strong>Coni</strong> <span>Tracciati per cambi di direzione e agilità.</span></li>
-        <li id="a-corde" data-ic="rope"><strong>Corde da battaglia</strong> <span>Onde di potenza per braccia, spalle e fiato.</span></li>
-        <li id="a-sandbag" data-ic="sandbag"><strong>Sacchi di sabbia</strong> <span>Un carico che si muove, per lavorare con tutto il corpo.</span></li>
-        <li id="a-slam" data-ic="ball"><strong>Slam ball</strong> <span>Lanci a terra per allenare l'esplosività.</span></li>
-      </ul>
-    </section>
-  </div>
-</section>
-
 <main id="percorso">
   <span id="inizio"></span>
 
   <section class="phase" id="hero" data-a="-1" data-b="0.62" aria-labelledby="h-hero">
     <div class="copy">
-      <h2 id="h-hero">Ora vivilo da dentro.</h2>
-      <p class="lead">Segui un cliente dall'ingresso alla fine dell'allenamento: tre discipline, un unico percorso, costruito intorno a te.</p>
+      <h1 id="h-hero">Il tuo benessere a 360°</h1>
+      <p class="lead">Tre discipline, un unico percorso. Costruito intorno a te.</p>
     </div>
     <!-- Invito al centro: porta alla prima tappa del percorso (Personal). Senza 3D è un normale collegamento alla sezione. -->
     <p class="enter"><a class="btn big" href="#personale" data-go="1">Scopri il percorso<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg></a></p>
@@ -357,7 +183,6 @@
 
 <div class="loader" aria-hidden="true"><img src="/img/logo-kuko.png" alt=""><i></i></div>
 
-<script type="module" src="/percorso/js/tour.js"></script>
 <script type="module" src="/percorso/js/main.js"></script>
 </body>
 </html>

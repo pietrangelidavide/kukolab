@@ -114,9 +114,7 @@ async function start() {
   }
 
   let running = false, visible = true;
-  // la prima volta che il percorso entra nella vista (dopo la presentazione) il cliente entra dalla porta: l'ingresso riparte da lì
-  let intro1 = !$('#attrezzi');
-  new IntersectionObserver((es) => { visible = es[0].isIntersecting; if (visible) { if (!intro1 && introStart != null && target < 0.3) introStart = performance.now(); intro1 = true; kick(); } }, { rootMargin: '10% 0px' }).observe(story);
+  new IntersectionObserver((es) => { visible = es[0].isIntersecting; if (visible) kick(); }, { rootMargin: '10% 0px' }).observe(story);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) kick(); });
   function kick() { if (!running && live) { running = true; last = performance.now(); requestAnimationFrame(frame); } }
 
@@ -140,9 +138,6 @@ async function start() {
     setPos(p, i = 1) { forced = p; cur = p; vel = 0; if (!running) { running = true; last = performance.now(); } scene.render(p, (performance.now() - t0) / 1000, [0, 0], i); captions(); },
     release() { forced = null; frozen = false; kick(); },
     cam(a) { scene.setCam(a); },
-    // un fotogramma esatto per i filmati: { pos, t, cam: [occhio, bersaglio, fov], tour: { x, z } } (vedi scripts/filmato-attrezzi.mjs)
-    shoot(o) { frozen = true; forced = o.pos; cur = o.pos; vel = 0; scene.setTour(o.tour || null); scene.setCam(o.cam || null); scene.render(o.pos, o.t, [0, 0], 1); },
-    project(x, y, z) { return scene.project(x, y, z); },
     freeze() { frozen = true; }, // per le prove con un disegno solo
     stats() { return scene.stats ? scene.stats() : null; },
     get pos() { return cur; }, // per le prove
