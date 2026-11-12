@@ -181,11 +181,11 @@ export async function createScene(canvas, { base = '' } = {}) {
   const NP = 150, pa = new Float32Array(NP * 4), pb = new Float32Array(NP * 4);
   const PS = Array.from({ length: NP }, () => ({ x: rnd(), y: rnd(), z: rnd(), s: rnd(), ph: rnd() * 6.28, k: rnd(), sp: 0.4 + rnd() }));
 
-  let ptrS = [0, 0], WRL = null, camCache = null, camOv = null;
+  let ptrS = [0, 0], WRL = null, camCache = null, camOv = null, tour = null;
   const LT0 = { lvp: M.id(), smOn: false, smSize: 2048, bias: 0.0008, nOff: 0.035, keyC: [1, 1, 1], ambT: [0.3, 0.3, 0.3], ambB: [0.2, 0.2, 0.2], rimC: [1, 1, 1], smTex: dummySM };
   const ctxObj = {
     gl, P, G, T, PAL, mesh, later, glass, contact, MAT, quadFX, quadTex: decal, M, cl, lin, sm, lerp, eo, pop, mixc, S, base, visi,
-    get time() { return time; }, hooks: { opaque: [], titles: [], front: [] }, portrait: PORT, portraitYaw: +(QS.get('giro') || 0),
+    get time() { return time; }, get tour() { return tour; }, hooks: { opaque: [], titles: [], front: [] }, portrait: PORT, portraitYaw: +(QS.get('giro') || 0),
   };
   const hooks = ctxObj.hooks;
 
@@ -199,13 +199,14 @@ export async function createScene(canvas, { base = '' } = {}) {
     time = t; pos = cl(pos, 0, STEPS);
     ptrS[0] += (pointer[0] - ptrS[0]) * 0.05; ptrS[1] += (pointer[1] - ptrS[1]) * 0.05;
     const sec = Math.floor(t); if (sec !== timerSec) { timerSec = sec; timerDraw(sec); }
-    const c = WRL.cpath(pos);
+    const c0 = WRL.cpath(pos);
+    const c = tour ? { ...c0, x: tour.x, z: tour.z ?? c0.z } : c0; // filmato: il punto che fa comparire gli arredi è quello inquadrato, non il cliente
     const w = PORT ? [0, 0, 1, 0, 0] : zoneW(c.x);
     const [ox, oy, oz, dist0, yaw0, el, shx0, need, tyf] = camAt(pos);
     let dist = dist0;
     if (S.asp < 1.25) dist = Math.max(dist, need / (S.asp * TANH));
     dist *= lerp(1.28, 1, eo(intro)); // dolly d'ingresso
-    const Hv = TANH * dist, Wv = Hv * S.asp;
+    let Hv = TANH * dist, Wv = Hv * S.asp;
     const yaw = yaw0 + ptrS[0] * 0.05 + Math.sin(t * 0.33) * 0.008;
     const shx = S.mobile ? 0 : shx0 * cl((S.asp - 1.1) / 0.5);
     // su computer, nella sala Personal la scena sale un po': sotto a destra c'è il ritaglio di Valerio e non deve coprire i piedi dei personaggi
@@ -215,8 +216,14 @@ export async function createScene(canvas, { base = '' } = {}) {
     const ty0 = oy + ptrS[1] * -0.1;
     const tgt = [c.x + ox - Math.cos(yaw) * shx * Wv, ty0 + ty, oz + Math.sin(yaw) * shx * Wv];
     eye = [tgt[0] + Math.sin(yaw) * dist * Math.cos(el), Math.max(1.6, ty0 + Math.sin(el) * dist), tgt[2] + Math.cos(yaw) * dist * Math.cos(el)];
-    if (camOv) { eye = camOv.slice(0, 3); tgt[0] = camOv[3]; tgt[1] = camOv[4]; tgt[2] = camOv[5]; }
-    vp.set(M.mul(M.persp(FOV, S.asp, 0.5, 170), M.look(eye, tgt)));
+    // camera libera (filmati): [occhio x,y,z, bersaglio x,y,z, campo visivo in gradi]; nebbia e fuoco seguono la distanza vera
+    let fov = FOV;
+    if (camOv) {
+      eye = camOv.slice(0, 3); tgt[0] = camOv[3]; tgt[1] = camOv[4]; tgt[2] = camOv[5];
+      if (camOv[6]) fov = camOv[6] * Math.PI / 180;
+      dist = Math.hypot(eye[0] - tgt[0], eye[1] - tgt[1], eye[2] - tgt[2]); Hv = Math.tan(fov / 2) * dist; Wv = Hv * S.asp;
+    }
+    vp.set(M.mul(M.persp(fov, S.asp, 0.5, 170), M.look(eye, tgt)));
     const R = { Wv, Hv, ty, dist, intro, fx: c.x, tgt };
     camCache = R;
 
@@ -312,5 +319,6 @@ export async function createScene(canvas, { base = '' } = {}) {
     if (cine) cine.resize(S.w, S.h);
   }
   function lower() { if (FX.tier < 2) { FX.tier++; console.info('[cinema] livello', FX.tier); return true; } return false; }
-  return { render, resize, lower, S, FX, world: WRL, stats: () => ({ draws: DRAWS }), setCam(a) { camOv = a; }, get cine() { return cine; }, destroy() { const e = gl.getExtension('WEBGL_lose_context'); if (e) e.loseContext(); } };
+  // project: punto del mondo → schermo (0..1) e profondità; setTour/setCam servono ai filmati (scripts/filmato-attrezzi.mjs)
+  return { render, resize, lower, S, FX, world: WRL, stats: () => ({ draws: DRAWS }), setCam(a) { camOv = a; }, setTour(o) { tour = o; }, project(x, y, z) { const e = vp, w = e[3] * x + e[7] * y + e[11] * z + e[15]; return [(e[0] * x + e[4] * y + e[8] * z + e[12]) / w * 0.5 + 0.5, 0.5 - (e[1] * x + e[5] * y + e[9] * z + e[13]) / w * 0.5, w]; }, get cine() { return cine; }, destroy() { const e = gl.getExtension('WEBGL_lose_context'); if (e) e.loseContext(); } };
 }
