@@ -37,6 +37,6 @@ if (pros) {
 const discs = $$('.disc.mid');
 if (discs.length && !reduce && 'IntersectionObserver' in window) {
   document.documentElement.classList.add('anim');
-  const io2 = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-in'); io2.unobserve(e.target); } }), { threshold: 0.2, rootMargin: '0px 0px -8% 0px' });
+  const io2 = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-in'); io2.unobserve(e.target); } }), { threshold: 0.45 }   /* parte quando quasi metà sezione è in vista, così il movimento si vede */);
   discs.forEach((d) => io2.observe(d));
 }
