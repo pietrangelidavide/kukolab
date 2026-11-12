@@ -105,6 +105,9 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 /* Valerio e Chiara: ritagli senza sfondo, in piedi sul bordo basso della cornice, con un alone arancio dietro (come nel percorso) */
 .ph.cut { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: radial-gradient(78% 58% at 50% 40%, rgba(232, 96, 40, .62), rgba(232, 96, 40, .17) 58%, rgba(232, 96, 40, 0) 100%), #0c0c0e; }
 .ph.cut img { position: absolute; inset: 0; height: 100%; aspect-ratio: auto; object-fit: contain; object-position: 50% 100%; background: none; }
+/* Functional: la sala del percorso 3D (il gruppo con i kettlebell), in formato largo */
+.ph.wide { width: min(100%, 62rem, calc(80svh * 1.5)); }
+.ph.wide img { aspect-ratio: 3 / 2; }
 .label { display: inline-block; margin-bottom: 1.2rem; padding: .5rem .95rem .42rem; border-radius: 999px; background: var(--orange); color: #000; font: 700 1.35rem/1 var(--display); letter-spacing: .14em; text-transform: uppercase; }
 .lead { margin-top: 1.3rem; max-width: 30rem; text-wrap: balance; font-size: clamp(1.05rem, 1.3vw, 1.3rem); line-height: 1.5; color: rgba(245, 245, 243, .9); }
 .motto { display: block; margin-bottom: .55rem; font: 700 clamp(1.65rem, 1.9vw, 1.85rem)/1.05 var(--display); letter-spacing: .07em; text-transform: uppercase; color: var(--fg); }
@@ -114,6 +117,9 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 @media (min-width: 900px) {
   .disc .in { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(3rem, 8vw, 9rem); max-width: var(--wide); }
   .disc.rev .ph { order: 2; }
+  /* versione tutta centrata (Functional): la sala in alto, sotto il testo al centro */
+  .disc.mid .in { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: clamp(2rem, 4vw, 3.2rem); text-align: center; }
+  .disc.mid .lead { margin-inline: auto; max-width: 36rem; }
   .disc h2 { font-size: clamp(2.6rem, 5vw, 5.2rem); }
 }
 
