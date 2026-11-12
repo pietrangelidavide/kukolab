@@ -3,7 +3,7 @@
 
 Parte dal logo vero (public/img/logo-kuko.png: la K con la freccia arancio e LAB), ne ricava i contorni come poligoni
 (OpenCV) e disegna a mano le tre lettere che mancano, U K O, con lo stesso carattere di LAB (corsivo largo, inclinato
-di circa 14 gradi, aste da 54 e barre da 43 unità). Scrive l'SVG su stdout: incollarlo nel <h1> della home.
+di circa 14 gradi, aste da 54 e barre da 43 unità, larghe come A e B). Scrive l'SVG su stdout: incollarlo nel <h1> della home.
 
 Uso:  python3 scripts/wordmark.py > .tmp/wordmark.svg      (serve opencv, numpy e pillow)
 Le misure sono in unità del logo (1344 x 486). I vuoti si misurano sul disegno, riga per riga (GAP_LETTER tra K, U, K, O; GAP_WORD tra KUKO e LAB), non sui riquadri delle lettere.
@@ -20,8 +20,9 @@ SLANT = 0.25               # inclinazione delle lettere di LAB (dx per dy)
 H = 207                    # altezza delle lettere di LAB
 TOP = 137 - Y0             # dove cominciano, in alto, le lettere di LAB
 SV, TB = 54, 43            # spessore delle aste verticali e delle barre orizzontali
-GAP_LETTER = 18            # vuoto minimo tra la K del marchio, U, K e O (e tra le lettere di LAB, che e' di 17-24)
+GAP_LETTER = 25            # vuoto minimo tra la K del marchio, U, K e O: lo stesso che c'e' tra le lettere di LAB (L-A 26, A-B 24)
 GAP_WORD = 64              # vuoto minimo tra KUKO e LAB: lo spazio tra le due parole
+WIDTH = {'U': 236, 'K': 242, 'O': 244}   # larghezza di U, K, O (con l'inclinazione): come A (244) e B (239) di LAB
 
 
 ROWS = 460
@@ -99,6 +100,16 @@ def shear(pts, x0):
     return [(x0 + x + (H - y) * SLANT, TOP + y) for x, y in pts]
 
 
+def fit_width(fn, target):
+    """Larghezza di disegno con cui la lettera, inclinata, e' larga `target` unita (la sua bbox)."""
+    w = target - H * SLANT
+    for _ in range(4):
+        m = mask_of([[shear(p, 0) for p in fn(w)]])
+        xs = np.flatnonzero(m.any(0))
+        w += target - (xs.max() - xs.min() + 1)
+    return w
+
+
 def letter_U(w):
     R, ri = 66, 22
     p = [(0, 0), (SV, 0), (SV, H - TB - ri)] + arc(SV + ri, H - TB - ri, ri, 180, 90) + arc(w - SV - ri, H - TB - ri, ri, 90, 0) \
@@ -127,8 +138,8 @@ def main():
     chev = t['orange']
     kgroup = [o['poly'] for o in kmark + chev]
     lab_polys = [o['poly'] for o in lab]
-    widths = {'U': 172, 'K': 175, 'O': 190}
     letters = [('U', letter_U), ('K', letter_K), ('O', letter_O)]
+    widths = {name: fit_width(fn, WIDTH[name]) for name, fn in letters}
     right = right_edge(mask_of(kgroup))                        # bordo destro di tutto cio' che sta a sinistra, riga per riga
     uko = []
     for name, fn in letters:
