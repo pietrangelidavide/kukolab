@@ -104,7 +104,7 @@ function init(sec) {
     W = box.clientWidth; H = box.clientHeight;
     const v = portrait();
     if (v !== vert && !dead) load(v);
-    labels.forEach((L) => { L.w = 0; });
+    labels.forEach((L) => { L.cw = 0; L.dy = undefined; L.cur = null; });
     fitStroke();
   }
   addEventListener('resize', size);
@@ -151,30 +151,50 @@ function init(sec) {
     });
   }
 
-  // etichette sul fotogramma mostrato (f) al tempo T
+  // etichette sul fotogramma mostrato (f) al tempo T. Ognuna ha il punto sull'oggetto e il nome da un lato; se due nomi si sovrapporrebbero (o coprirebbero il punto di un'altra),
+  // il nome si sposta in verticale (il filo diventa obliquo) o passa dall'altro lato: così funziona a ogni larghezza di schermo
   function paint(T) {
     if (!data || !ready) return;
     const f = Math.round(T * fps), row = data.pins[f] || [];
     const vw = data.w, vh = data.h, sc = Math.max(W / vw, H / vh), rw = vw * sc, rh = vh * sc, ox = (W - rw) / 2, oy = (H - rh) / 2;
     const seen = {}; row.forEach((q) => { seen[q[0]] = q; });
-    const small = W < 760, margin = small ? 10 : 24;
+    const small = W < 760, margin = small ? 10 : 24, top = 70, bot = H - 80;
+    const vis = [];
     labels.forEach((L, i) => {
       const q = seen[i];
       const a = q ? sm5(L.t0 - 0.5, L.t0 - 0.05, T) * (1 - sm5(L.t1 + 0.05, L.t1 + 0.5, T)) : 0;
       const x = q ? ox + q[1] * rw : 0, y = q ? oy + q[2] * rh : 0;
-      if (a < 0.01 || x < margin || x > W - margin || y < 70 || y > H - 80) {
+      if (a < 0.01 || x < margin || x > W - margin || y < top || y > bot) {
         if (L.on) { L.el.style.opacity = '0'; L.on = false; if (L.hit) { L.hit = false; L.el.classList.remove('hit'); } if (sel === i) close(); }
         return;
       }
+      if (!L.cw) { L.el.style.removeProperty('--lw'); L.ln = $('b', L.el).offsetWidth; L.cw = L.el.lastChild.offsetWidth; L.ch = L.el.lastChild.offsetHeight; }
       L.x = x;
       const hit = a > 0.6; if (hit !== L.hit) { L.hit = hit; L.el.classList.toggle('hit', hit); if (!hit && sel === i) close(); }
-      if (!L.w) L.w = L.el.lastChild.offsetWidth + (small ? 22 : 42); // nome + filo
-      let side = L.side;
-      if (side === 'd' && x + L.w + 12 > W - margin) side = 's';
-      else if (side === 's' && x - L.w - 12 < margin) side = 'd';
-      if (L.cls !== side) { L.el.classList.toggle('d', side === 'd'); L.el.classList.toggle('s', side === 's'); L.cls = side; }
-      L.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
-      L.el.style.opacity = a.toFixed(3); L.on = true;
+      vis.push({ L, i, x, y, a });
+    });
+    // posto dei nomi: prima i più in alto; si tiene la scelta del fotogramma prima, se ancora libera, perché non salti da un fotogramma all'altro
+    vis.sort((p, q) => p.y - q.y);
+    const placed = [];
+    vis.forEach((v) => {
+      const L = v.L, cw = L.cw + 4, ch = L.ch + 5, step = ch + 3;
+      const rect = (side, dy) => (side === 'd' ? [v.x + L.ln * 0.5 + 3, v.x + L.ln + cw, v.y + dy - ch / 2, v.y + dy + ch / 2] : [v.x - L.ln - cw, v.x - L.ln * 0.5 - 3, v.y + dy - ch / 2, v.y + dy + ch / 2]);
+      const fits = (r) => r[0] >= margin && r[1] <= W - margin && r[2] >= top - 8 && r[3] <= bot + 8;
+      const free = (r) => !placed.some((o) => r[0] < o[1] && o[0] < r[1] && r[2] < o[3] && o[2] < r[3]) && !vis.some((o) => o !== v && o.x > r[0] - 9 && o.x < r[1] + 9 && o.y > r[2] - 9 && o.y < r[3] + 9);
+      const other = L.side === 'd' ? 's' : 'd', cand = [];
+      if (L.cur) cand.push(L.cur);
+      cand.push([L.side, 0], [other, 0]);
+      for (let k = 1; k <= 3; k++) cand.push([L.side, -k * step], [L.side, k * step], [other, -k * step], [other, k * step]);
+      let pick = cand.find((c) => fits(rect(c[0], c[1])) && free(rect(c[0], c[1]))) || cand.find((c) => fits(rect(c[0], c[1]))) || [L.side, 0];
+      L.cur = pick; placed.push(rect(pick[0], pick[1]));
+      const [side, dy] = pick, el = L.el;
+      if (L.cls !== side) { el.classList.toggle('d', side === 'd'); el.classList.toggle('s', side === 's'); L.cls = side; }
+      if (L.dy !== dy) { // filo obliquo fino al nome spostato
+        L.dy = dy; const run = Math.max(8, L.ln), len = Math.hypot(run, dy), ang = Math.atan2(dy, run) * (side === 'd' ? 1 : -1);
+        el.style.setProperty('--lw', len.toFixed(1) + 'px'); el.style.setProperty('--la', ang.toFixed(4) + 'rad'); el.style.setProperty('--dy', dy.toFixed(1) + 'px');
+      }
+      el.style.transform = `translate3d(${v.x.toFixed(1)}px, ${v.y.toFixed(1)}px, 0)`;
+      el.style.opacity = v.a.toFixed(3); L.on = true;
     });
   }
 

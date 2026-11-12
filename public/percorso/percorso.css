@@ -200,11 +200,11 @@ h1 em, .finale h2 em { color: var(--orange); }
 /* etichette sugli attrezzi: un punto arancio sull'oggetto, un filo e il nome (js/tour.js le posiziona su ogni fotogramma) */
 .tl { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; will-change: transform, opacity; }
 .tl i { position: absolute; left: -.42rem; top: -.42rem; width: .84rem; height: .84rem; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 4px rgba(232, 96, 40, .3), 0 0 16px rgba(232, 96, 40, .9); }
-.tl b { position: absolute; top: -1px; height: 2px; width: var(--ln, 2.6rem); background: var(--orange); box-shadow: 0 0 8px rgba(232, 96, 40, .6); }
-.tl span { position: absolute; top: 0; transform: translateY(-50%); padding: .42rem .75rem .34rem; background: rgba(5, 5, 6, .84); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); font: 700 1.2rem/1 var(--display); letter-spacing: .09em; text-transform: uppercase; color: var(--fg); white-space: nowrap; }
-.tl.d b { left: .3rem; }
+.tl b { position: absolute; top: -1px; height: 2px; width: var(--lw, var(--ln, 2.6rem)); transform: rotate(var(--la, 0rad)); background: var(--orange); box-shadow: 0 0 8px rgba(232, 96, 40, .6); transition: width .25s, transform .25s; }
+.tl span { position: absolute; top: 0; transform: translateY(calc(-50% + var(--dy, 0px))); padding: .42rem .75rem .34rem; background: rgba(5, 5, 6, .84); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); font: 700 1.2rem/1 var(--display); letter-spacing: .09em; text-transform: uppercase; color: var(--fg); white-space: nowrap; }
+.tl.d b { left: .3rem; transform-origin: 0 50%; }
 .tl.d span { left: calc(.3rem + var(--ln, 2.6rem)); }
-.tl.s b { right: .3rem; }
+.tl.s b { right: .3rem; transform-origin: 100% 50%; }
 .tl.s span { right: calc(.3rem + var(--ln, 2.6rem)); }
 
 /* etichette cliccabili: il nome dell'attrezzo apre una scheda con a cosa serve */
@@ -213,7 +213,7 @@ h1 em, .finale h2 em { color: var(--orange); }
 .tl i { transition: transform .25s; }
 .tl.hit:hover i, .tl.sel i { transform: scale(1.35); }
 .tl.hit:hover span, .tl.sel span { background: var(--orange); color: #000; }
-.tl span { transition: background .2s, color .2s; }
+.tl span { transition: background .2s, color .2s, transform .25s; }
 
 /* immersione: capitoli, didascalie e illustrazioni compaiono e svaniscono con il filmato (js/tour.js pilota --a, --c, --px, --py) */
 .tour-live .tour-dim { display: block; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse 90% 80% at 50% 50%, rgba(3, 3, 4, .52), rgba(3, 3, 4, .86)); opacity: var(--cv); }
