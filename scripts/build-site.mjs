@@ -1,4 +1,3 @@
-// Genera le pagine dei corsi (public/personal-training.html, functional.html, pilates.html) da vetrina/ con build-vetrina.mjs.
-// La pagina principale (public/index.html) è scritta a mano e non viene toccata.
-// Uso: npm run site
-await import('./build-vetrina.mjs');
+// Le pagine dei corsi (personal-training, functional, pilates) sono state tolte dal sito il 12/11/2026: ora c'è solo la home (public/index.html, scritta a mano).
+// I sorgenti restano in vetrina/ e il generatore in scripts/build-vetrina.mjs: per rimetterle, `node scripts/build-vetrina.mjs` e togliere i rinvii da public/_redirects.
+console.log('site: niente da generare (le pagine dei corsi sono state tolte; vedi README)');

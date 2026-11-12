@@ -1,4 +1,4 @@
-# Vecchi indirizzi: la pagina principale è la home (/) e restano le tre pagine dei corsi.
+# Vecchi indirizzi: il sito è la sola home (/). Le tre pagine dei corsi sono state tolte (12/11/2026) e rimandano alla home.
 # 302 e non 301 finché il sito non ha il dominio definitivo: i browser non tengono in memoria il rinvio.
 /percorso / 302
 /percorso/ / 302
@@ -9,3 +9,9 @@
 /corsi.html / 302
 /chi-siamo / 302
 /chi-siamo.html / 302
+/personal-training / 302
+/personal-training.html / 302
+/pilates / 302
+/pilates.html / 302
+/functional / 302
+/functional.html / 302
