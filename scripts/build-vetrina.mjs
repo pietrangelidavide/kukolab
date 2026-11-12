@@ -1,4 +1,4 @@
-// Genera le pagine dei corsi (personal-training, functional, pilates) in public/ a partire da vetrina/. La pagina principale (public/index.html, il percorso 3D) è scritta a mano.
+// Genera le pagine dei corsi (personal-training, functional, pilates) in public/ a partire da vetrina/. La pagina principale (public/index.html) è scritta a mano.
 //   vetrina/site.json      dati comuni (WhatsApp, telefono, Instagram, indirizzo, Maps)
 //   vetrina/partials.json  pezzi riusati ({{contatti}}, {{play}})
 //   vetrina/layout.html    testata con menu, piede, meta tag (uguali per tutte le pagine)
@@ -41,8 +41,8 @@ const NAV = [
   { key: 'pilates', label: 'Pilates', href: '/pilates' },
   { key: 'contatti', label: 'Contatti', href: '#contatti' },
 ];
-// «Il percorso» (la pagina principale, public/index.html) è solo nel menu da telefono: sul computer c'è il logo
-const MENU = [{ key: 'home', label: 'Il percorso', href: '/' }, ...NAV];
+// «Home» (la pagina principale, public/index.html) è solo nel menu da telefono: sul computer c'è il logo
+const MENU = [{ key: 'home', label: 'Home', href: '/' }, ...NAV];
 
 // misure di un JPEG (legge il marcatore SOF)
 const jpegSize = (file) => {
@@ -126,7 +126,7 @@ for (const b of built) {
     if (h.startsWith('#')) {
       if (h.length > 1 && !ids.has(h.slice(1))) problems.push(`${b.name}: àncora ${h} senza destinazione`);
     } else if (h === '/' || /^\/#/.test(h)) {
-      // la pagina principale (il percorso 3D) è scritta a mano in public/index.html
+      // la pagina principale è scritta a mano in public/index.html
       const hash = h.slice(2);
       if (hash && !idsOf(home).has(hash)) problems.push(`${b.name}: ${h} senza destinazione`);
     } else if (/^\/(personal-training|functional|pilates)(#.*)?$/.test(h)) {

@@ -2,7 +2,7 @@
 // Crea in .tmp/preview/:
 //   personal-training.html, functional.html, pilates.html, app.html, gestionale.html   pagine separate (collegamenti: KUKO_APP_URL per "Apri l'app", KUKO_STAFF_URL per il gestionale (non è collegato dal sito: si apre dal suo indirizzo), KUKO_SITE_URL per "Torna al sito")
 //   multi/personal-training.html, multi/functional.html, multi/pilates.html, multi/app.html, multi/gestionale.html, multi/privacy.html   le stesse pagine da pubblicare insieme sotto un unico indirizzo
-//   La pagina principale (il percorso 3D, public/index.html) usa WebGL e più file: non è qui, si prova con «npm run dev» o sul sito pubblicato.
+//   La pagina principale (public/index.html) usa più file (home.css, home.js): non è qui, si prova con «npm run dev» o sul sito pubblicato.
 // Uso: npm run preview:build
 import { build } from 'esbuild';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -44,7 +44,7 @@ const appPage = (mode, links) => `<title>${ENTRIES[mode].name}</title>
 const soloLinks = { site: process.env.KUKO_SITE_URL ?? '', app: process.env.KUKO_APP_URL ?? '', staff: process.env.KUKO_STAFF_URL ?? '', home: '' };
 const multi = join(out, 'multi');
 mkdirSync(multi, { recursive: true });
-const multiLinks = { site: '', app: 'app.html', staff: 'gestionale.html', home: '' }; // il percorso 3D (la home) non è nell'anteprima
+const multiLinks = { site: '', app: 'app.html', staff: 'gestionale.html', home: '' }; // la home non è nell'anteprima
 for (const [mode, file] of [['client', 'app'], ['staff', 'gestionale']]) {
   const fragment = appPage(mode, soloLinks);
   writeFileSync(join(out, `${file}.html`), fragment);
@@ -79,7 +79,7 @@ for (const name of SITE_PAGES) {
   const fragment = `<title>${title}</title>\n<style>${siteStyle}</style>\n${solo}`;
   writeFileSync(join(out, `${name}.html`), fragment);
   writeFileSync(join(out, `${name}-page.html`), frame(title, fragment));
-  // insieme alle altre: le pagine si chiamano per nome file; la home (percorso 3D) non c'è
+  // insieme alle altre: le pagine si chiamano per nome file; la home non c'è
   const together = relink(raw, [[/href="\/app\/"/g, 'href="app.html"'], [/href="\/(personal-training|functional|pilates)(#[^"]*)?"/g, (_m, n, h) => `href="${n}.html${h || ''}"`], [/href="\/(#[^"]*)?"/g, (_m, h) => `href="${h || '#'}"`]]);
   writeFileSync(join(multi, `${name}.html`), frame(title, `<title>${title}</title>\n<style>${siteStyle}</style>\n${together}`));
 }

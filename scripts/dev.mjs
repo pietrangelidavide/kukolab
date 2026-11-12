@@ -1,4 +1,4 @@
-// Sviluppo: ricompila la web app a ogni modifica e serve tutto il sito su http://localhost:8800 (home, il percorso 3D, su /; pagine dei corsi su /personal-training, /functional, /pilates; app dei clienti su /app/, gestionale su /gestionale/).
+// Sviluppo: ricompila la web app a ogni modifica e serve tutto il sito su http://localhost:8800 (home su /; pagine dei corsi su /personal-training, /functional, /pilates; app dei clienti su /app/, gestionale su /gestionale/).
 // Uso: npm run dev   (PORT per cambiare porta; con KUKO_SUPABASE_URL e KUKO_SUPABASE_ANON_KEY usa Supabase)
 import { context } from 'esbuild';
 import { createServer } from 'node:http';
