@@ -1,4 +1,4 @@
-// KUKO LAB, pagina principale. Due cose sole; senza questo file la pagina si legge uguale.
+// KUKO LAB, pagina principale. Poche cose; senza questo file la pagina si legge uguale.
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -31,4 +31,12 @@ if (pros) {
   pros.addEventListener('scroll', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(upd); }, { passive: true });
   const tab = () => { if (mq.matches) pros.setAttribute('tabindex', '0'); else pros.removeAttribute('tabindex'); upd(); };
   mq.addEventListener ? mq.addEventListener('change', tab) : mq.addListener(tab); tab();
+}
+
+// le tre discipline si «aprono» una volta, quando entrano nella vista (senza questo, o con «riduci movimento», restano ferme e visibili)
+const discs = $$('.disc.mid');
+if (discs.length && !reduce && 'IntersectionObserver' in window) {
+  document.documentElement.classList.add('anim');
+  const io2 = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-in'); io2.unobserve(e.target); } }), { threshold: 0.2, rootMargin: '0px 0px -8% 0px' });
+  discs.forEach((d) => io2.observe(d));
 }

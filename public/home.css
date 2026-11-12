@@ -114,6 +114,9 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 .disc.mid .in { justify-items: center; text-align: center; }
 .disc.mid .lead { margin-inline: auto; max-width: 36rem; }
 .more .btn { min-height: 3.1rem; }
+.act { margin-top: 1.6rem; display: flex; flex-direction: column; align-items: center; }
+.act .label { margin-bottom: .9rem; }
+.act .more { margin-top: 0; }
 @media (min-width: 900px) {
   .disc .in { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(3rem, 8vw, 9rem); max-width: var(--wide); }
   .disc.rev .ph { order: 2; }
@@ -133,14 +136,41 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
   .disc.mid .head { grid-row: 2; }
   .disc.mid .rest { grid-row: 3; align-self: stretch; display: flex; flex-direction: column; align-items: center; }
   .disc.mid h2 { font-size: clamp(2.2rem, min(5vw, 8svh), 5.2rem); }
-  .disc.mid .label { margin-bottom: clamp(.5rem, 1.6svh, 1.2rem); }
   .disc.mid .lead { margin-top: 0; }
   .disc.mid .who { margin-top: clamp(.7rem, 1.8svh, 1.5rem); }
-  .disc.mid .more { margin-top: auto; padding-top: clamp(.8rem, 2svh, 1.6rem); }   /* il bottone «Scopri di più» scende in fondo alla schermata */
-  /* Functional di gruppo (senza foto): l'etichetta sale a metà della riga vuota sopra il titolo, che resta a metà schermata */
-  #funzionale .head { position: relative; }
-  #funzionale .label { position: absolute; left: 50%; bottom: 100%; margin: 0 0 calc((100svh - 4.5rem) * .17) 0; transform: translateX(-50%); white-space: nowrap; }
+  .disc.mid .act { margin-top: auto; padding-top: clamp(.8rem, 2svh, 1.6rem); }   /* etichetta e bottone «Scopri di più» scendono in fondo alla schermata */
+  .disc.mid .more { margin-top: 0; }
+  .disc.mid .label { margin-bottom: clamp(.6rem, 1.6svh, 1rem); }
 }
+
+/* ---------- movimento nelle tre discipline ----------
+   Con JavaScript attivo (e senza «riduci movimento») ogni sezione si apre quando entra nella vista: prima la foto sale, poi titolo, testo, etichetta e bottone
+   uno dopo l'altro; Personal arriva da sinistra, Pilates da destra, Functional frase per frase. Poi le foto restano vive: un lieve fluttuare e un alone che respira. */
+.disc.mid { overflow-x: clip; }
+.ph.cut { position: relative; }
+.ph.cut::before { content: ''; position: absolute; inset: 8% 6% 0; z-index: -1; border-radius: 50%; background: radial-gradient(closest-side, rgba(232, 96, 40, .3), rgba(232, 96, 40, 0) 72%); opacity: 0; }
+.anim .disc.mid .ph.cut, .anim .disc.mid h2, .anim .disc.mid .lead, .anim .disc.mid .who, .anim .disc.mid .label, .anim .disc.mid .more, .anim #funzionale .w {
+  opacity: 0; transition: opacity .8s ease-out calc(var(--t, 0) * 1s), transform 1s cubic-bezier(.2, .7, .2, 1) calc(var(--t, 0) * 1s); }
+.anim .disc.mid .ph.cut { --t: 0; transform: translate3d(0, 3.5rem, 0) scale(.9); transform-origin: 50% 100%; }
+.anim .disc.mid h2 { --t: .2; transform: translate3d(var(--x, 0), 1.2rem, 0); }
+.anim #personale { --x: -3.5rem; } .anim #pilates { --x: 3.5rem; }
+.anim .disc.mid .lead { --t: .4; transform: translate3d(0, 1.2rem, 0); }
+.anim .disc.mid .who { --t: .5; transform: translate3d(0, 1.2rem, 0); }
+.anim .disc.mid .label { --t: .65; transform: scale(.7); }
+.anim .disc.mid .more { --t: .75; transform: translate3d(0, 1.2rem, 0); }
+.anim #funzionale h2 { opacity: 1; transform: none; }
+.anim #funzionale .w { display: inline-block; --t: calc(.15 * var(--k, 0) + .1); }
+.anim #funzionale .w:nth-of-type(1) { --k: 0; transform: translate3d(-5rem, 0, 0); }
+.anim #funzionale .w:nth-of-type(2) { --k: 1; transform: translate3d(0, 2.5rem, 0) scale(.9); }
+.anim #funzionale .w:nth-of-type(3) { --k: 2; transform: translate3d(5rem, 0, 0); }
+.anim .disc.mid.is-in .ph.cut, .anim .disc.mid.is-in h2, .anim .disc.mid.is-in .lead, .anim .disc.mid.is-in .who, .anim .disc.mid.is-in .label, .anim .disc.mid.is-in .more, .anim #funzionale.is-in .w { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .anim .disc.mid.is-in .ph.cut img { animation: float 6.5s ease-in-out 1.1s infinite; }
+  .anim .disc.mid.is-in .ph.cut::before { animation: breathe 5.5s ease-in-out 1s infinite; }
+  .anim #pilates.is-in .ph.cut img { animation-delay: 2.3s; animation-duration: 7.5s; }
+}
+@keyframes float { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(0, -.55rem, 0); } }
+@keyframes breathe { 0%, 100% { opacity: .25; transform: scale(.94); } 50% { opacity: 1; transform: scale(1.05); } }
 
 /* ---------- chiusura: la frase che riassume e l'invito a scrivere ---------- */
 .finale { border-top: 1px solid var(--line); background: radial-gradient(70% 70% at 50% 100%, rgba(232, 96, 40, .1), transparent 70%), #000; }
@@ -238,6 +268,34 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
   .disc .lead, .finale .lead { font-size: clamp(1.15rem, 1.15vw, 1.45rem); }
 }
 @media (max-width: 1000px) { .brand span { display: none; } .top-links { gap: 1.2rem; } }
+
+/* ---------- domande frequenti: titolo e bottone a sinistra, cinque domande a tendina a destra ---------- */
+.faq { border-top: 1px solid var(--line); background: var(--bg); }
+.faq .in { display: grid; gap: 2.4rem; max-width: 76rem; margin-inline: auto; padding: clamp(4rem, 10vw, 8rem) var(--gut); }
+.faq h2 { font-size: clamp(2.8rem, 8vw, 5rem); }
+.faq-head p { margin-top: .9rem; max-width: 28rem; color: var(--mute); }
+.faq-head .btn { margin-top: 1.8rem; }
+.faq-list { border-bottom: 1px solid var(--line); }
+.faq details { border-top: 1px solid var(--line); }
+.faq summary { display: flex; align-items: center; justify-content: space-between; gap: 1.2rem; padding: 1.2rem 0; cursor: pointer; list-style: none; font: 700 clamp(1.1rem, 1.5vw, 1.35rem)/1.3 var(--text); color: var(--fg); }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary:hover { color: var(--orange); }
+.faq summary:focus-visible { outline: 2px solid var(--orange); outline-offset: 4px; }
+.faq summary svg { flex: none; width: 1.6rem; height: 1.6rem; fill: none; stroke: var(--orange); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .25s; }
+.faq details[open] summary svg { transform: rotate(180deg); }
+.faq details p { max-width: 38rem; padding: 0 2.8rem 1.4rem 0; color: rgba(245, 245, 243, .85); line-height: 1.55; }
+.faq details p a { text-decoration-color: var(--orange); text-decoration-thickness: 2px; text-underline-offset: .2em; }
+.faq details p a:hover { color: var(--orange); }
+@media (prefers-reduced-motion: no-preference) { .faq details[open] p { animation: rise .35s cubic-bezier(.2, .7, .2, 1) both; } }
+@media (min-width: 900px) { .faq .in { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); align-items: start; gap: clamp(3rem, 8vw, 7rem); } .faq-head { position: sticky; top: 6.5rem; } }
+@media (min-width: 1100px) {
+  .faq .in { max-width: var(--wide); gap: clamp(4rem, 10vw, 15rem); padding: clamp(6rem, 9vw, 12rem) var(--gut); }
+  .faq h2 { font-size: clamp(5rem, 6vw, 9rem); }
+  .faq-head p { max-width: 38rem; margin-top: 1.6rem; font-size: clamp(1.15rem, 1.15vw, 1.45rem); line-height: 1.5; }
+  .faq-head .btn { margin-top: 2.6rem; }
+  .faq summary { padding-block: clamp(1.3rem, 1.6vw, 2rem); font-size: clamp(1.25rem, 1.4vw, 1.75rem); }
+  .faq details p { max-width: 46rem; font-size: clamp(1.05rem, 1.1vw, 1.35rem); }
+}
 
 /* ---------- telefono ---------- */
 @media (max-width: 760px) {
