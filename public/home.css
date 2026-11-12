@@ -141,6 +141,10 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
   .disc.mid .lead { margin-top: 0; }
   .disc.mid .who { margin-top: clamp(.7rem, 1.8svh, 1.5rem); }
   .disc.mid .act { margin-top: auto; padding-top: clamp(.8rem, 2svh, 1.6rem); }   /* etichetta e bottone «Scopri di più» scendono in fondo alla schermata */
+  /* Functional di gruppo (senza foto): niente riga vuota sopra, tutto il blocco sta al centro della schermata */
+  #funzionale .in { grid-template-rows: auto auto; align-content: center; }
+  #funzionale .head { grid-row: 1; } #funzionale .rest { grid-row: 2; }
+  #funzionale .act { margin-top: clamp(1.2rem, 4svh, 2.6rem); padding-top: 0; }
   .disc.mid .more { margin-top: 0; }
   .disc.mid .label { margin-bottom: clamp(1rem, 2.4svh, 1.5rem); }
 }
