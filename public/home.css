@@ -252,5 +252,9 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
   .hero .wa { margin-top: .7rem; min-height: 2.4rem; font-size: 1.05rem; }
   .scroll { display: none; }
 }
+/* schermo largo: «Scrivici su WhatsApp» scende in fondo alla prima schermata, sopra la freccia (left/right/margin e non transform, per non litigare con l'animazione «rise») */
+@media (min-width: 1000px) and (min-height: 641px) {
+  .hero .wa { position: absolute; left: 0; right: 0; bottom: calc(clamp(1rem, 3vh, 2rem) + 3.4rem); width: max-content; margin: 0 auto; }
+}
 @media (prefers-reduced-motion: reduce) { .scroll svg { animation: none; } .top { transition: none; } }
 @media print { .top, .scroll { display: none; } }
