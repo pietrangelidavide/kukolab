@@ -204,7 +204,7 @@ h2 { font: 700 clamp(2.8rem, 6.4vw, 5.6rem)/.92 var(--display); letter-spacing: 
 .pro { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; }
 .pro-fig { display: flex; align-items: flex-end; justify-content: center; width: 100%; height: calc(990 * var(--u)); }
 .pro-fig img { width: auto; height: calc(var(--ih) * var(--u)); max-width: 100%; filter: drop-shadow(0 0 1.3rem rgba(232, 96, 40, .3)) drop-shadow(0 .5rem 1rem rgba(0, 0, 0, .5)); }
-.pro-node { position: relative; align-self: stretch; height: .95rem; margin-top: 1.1rem; }
+.pro-node { position: relative; align-self: stretch; height: .95rem; margin-top: 0; }
 .pro-node::before, .pro-node u { content: ""; position: absolute; top: calc(.475rem - 1px); height: 2px; left: calc(var(--gap) / -2); right: calc(var(--gap) / -2); }
 .pro-node::before { background: rgba(245, 245, 243, .35); }
 .pro-node u { background: var(--orange); box-shadow: 0 0 10px rgba(232, 96, 40, .7); transform-origin: left; transition: transform .7s cubic-bezier(.4, 0, .2, 1) calc(var(--i, 0) * .5s); }
