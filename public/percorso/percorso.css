@@ -101,6 +101,7 @@ em { font-style: normal; }
 .label { display: inline-block; padding: .5rem .85rem .42rem; background: var(--orange); font: 700 1.35rem/1 var(--display); letter-spacing: .14em; text-transform: uppercase; color: #000; margin-bottom: 1.2rem; }
 h1, h2 { font: 700 clamp(2.9rem, 6.2vw, 6.4rem)/.9 var(--display); letter-spacing: .005em; text-transform: uppercase; text-wrap: balance; }
 h2 { font-size: clamp(2.6rem, 5vw, 5.2rem); }
+#hero h2 { font-size: clamp(2.9rem, 6.2vw, 6.4rem); }
 h1 em, .finale h2 em { color: var(--orange); }
 .lead { margin-top: 1.4rem; max-width: 30rem; text-wrap: balance; font-size: clamp(1.05rem, 1.35vw, 1.3rem); line-height: 1.5; color: rgba(245, 245, 243, .9); }
 .motto { display: block; margin-bottom: .55rem; font: 700 clamp(1.65rem, 1.9vw, 1.85rem)/1.05 var(--display); letter-spacing: .07em; text-transform: uppercase; color: var(--fg); }
@@ -121,7 +122,7 @@ h1 em, .finale h2 em { color: var(--orange); }
   .is-live #hero::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse 58% 36% at 50% 40%, rgba(3, 3, 4, .66) 0%, rgba(3, 3, 4, .38) 55%, rgba(3, 3, 4, 0) 100%); }
   #hero .copy { max-width: 60rem; }
   #hero .lead { max-width: 34rem; margin-inline: auto; }
-  #hero h1, #hero .lead { text-shadow: 0 .15rem 1.6rem rgba(0, 0, 0, .55); }
+  #hero h2, #hero .lead { text-shadow: 0 .15rem 1.6rem rgba(0, 0, 0, .55); }
 }
 .cta { display: flex; flex-wrap: wrap; gap: .9rem; margin-top: 2.1rem; }
 .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 3.4rem; padding: 0 1.8rem; background: var(--orange); color: #000; font: 700 1.4rem/1 var(--display); letter-spacing: .07em; text-transform: uppercase; text-decoration: none; }
@@ -139,6 +140,74 @@ h1 em, .finale h2 em { color: var(--orange); }
   transform: translate3d(0, calc((1 - var(--v, 1)) * 16%), 0); filter: drop-shadow(0 0 1.6rem rgba(232, 96, 40, .5)) drop-shadow(0 .6rem 1.4rem rgba(0, 0, 0, .5)); will-change: transform; }
 .cut-valerio { --h: 38vh; }
 .cut-chiara { --h: 52vh; }
+
+/* ---------- Presentazione: il filmato che attraversa lo studio (js/tour.js) ----------
+   Il filmato è uno solo, disegnato dallo stesso motore 3D della pagina (scripts/filmato-attrezzi.mjs). Scorrendo avanza e le etichette seguono gli attrezzi.
+   Senza JS, con «riduci movimento», risparmio dati o filmato che non parte (niente classe .tour-live) è una foto con titolo e l'elenco degli attrezzi. */
+.tour { position: relative; z-index: 28; background: var(--bg); --len: 640vh; --intro: 1; --end: 0; }
+.tour-pin { position: relative; isolation: isolate; display: flex; align-items: flex-end; min-height: 100svh; padding: 7rem var(--gut) 4rem; overflow: hidden; }
+.tour-still { position: absolute; inset: 0; z-index: -3; width: 100%; height: 100%; object-fit: cover; }
+.tour-pin picture { display: contents; }
+.tour-video, .tour-pins, .tour-cue, .tour-skip, .tour-hud, .tour-end { display: none; }
+.tour-shade { position: absolute; inset: 0; z-index: -1; background: linear-gradient(0deg, rgba(3, 3, 4, .92) 0%, rgba(3, 3, 4, .6) 42%, rgba(3, 3, 4, .12) 100%); }
+.tour-intro { max-width: 40rem; }
+.tour-lista { display: grid; gap: 2.2rem clamp(1.5rem, 4vw, 4rem); grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); max-width: 76rem; margin-inline: auto; padding: clamp(3rem, 8vw, 6rem) var(--gut); }
+.tour-lista > h2 { grid-column: 1 / -1; font-size: clamp(2.2rem, 5vw, 3.6rem); }
+.tour-lista h3 { margin: 0 0 .9rem; font: 700 1.5rem/1 var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--orange); }
+.tour-lista ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; color: var(--mute); }
+.tour-lista li::before { content: ''; display: inline-block; width: .5rem; height: .5rem; margin-right: .7rem; background: var(--orange); }
+
+/* live: il filmato riempie lo schermo e resta fermo mentre scorri (sticky); l'altezza della sezione è la lunghezza dello scorrimento */
+.tour-live { height: calc(100svh + var(--len)); }
+.tour-live .tour-pin { position: sticky; top: 0; height: 100svh; min-height: 0; padding: 0; align-items: stretch; background: #050506; }
+.tour-live .tour-video { display: block; position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .35s; }
+.tour-live.tour-ready .tour-video { opacity: 1; }
+.tour-live .tour-shade { background: radial-gradient(ellipse 62% 40% at 50% 38%, rgba(3, 3, 4, .66) 0%, rgba(3, 3, 4, .34) 58%, rgba(3, 3, 4, 0) 100%), linear-gradient(0deg, rgba(3, 3, 4, .78) 0%, rgba(3, 3, 4, 0) 30%); }
+.tour-live .tour-shade { opacity: calc(.45 + .55 * var(--intro)); }
+.tour-live .tour-pins { display: block; position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.tour-live .tour-intro { position: absolute; inset: 0; z-index: 2; max-width: none; display: flex; flex-direction: column; align-items: center; padding: clamp(6.5rem, 24vh, 17rem) var(--gut) 0; text-align: center; opacity: var(--intro); transform: translate3d(0, calc((1 - var(--intro)) * -28px), 0); pointer-events: none; visibility: visible; }
+.tour-live .tour-intro h1 { max-width: 60rem; text-shadow: 0 .15rem 1.6rem rgba(0, 0, 0, .55); }
+.tour-live .tour-intro .lead { max-width: 34rem; margin-inline: auto; text-shadow: 0 .15rem 1.6rem rgba(0, 0, 0, .55); }
+.tour-live .tour-cue { display: flex; flex-direction: column; align-items: center; gap: .15rem; position: absolute; z-index: 2; left: 50%; bottom: clamp(1.3rem, 4vh, 2.8rem); margin: 0; transform: translateX(-50%); font: 700 1.5rem/1 var(--display); letter-spacing: .18em; text-transform: uppercase; opacity: var(--intro); pointer-events: none; }
+.tour-live .tour-cue svg { fill: none; stroke: var(--orange); stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; animation: bob 1.9s ease-in-out infinite; }
+.tour-live .tour-skip { display: inline-flex; align-items: center; position: absolute; z-index: 3; top: 5.2rem; right: var(--gut); min-height: 2.4rem; padding: 0 .9rem; background: rgba(5, 5, 6, .55); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); font: 700 1.05rem/1 var(--display); letter-spacing: .14em; text-transform: uppercase; text-decoration: none; color: rgba(245, 245, 243, .85); }
+.tour-live .tour-skip:hover, .tour-live .tour-skip:focus-visible { color: #000; background: var(--fg); }
+.tour-live .tour-hud { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; position: absolute; z-index: 2; inset: auto 0 0 0; padding: 4rem var(--gut) calc(1.5rem + env(safe-area-inset-bottom)); opacity: calc(1 - var(--intro)); pointer-events: none; }
+.tour-room { margin: 0; }
+.tour-room .label { margin: 0; transition: opacity .3s; }
+.tour-room.sw .label { opacity: 0; }
+.tour-steps { display: flex; gap: .7rem; width: min(24rem, 46vw); margin: 0; padding: 0; }
+.tour-steps li { flex: 1 1 0; display: flex; flex-direction: column-reverse; gap: .5rem; font: 700 1rem/1 var(--display); letter-spacing: .16em; text-transform: uppercase; color: rgba(245, 245, 243, .7); }
+.tour-steps b { position: relative; display: block; height: 3px; background: rgba(245, 245, 243, .32); }
+.tour-steps u { position: absolute; inset: 0; background: var(--orange); transform-origin: left; transform: scaleX(var(--f, 0)); box-shadow: 0 0 10px rgba(232, 96, 40, .7); }
+.tour-steps li.on { color: var(--fg); }
+.tour-live .tour-end { display: block; position: absolute; z-index: 3; left: 50%; bottom: clamp(5.8rem, 14vh, 8rem); margin: 0; transform: translate3d(-50%, calc((1 - var(--end)) * 20px), 0); opacity: var(--end); visibility: hidden; }
+.tour-live .tour-end.on { visibility: visible; }
+.tour-live .tour-lista { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* etichette sugli attrezzi: un punto arancio sull'oggetto, un filo e il nome (js/tour.js le posiziona su ogni fotogramma) */
+.tl { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; will-change: transform, opacity; }
+.tl i { position: absolute; left: -.42rem; top: -.42rem; width: .84rem; height: .84rem; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 4px rgba(232, 96, 40, .3), 0 0 16px rgba(232, 96, 40, .9); }
+.tl b { position: absolute; top: -1px; height: 2px; width: var(--ln, 2.6rem); background: var(--orange); box-shadow: 0 0 8px rgba(232, 96, 40, .6); }
+.tl span { position: absolute; top: 0; transform: translateY(-50%); padding: .42rem .75rem .34rem; background: rgba(5, 5, 6, .84); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); font: 700 1.2rem/1 var(--display); letter-spacing: .09em; text-transform: uppercase; color: var(--fg); white-space: nowrap; }
+.tl.d b { left: .3rem; }
+.tl.d span { left: calc(.3rem + var(--ln, 2.6rem)); }
+.tl.s b { right: .3rem; }
+.tl.s span { right: calc(.3rem + var(--ln, 2.6rem)); }
+
+@media (max-width: 760px), (max-aspect-ratio: 1/1) {
+  .tour-live .tour-intro { justify-content: flex-end; padding: 0 var(--gut) clamp(6rem, 17vh, 9rem); }
+  .tour-live .tour-shade { background: linear-gradient(0deg, rgba(3, 3, 4, .9) 0%, rgba(3, 3, 4, .58) 38%, rgba(3, 3, 4, 0) 66%); }
+  .tour-live .tour-skip { top: 4.3rem; min-height: 2.1rem; font-size: .95rem; }
+  .tour-live .tour-hud { flex-direction: column; align-items: stretch; gap: .9rem; }
+  .tour-steps { width: 100%; }
+  .tour-live .tour-end { bottom: 8.6rem; width: calc(100% - 2 * var(--gut)); }
+  .tour-live .tour-end .btn { display: flex; width: 100%; min-height: 3.6rem; font-size: 1.5rem; }
+  .tl { --ln: 1.4rem; }
+  .tl span { padding: .36rem .6rem .28rem; font-size: 1.02rem; }
+  .tour-lista { padding-block: 3rem; }
+}
+@media (prefers-reduced-motion: reduce) { .tour-cue svg { animation: none; } }
 
 /* ---------- Benessere a 360°: nutrizionista, osteopata, fisioterapista. Dopo il finale, prima di Instagram ---------- */
 .team { position: relative; z-index: 28; border-top: 1px solid var(--line); background: radial-gradient(75% 42% at 50% 58%, rgba(232, 96, 40, .1), transparent 70%), var(--bg); }
@@ -263,7 +332,7 @@ body:not(.is-live) .top { position: absolute; }
   #hero { flex-direction: column; align-items: stretch; justify-content: flex-end; }
   .enter { position: static; transform: none; margin-top: 1.4rem; }
   .enter .btn { display: flex; width: 100%; min-height: 3.6rem; font-size: 1.5rem; }
-  h1 { font-size: clamp(2.6rem, 13vw, 3.8rem); }
+  h1, #hero h2 { font-size: clamp(2.6rem, 13vw, 3.8rem); }
   h2 { font-size: clamp(2.2rem, 11vw, 3.3rem); }
   .finale h2 { font-size: clamp(1.9rem, 9.4vw, 2.8rem); }
   .lead { margin-top: .9rem; font-size: 1rem; }
@@ -292,7 +361,7 @@ body:not(.is-live) .top { position: absolute; }
   .where { margin-top: 1.2rem; font-size: .85rem; }
 }
 @media (max-height: 560px) and (min-width: 761px) {
-  h1 { font-size: clamp(2.4rem, 8vh, 4rem); }
+  h1, #hero h2 { font-size: clamp(2.4rem, 8vh, 4rem); }
   h2 { font-size: clamp(2.2rem, 7.5vh, 3.6rem); }
 }
 @media (prefers-reduced-motion: reduce) { .enter svg, .loader i::after { animation: none; } }
